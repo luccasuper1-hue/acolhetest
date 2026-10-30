@@ -5,21 +5,15 @@ import { professionals } from "../data";
 
 const PAGES = [
   ["Quero conversar", "/entrar"],
-  ["Escolher um assunto", "/app/assunto"],
-  ["Ver profissionais", "/app/profissionais"],
-  ["Suas conversas · agenda", "/app/agenda"],
-  ["Minha jornada", "/app/jornada"],
   ["Como funciona", "/como-funciona"],
   ["Para estudantes", "/para-estudantes"],
   ["Para profissionais", "/profissionais"],
   ["Para instituições", "/instituicoes"],
-  ["Painel institucional demonstrativo", "/instituicoes/painel"],
   ["Recursos e conteúdo", "/recursos"],
   ["Central de ajuda", "/ajuda"],
   ["Privacidade", "/privacidade"],
   ["Termos do protótipo", "/termos"],
   ["Preciso de ajuda agora", "/preciso-ajuda"],
-  ["Entrar na demonstração", "/login"],
 ];
 
 export const CommandPalette = () => {

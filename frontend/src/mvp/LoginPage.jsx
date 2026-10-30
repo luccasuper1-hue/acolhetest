@@ -53,7 +53,6 @@ export default function LoginPage() {
         <div className="mvp-auth-foot">
           <Link to="/recuperar-senha" data-testid="login-to-forgot">Esqueci minha senha</Link>
           <Link to="/cadastro" data-testid="login-to-register">Sou estudante e quero criar minha conta</Link>
-          <Link to="/login-demo" data-testid="login-to-demo">Ver a experiência demonstrativa do protótipo</Link>
           <Link to="/" className="back-link" data-testid="login-back-home"><ChevronLeft size={15} /> Voltar para a Home</Link>
         </div>
       </section>

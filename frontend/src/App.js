@@ -222,6 +222,10 @@ const REVEAL_SELECTORS = ["main .section:not(.hero) > *", "main .section-heading
 function useScrollReveal() {
   const location = useLocation();
   useEffect(() => {
+    const demoPath = location.pathname === "/login-demo" || location.pathname === "/profissional-dashboard" || location.pathname === "/instituicoes/painel" || location.pathname === "/app" || location.pathname.startsWith("/app/");
+    if (demoPath) window.location.replace("/entrar");
+  }, [location.pathname]);
+  useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const observer = new IntersectionObserver(entries => {
       entries.forEach(entry => {
