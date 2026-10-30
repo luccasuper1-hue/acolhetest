@@ -1,0 +1,113 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --ink:#332b45;
+  --muted:#766d84;
+  --lavender:#eee9fb;
+  --purple:#7254ad;
+  --deep:#4c347c;
+  --mint:#d9f2e9;
+  --paper:#fcfbf8;
+  --line:#e4deea;
+  --peach:#f8e5dd;
+  --blue:#e2eff5;
+  --radius:12px;
+  /* Escala de raios — linguagem "arredondar sem infantilizar" */
+  --r-xs:10px;   /* elementos pequenos: tags, chips internos */
+  --r-sm:14px;   /* inputs, opções, linhas */
+  --r-md:18px;   /* campos e cards médios */
+  --r-lg:24px;   /* cards principais */
+  --r-xl:32px;   /* grandes containers / hero */
+  --r-pill:999px; /* CTAs em cápsula */
+  /* Sombras difusas — profundidade percebida, não exibida */
+  --shadow-xs:0 1px 3px rgba(76,52,124,.05);
+  --shadow-sm:0 4px 14px -3px rgba(76,52,124,.08);
+  --shadow-md:0 14px 34px -16px rgba(76,52,124,.16);
+  --shadow-lg:0 30px 70px -30px rgba(76,52,124,.26);
+  --ring:0 0 0 4px rgba(114,84,173,.15);
+  --ease:cubic-bezier(.22,.68,.32,1);
+  --t-fast:160ms;
+  --t:220ms;
+  /* Camada semântica — permite uma segunda interpretação (noturna) da mesma identidade */
+  --surface:#ffffff;
+  --surface-2:#faf8ff;
+  --surface-3:#f3effa;
+  --glass:rgba(255,255,255,.72);
+  --brand:#4c347c;
+  --brand-strong:#573d8b;
+  --on-brand:#ffffff;
+  --mint-ink:#4c967f;
+  --peach-ink:#ce8069;
+  --blue-ink:#6095ae;
+  --faint:#9b91a4;
+}
+
+/* ---------- Modo noturno: ameixa profunda, lilás pastel, mint discreto ---------- */
+html[data-theme="dark"] {
+  --ink:#f2ece5;
+  --muted:#b0a3c2;
+  --lavender:rgba(183,155,239,.16);
+  --purple:#bfa4f2;
+  --deep:#e7dcfa;
+  --mint:rgba(126,214,185,.14);
+  --paper:#191322;
+  --line:rgba(238,230,255,.12);
+  --peach:rgba(240,178,150,.14);
+  --blue:rgba(146,199,224,.14);
+  --shadow-xs:0 1px 3px rgba(0,0,0,.28);
+  --shadow-sm:0 6px 18px -8px rgba(0,0,0,.45);
+  --shadow-md:0 18px 40px -22px rgba(0,0,0,.6);
+  --shadow-lg:0 34px 76px -34px rgba(0,0,0,.7);
+  --ring:0 0 0 4px rgba(191,164,242,.22);
+  --surface:#221a2f;
+  --surface-2:#281f38;
+  --surface-3:rgba(255,255,255,.07);
+  --glass:rgba(255,255,255,.055);
+  --brand:#7a5cc0;
+  --brand-strong:#8e6fd4;
+  --on-brand:#ffffff;
+  --mint-ink:#8fdcc0;
+  --peach-ink:#f0b193;
+  --blue-ink:#93c8e2;
+  --faint:#9c90b0;
+}
+
+/* Microanimação da troca de tema — sem piscar, sem recarregar */
+html.theme-anim, html.theme-anim *, html.theme-anim *::before, html.theme-anim *::after {
+  transition: background-color 320ms var(--ease), border-color 320ms var(--ease), color 320ms var(--ease), box-shadow 320ms var(--ease), fill 320ms var(--ease) !important;
+}
+
+* { box-sizing:border-box; }
+html { scroll-behavior:smooth; overflow-x:hidden; }
+body {
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:'DM Sans', sans-serif;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+  overflow-x:hidden;
+}
+button, input, textarea, select { font:inherit; }
+button { cursor:pointer; }
+button:disabled { cursor:not-allowed; opacity:.55; }
+a { color:inherit; text-decoration:none; }
+
+::selection { background:#e0d3f6; color:var(--deep); }
+html[data-theme="dark"] ::selection { background:rgba(191,164,242,.32); color:#fff; }
+html[data-theme="dark"] ::-webkit-scrollbar-thumb { background:#3b3050; border-color:var(--paper); }
+html[data-theme="dark"] ::-webkit-scrollbar-thumb:hover { background:#4c3f66; }
+
+:focus-visible { outline:none; box-shadow:var(--ring); }
+
+::-webkit-scrollbar { width:10px; height:10px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:#d9d0e6; border-radius:999px; border:2px solid var(--paper); }
+::-webkit-scrollbar-thumb:hover { background:#c3b3da; }
+
+@media (prefers-reduced-motion:reduce) {
+  html { scroll-behavior:auto; }
+  *, *::before, *::after { animation-duration:.01ms !important; transition-duration:.01ms !important; }
+}

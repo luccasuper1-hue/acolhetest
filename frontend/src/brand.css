@@ -1,0 +1,70 @@
+/* ============================================================
+   ACOLHE — aplicação da marca
+   O símbolo (dois lobos + ponto de partida) substitui o glifo "⌁".
+   Camada carregada por último: ajusta os contêineres que existiam
+   para o glifo sem reescrever App.css.
+   ============================================================ */
+
+.brand-mark { display: block; flex: none; }
+
+/* ---------- Logo do header e do rodapé ---------- */
+.logo-mark {
+  background: none;
+  box-shadow: none;
+  transform: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 0;
+  overflow: visible;
+}
+.logo:hover .logo-mark { transform: scale(1.06) rotate(-3deg); }
+.logo:active .logo-mark { transform: scale(.97); }
+.logo-mark .brand-mark { filter: drop-shadow(0 5px 10px rgba(76, 52, 124, .28)); }
+html[data-theme="dark"] .logo-mark .brand-mark { filter: drop-shadow(0 5px 12px rgba(0, 0, 0, .55)); }
+
+/* ---------- Logo flutuante do canto ---------- */
+/* O símbolo é roxo: o corpo deixa de ser roxo sólido para a marca respirar. */
+.corner-logo,
+.corner-logo-body {
+  background: var(--surface);
+  border-color: var(--line);
+}
+.corner-logo-body::after {
+  background: radial-gradient(circle at 30% 24%, rgba(255, 255, 255, .85), transparent 66%);
+  opacity: .5;
+}
+html[data-theme="dark"] .corner-logo,
+html[data-theme="dark"] .corner-logo-body {
+  background: var(--surface-2);
+  border-color: rgba(255, 255, 255, .12);
+}
+html[data-theme="dark"] .corner-logo-body::after {
+  background: radial-gradient(circle at 30% 24%, rgba(255, 255, 255, .16), transparent 66%);
+}
+.corner-logo-mark {
+  transform: none;
+  display: grid;
+  place-items: center;
+}
+.corner-logo:hover .corner-logo-mark,
+.corner-logo:focus-visible .corner-logo-mark { transform: scale(1.08); }
+.corner-logo:hover .corner-logo-body,
+.corner-logo:focus-visible .corner-logo-body {
+  box-shadow: 0 18px 34px -12px rgba(76, 52, 124, .4), 0 0 0 5px rgba(238, 233, 251, .9);
+}
+html[data-theme="dark"] .corner-logo:hover .corner-logo-body,
+html[data-theme="dark"] .corner-logo:focus-visible .corner-logo-body {
+  box-shadow: 0 18px 34px -12px rgba(0, 0, 0, .7), 0 0 0 5px rgba(191, 164, 242, .16);
+}
+
+/* ---------- Wordmark "acolhe" (janela do hero, resumo da jornada) ---------- */
+.window-mark {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: -2px;
+  margin-left: 3px;
+}
+
+/* ---------- Avatar do app ---------- */
+.app-avatar { overflow: hidden; }
+.app-avatar .brand-mark { filter: drop-shadow(0 3px 7px rgba(76, 52, 124, .22)); }

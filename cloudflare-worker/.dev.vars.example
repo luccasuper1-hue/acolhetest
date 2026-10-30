@@ -1,0 +1,11 @@
+# Copie para .dev.vars apenas para testes locais com um banco Atlas de desenvolvimento.
+# Nunca use credenciais de produção e nunca envie .dev.vars para Git.
+MONGO_URL="mongodb+srv://USER:PASSWORD@CLUSTER.mongodb.net/?retryWrites=true&w=majority"
+DB_NAME="acolhe_dev"
+JWT_SECRET="substitua-por-um-segredo-aleatorio-com-32-ou-mais-caracteres"
+FRONTEND_URL="http://localhost:8787"
+APP_ENV="development"
+PILOT_RETURN_RESET_TOKEN="false"
+# Opcional: adaptador HTTPS que recebe POST com to, subject, text e Authorization Bearer.
+# RESET_EMAIL_WEBHOOK_URL="https://email-adapter.example/send"
+# RESET_EMAIL_WEBHOOK_TOKEN="segredo-do-adaptador"

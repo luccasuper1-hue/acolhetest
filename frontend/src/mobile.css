@@ -1,0 +1,312 @@
+/* ============================================================
+   ACOLHE — Camada MOBILE dedicada
+   Carregada por último (depois de App.css, institutional.css,
+   theme-dark.css e brand.css). Não toca em nada acima de 1025px:
+   o desktop permanece exatamente como está.
+
+   Estratégia de breakpoints:
+     ≤1024px  tablet largo / laptop pequeno (ajustes leves)
+     ≤850px   base mobile já existente (refinada aqui)
+     ≤768px   tablet retrato
+     ≤600px   transição para celular
+     ≤480px   celulares grandes
+     ≤390px   celulares compactos (largura crítica)
+
+   Regra: desktop = preservar · mobile = densidade, legibilidade,
+   fluxo. Alturas naturais, sem min-height/height fixos herdados
+   da composição desktop.
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   ≤1024px — ajustes leves (layout ainda é o desktop)
+   ------------------------------------------------------------ */
+@media (max-width: 1024px) and (min-width: 851px) {
+  .section { padding: 96px 24px; }
+  .hero { gap: 44px; min-height: 560px; }
+  .hero h1 { font-size: clamp(42px, 4.6vw, 58px); }
+  .split-section { gap: 56px; }
+  .form-section { gap: 48px; }
+}
+
+/* ------------------------------------------------------------
+   ≤850px — base mobile refinada
+   (header compacto, seções mais densas, grids de 2 colunas
+   mantidos apenas onde o conteúdo é curto)
+   ------------------------------------------------------------ */
+@media (max-width: 850px) {
+  /* Header compacto */
+  .site-header { height: 66px; }
+  .nav-wrap { padding: 0 18px; gap: 12px; }
+  /* Botão de fechar sempre acima do drawer aberto */
+  .mobile-menu { position: relative; z-index: 30; }
+  .logo { font-size: 21px; }
+  .logo-mark, .logo-mark .brand-mark { width: 26px; height: 26px; }
+  .header-cta { padding: 12px 17px; }
+
+  /* Ritmo vertical das seções: de 75px para algo proporcional */
+  .section { padding: 62px 20px; }
+  .info-hero { padding-top: 72px; padding-bottom: 56px; }
+  .cta-inner { padding-top: 56px; padding-bottom: 56px; }
+  .footer { padding: 40px 20px 22px; }
+
+  /* Hero: texto primeiro, conjunto centrado, mockup contido */
+  .hero {
+    gap: 38px;
+    padding-top: 52px;
+    padding-bottom: 58px;
+    justify-items: center;
+    text-align: center;
+  }
+  .hero .eyebrow { justify-content: center; margin-bottom: 20px; }
+  .hero-lead { margin-left: auto; margin-right: auto; }
+  .hero-actions { justify-content: center; margin: 28px 0 16px; }
+  .hero .mini-note { justify-content: center; }
+
+  /* Mockup do produto: escala reduzida e centralizado —
+     nunca empurra a página centenas de pixels para baixo */
+  .hero-product {
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto;
+    padding: 26px 22px 18px;
+    border-radius: 30px;
+  }
+  .hero-product::after { inset: 12px -10px -10px 10px; border-radius: 30px; }
+  .product-window { padding: 20px 18px; border-radius: 22px; }
+  .product-question { padding: 24px 2px 14px; }
+  .product-question h3 { font-size: 23px; }
+  .demo-option { padding: 13px 14px; }
+
+  /* Brilhos decorativos: menores, nunca disputam espaço */
+  .hero::before { width: 240px; height: 240px; left: -130px; top: -70px; }
+  .hero::after { width: 190px; height: 190px; right: -40px; bottom: -30px; }
+
+  /* Cards internos mais densos */
+  .path-focus { padding: 22px 20px; }
+  .between-node { padding: 20px 18px; }
+  .model-card { padding: 24px 20px; }
+  .quote-panel { padding: 42px 32px; }
+  .mood-band { padding: 26px 22px; }
+  .next-session { padding: 20px; margin: 36px 0 40px; }
+  .professional-card { padding: 20px; }
+  .calendar-panel, .payment-panel { padding: 22px 18px; }
+  .booking-box, .summary-box { padding: 22px 20px; }
+
+  /* App: entrada mais próxima do topo */
+  .app-main { padding: 34px 20px 56px; }
+  .app-greeting h1 { font-size: 36px; letter-spacing: -1.7px; }
+  .flow-heading h1 { font-size: 38px; }
+  .flow-heading { margin-bottom: 28px; }
+  .profile-grid { gap: 36px; }
+  .confirmation-main h1, .post-main h1 { font-size: 42px; }
+  .agenda-head h1 { font-size: 36px; }
+
+  /* Formulários e faixas de largura total respeitam as margens */
+  .compare-band, .urgent-band, .emergency-reassurance, .future-band {
+    padding-left: 20px; padding-right: 20px;
+  }
+  .form-section { padding-left: 20px; padding-right: 20px; gap: 34px; }
+
+  /* Toque confortável em qualquer celular/tablet */
+  .button { min-height: 48px; }
+  .button.small { min-height: 40px; }
+
+  /* Sessão demonstrativa: palco proporcional */
+  .video-stage { margin: 34px auto 20px; }
+}
+
+/* ------------------------------------------------------------
+   ≤768px — tablet retrato
+   ------------------------------------------------------------ */
+@media (max-width: 768px) {
+  .section { padding: 56px 20px; }
+  .section h2 { letter-spacing: -1.2px; }
+  .hero h1 { font-size: 42px; letter-spacing: -2.1px; }
+  .info-hero h1 { font-size: 40px; letter-spacing: -2px; }
+  .info-hero { padding-top: 64px; padding-bottom: 50px; }
+  .brand-quote { font-size: 23px; }
+  blockquote { font-size: 26px; }
+  .split-section { gap: 34px; }
+  .emergency-hero { padding-top: 56px; }
+  .app-greeting h1 { font-size: 33px; }
+  .flow-heading h1 { font-size: 34px; }
+  .agenda-head h1 { font-size: 33px; }
+  .profile-hero h1 { font-size: 34px; }
+  .profile-hero { padding-bottom: 32px; gap: 18px; }
+  .pro-avatar.large { width: 72px; height: 72px; font-size: 22px; border-radius: 24px; }
+  .profile-main > .back-link { margin-bottom: 34px; }
+  .confirmation-main h1, .post-main h1 { font-size: 38px; }
+  .journey-doc h2 { font-size: 29px; }
+  .login-card h1 { font-size: 36px; }
+  .notfound-copy h1 { font-size: 40px; }
+  .onboarding { padding: 18px; }
+}
+
+/* ------------------------------------------------------------
+   ≤600px — celular: grids viram UMA coluna de verdade.
+   Nada de empilhar mantendo dimensões de desktop.
+   ------------------------------------------------------------ */
+@media (max-width: 600px) {
+  .category-grid { grid-template-columns: 1fr; gap: 10px; }
+  .category-card {
+    min-height: 0;
+    padding: 17px 18px;
+    flex-direction: row;
+    align-items: center;
+    gap: 14px;
+  }
+  .category-card > svg { align-self: center; margin-left: auto; }
+  .category-icon { width: 42px; height: 42px; }
+
+  .steps-grid { grid-template-columns: 1fr; gap: 0; }
+  .step { flex-direction: row; align-items: flex-start; gap: 14px; padding: 20px 0; }
+  .step > div { flex: 1; }
+  .step > svg { margin-top: 4px; }
+
+  .app-categories .category-card { min-height: 0; }
+  .time-grid { grid-template-columns: repeat(3, 1fr); }
+  .duration-choice { grid-template-columns: 1fr 1fr; }
+
+  .hero-product { max-width: 380px; }
+  .acolhe-mark-hero { inset: -4% -3% -7% -5%; }
+
+  .dashboard-stats { grid-template-columns: repeat(3, 1fr); gap: 7px; }
+  .dashboard-stats div { padding: 14px 10px; border-radius: 18px; }
+  .dashboard-stats strong { font-size: 22px; }
+  .dashboard-stats span { font-size: 9.5px; }
+
+  .fake-qr { width: 108px; height: 108px; }
+  .confirm-actions .button { flex: 1; }
+}
+
+/* ------------------------------------------------------------
+   ≤480px — celulares grandes (414/480): headline com quebra
+   elegante, cards com padding reduzido, densidade maior
+   ------------------------------------------------------------ */
+@media (max-width: 480px) {
+  .section { padding: 50px 20px; }
+  .hero { padding-top: 42px; padding-bottom: 50px; gap: 34px; }
+  .hero h1 { font-size: 38px; line-height: 1.06; letter-spacing: -1.9px; margin-bottom: 18px; }
+  .hero-lead { font-size: 16px; line-height: 1.6; }
+  .hero-actions { gap: 10px; margin: 26px 0 14px; }
+  .hero-actions .button { flex: 1; min-height: 52px; }
+  .hero-actions .button.quiet { flex: 0 1 auto; }
+
+  .hero-product { padding: 20px 16px 14px; border-radius: 26px; }
+  .hero-product::after { inset: 9px -8px -8px 8px; border-radius: 26px; }
+  .product-window { padding: 17px 15px; border-radius: 19px; }
+  .product-top { padding-bottom: 13px; }
+  .product-question { padding: 18px 2px 12px; }
+  .product-question h3 { font-size: 21px; }
+  .demo-options { gap: 8px; }
+  .demo-option { padding: 12px 13px; font-size: 12.5px; }
+  .product-caption { padding-top: 13px; }
+
+  .section h2 { font-size: clamp(26px, 7.4vw, 32px); }
+  .info-hero { padding-top: 54px; padding-bottom: 44px; }
+  .info-hero h1 { font-size: 34px; letter-spacing: -1.6px; }
+  .info-hero .hero-lead { font-size: 15.5px; margin-bottom: 24px; }
+  .info-point { padding: 26px 0; }
+  .info-point h2 { font-size: 21px; }
+
+  .pathway { margin-top: 40px; }
+  .between-band h2 { margin-bottom: 38px; }
+  .between-flow { margin: 24px 0 40px; }
+  .brand-quote { font-size: 20px; padding-left: 18px; }
+  .quote-panel { padding: 34px 24px; border-radius: 24px; }
+  blockquote { font-size: 23px; margin: 14px 0 22px; }
+  .quote-mark { font-size: 54px; }
+
+  .cta-inner h2 { font-size: 30px; }
+  .cta-inner { padding-top: 48px; padding-bottom: 48px; gap: 20px; }
+
+  .app-main { padding: 28px 20px 52px; }
+  .app-greeting h1 { font-size: 30px; letter-spacing: -1.4px; }
+  .app-greeting p { font-size: 13.5px; }
+  .mood-band { padding: 22px 18px; border-radius: 22px; margin: 24px 0 24px; gap: 15px; }
+  .mood-band h2 { font-size: 22px; }
+  .next-session { margin: 28px 0 32px; border-radius: 20px; }
+  .app-section-title h2 { font-size: 22px; }
+  .flow-heading h1 { font-size: 30px; letter-spacing: -1.3px; }
+  .flow-heading p { font-size: 13.5px; }
+  .flow-steps { margin-bottom: 28px; }
+  .professional-card { padding: 18px 16px; border-radius: 20px; }
+  .professional-card > p { margin: 13px 0 11px; }
+  .calendar-panel, .payment-panel { padding: 20px 15px; border-radius: 22px; }
+  .booking-box, .summary-box { padding: 20px 16px; border-radius: 22px; }
+  .days-row { gap: 5px; margin: 20px 0; }
+  .day { padding: 10px 3px; border-radius: 14px; }
+  .time-grid { grid-template-columns: repeat(2, 1fr); }
+  .profile-hero h1 { font-size: 30px; }
+  .profile-grid { gap: 30px; padding-top: 30px; }
+  .confirmation-main h1, .post-main h1 { font-size: 34px; }
+  .confirmed-card { padding: 6px 20px; margin: 26px 0 20px; }
+  .agenda-head h1 { font-size: 30px; }
+  .agenda-card { padding: 22px 18px; border-radius: 24px; margin: 28px 0 22px; }
+  .agenda-empty { padding: 34px 24px; margin: 28px 0 22px; }
+  .agenda-past { padding: 20px 16px; }
+  .journey-doc { padding: 24px 18px; }
+  .journey-doc h2 { font-size: 26px; }
+  .journey-timeline { padding: 18px 14px; }
+  .journey-node { padding: 16px 16px; gap: 13px; }
+  .login-card { padding: 28px 20px; border-radius: 26px; }
+  .login-card h1 { font-size: 31px; }
+  .login-page { padding: 48px 16px; }
+  .notfound-inner { padding-top: 46px; min-height: 0; }
+  .notfound-copy h1 { font-size: 34px; }
+  .emergency-hero { padding-top: 44px; }
+  .emergency-card { padding: 22px 20px; }
+  .session-main { padding: 16px 14px; }
+  .session-controls { flex-wrap: wrap; }
+
+  /* Onboarding: card compacto, centrado, sem área morta */
+  .onboarding { padding: 14px; }
+  .onboarding-card { padding: 20px 18px 16px; border-radius: 24px; max-height: calc(100dvh - 28px); }
+  .onboarding-body { gap: 20px; padding: 18px 0 18px; }
+  .onboarding-copy h2 { font-size: 24px; letter-spacing: -1px; }
+  .onboarding-copy p { font-size: 13px; }
+  .onboarding-mark { width: 120px; height: 120px; }
+  .onboarding-quote { font-size: 18px; }
+  .onboarding-foot { gap: 12px; padding-top: 16px; }
+
+  .compare-card { padding: 22px 20px; }
+  .urgent-link { padding: 16px; }
+  .resource-card > button { padding: 20px 18px; gap: 12px; }
+  .resource-card > p { padding: 0 18px 22px; }
+  .faq-item button { padding: 16px 15px; }
+  .footer { padding: 34px 20px 20px; }
+  .footer-main { gap: 24px; }
+}
+
+/* ------------------------------------------------------------
+   ≤390px — largura crítica de smartphones:
+   nada encosta nas bordas, tipografia contida, CTA intacto
+   ------------------------------------------------------------ */
+@media (max-width: 390px) {
+  .nav-wrap { padding: 0 14px; gap: 8px; }
+  .header-cta { padding: 11px 13px; font-size: 11px; }
+  .section { padding: 46px 20px; }
+  .hero { padding-top: 38px; }
+  .hero h1 { font-size: 35px; letter-spacing: -1.7px; }
+  .hero-lead { font-size: 15.5px; }
+  .hero-actions .button { min-height: 50px; padding: 14px 18px; font-size: 13px; }
+  .section h2 { font-size: clamp(25px, 7vw, 29px); }
+  .info-hero h1 { font-size: 31px; }
+  .app-greeting h1 { font-size: 28px; }
+  .flow-heading h1 { font-size: 28px; }
+  .confirmation-main h1, .post-main h1 { font-size: 31px; }
+  .mood-chip { padding: 10px 14px; font-size: 12px; }
+  .bottom-nav { left: 10px; right: 10px; bottom: 10px; }
+  .corner-logo { right: 12px; bottom: 82px; }
+}
+
+/* ------------------------------------------------------------
+   Proteção global mobile: nada ultrapassa a viewport
+   ------------------------------------------------------------ */
+@media (max-width: 850px) {
+  .hero-product, .product-window, .quote-panel, .demo-form,
+  .login-card, .lead-form, .journey-doc, .onboarding-card {
+    max-width: 100%;
+  }
+  .tags span, .filter-select { max-width: 100%; }
+}
