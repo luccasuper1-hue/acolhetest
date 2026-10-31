@@ -214,9 +214,9 @@
 }
 .mvp-logo-mark .brand-mark { width: 100%; height: 100%; object-fit: contain; }
 .mvp-entry-card {
-  width: min(100%, 500px);
-  max-width: 500px;
-  padding: 26px 40px;
+  width: min(100%, 496px);
+  max-width: 496px;
+  padding: 21px 40px;
   border-radius: 28px;
   box-shadow: 0 24px 54px -30px rgba(76,52,124,.28);
 }
