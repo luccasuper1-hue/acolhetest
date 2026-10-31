@@ -68,8 +68,17 @@ function CompactHome() {
   </main></MarketingLayout>;
 }
 
+function MvpHome() {
+  return <MarketingLayout><main className="mvp-home">
+    <section className="hero section" data-testid="mvp-home-hero"><div className="hero-copy reveal"><div className="eyebrow"><span className="eyebrow-dot"/> ACESSO AO MVP</div><h1>Um primeiro passo para <em>conversar.</em></h1><p className="hero-lead">O Acolhe organiza o acesso a profissionais de Psicologia pela sua instituição. Entre com sua conta ou crie seu acesso com o código recebido.</p><div className="hero-actions"><Link to="/entrar" className="button primary" data-testid="hero-talk-button">Entrar no Acolhe <ArrowRight size={18}/></Link><Link to="/cadastro" className="button quiet" data-testid="hero-register-button">Criar conta</Link></div><p className="mini-note"><ShieldCheck size={15}/> Piloto institucional · sem atendimento de emergência</p></div><div className="hero-product reveal delay-1"><div className="product-window mvp-entry-card"><div className="product-top"><span className="window-brand">acolhe</span><span className="demo-label">PILOTO</span></div><div className="product-question"><span>ACESSO ORGANIZADO PELA INSTITUIÇÃO</span><h3>Escolha seu próximo passo.</h3><p>Estudantes solicitam conversas; profissionais organizam horários; instituições acompanham o fluxo.</p></div><div className="model-grid"><div className="model-card"><span className="model-tag">Estudante</span><strong>Solicitar uma conversa</strong></div><div className="model-card"><span className="model-tag">Profissional</span><strong>Publicar disponibilidade</strong></div><div className="model-card"><span className="model-tag">Instituição</span><strong>Organizar o apoio</strong></div></div></div></div></section>
+    <section className="section" data-testid="mvp-how-it-works"><div className="section-kicker">Fluxo atual</div><h2>Três papéis, <em>um caminho claro.</em></h2><div className="steps-grid"><div className="step"><span className="step-number">01</span><div><h3>Instituição</h3><p>Cria o ambiente e vincula profissionais.</p></div></div><div className="step"><span className="step-number">02</span><div><h3>Profissional</h3><p>Publica horários e recebe solicitações.</p></div></div><div className="step"><span className="step-number">03</span><div><h3>Estudante</h3><p>Escolhe um horário e solicita uma conversa.</p></div></div></div></section>
+    <section className="section" data-testid="mvp-privacy"><div className="inst-note"><ShieldCheck size={17}/><span><strong>Privacidade e limites.</strong> A instituição não acessa o conteúdo das conversas. O Acolhe não faz diagnóstico e não substitui emergência.</span></div></section>
+    <section className="cta-band"><div className="section cta-inner"><div><div className="section-kicker">Pronto para começar?</div><h2>Acesse pela sua instituição.</h2><p>Use sua conta existente ou crie uma nova com o código institucional.</p></div><Link to="/entrar" className="button light" data-testid="final-talk-button">Entrar no Acolhe <ArrowRight size={18}/></Link></div></section>
+  </main></MarketingLayout>;
+}
+
 function Home() {
-  return <CompactHome/>;
+  return <MvpHome/>;
   const [picked, setPicked] = useState(null);
   const [autoIndex, setAutoIndex] = useState(0);
   const [touched, setTouched] = useState(false);
