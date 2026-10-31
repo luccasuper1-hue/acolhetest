@@ -167,7 +167,7 @@
   padding: 34px 32px 24px;
   border-radius: 36px;
   position: relative;
-  transform: rotate(1.6deg);
+  transform: none;
   box-shadow: var(--shadow-lg);
   overflow: visible;
 }
@@ -190,6 +190,21 @@
 .product-question span { color: var(--purple); font-size: 10px; text-transform: uppercase; letter-spacing: 1.3px; }
 .product-question h3 { font-size: 26px; margin: 8px 0 4px; letter-spacing: -1px; }
 .product-question p { margin: 0; color: var(--muted); font-size: 13px; }
+
+/* Cartão do MVP: foco visual no produto e leitura rápida dos três perfis. */
+.mvp-entry-card { max-width: 560px; }
+.mvp-entry-card .product-question { padding-top: 24px; }
+.mvp-entry-card .product-question p { max-width: 38ch; line-height: 1.6; }
+.mvp-entry-card .model-grid { gap: 12px; }
+.mvp-entry-card .model-card {
+  min-height: 112px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 14px;
+}
+.mvp-entry-card .model-card strong { color: var(--deep); font-size: 16px; line-height: 1.25; }
 .demo-options { display: grid; gap: 9px; }
 .demo-option {
   border: 1.5px solid var(--line); background: #fff;
@@ -1248,7 +1263,7 @@ html.intro-on .hero h1 em { display: inline-block; animation: emIn 900ms var(--e
 @media (prefers-reduced-motion:reduce) {
   .route-fade, .success-check circle, .success-check path, .session-warning, .nav-backdrop { animation: none; }
   .success-check circle, .success-check path { stroke-dashoffset: 0; }
-  .hero-product, .hero::before, .hero::after { transform: rotate(1.6deg); transition: none; }
+  .hero-product, .hero::before, .hero::after { transform: none; transition: none; }
 }
 
 /* ============================================================
