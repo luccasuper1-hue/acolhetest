@@ -776,7 +776,7 @@ html[data-theme="dark"] .app-demo-banner { background: rgba(240,178,150,.12); co
 .acolhe-mark { position: absolute; inset: -10% -8% -12% -14%; pointer-events: none; --px: 0px; --py: 0px; --rx: 0deg; --ry: 0deg; }
 .acolhe-mark-hero { z-index: 0; }
 .acolhe-mark-hero .mark-scene { display: none; }
-.acolhe-mark-hero .hero-brand-image { position: absolute; inset: -26% -26% -28% -26%; width: 152%; height: 154%; object-fit: contain; opacity: .38; filter: drop-shadow(0 34px 38px rgba(76,52,124,.24)) saturate(1.12); transform: translate3d(var(--px),var(--py),0) scale(1.04); transition: transform .8s cubic-bezier(.2,.7,.2,1), opacity var(--t) var(--ease); }
+.acolhe-mark-hero .hero-brand-image { position: absolute; inset: -58% -18% -8% -18%; width: 136%; height: 174%; object-fit: contain; opacity: .9; filter: drop-shadow(0 30px 36px rgba(76,52,124,.22)) saturate(1.08); transform: translate3d(var(--px),var(--py),0) scale(1.08); transition: transform .8s cubic-bezier(.2,.7,.2,1), opacity var(--t) var(--ease); z-index: 1; }
 .acolhe-mark-small { position: relative; inset: auto; width: 120px; height: 120px; margin: 0 auto 12px; pointer-events: none; }
 .mark-scene { position: absolute; inset: 0; perspective: 900px; transform-style: preserve-3d; transform: translate3d(var(--px),var(--py),0) rotateX(var(--rx)) rotateY(var(--ry)); transition: transform .8s cubic-bezier(.2,.7,.2,1); animation: markBreathe 8s ease-in-out infinite; }
 .blob { position: absolute; border-radius: 60% 40% 55% 45% / 50% 60% 40% 50%; filter: blur(.2px); }
@@ -872,6 +872,7 @@ html[data-theme="dark"] .app-demo-banner { background: rgba(240,178,150,.12); co
   .hero-product { transform: none; border-radius: 30px; }
   .hero-product::after { border-radius: 30px; }
   .acolhe-mark-hero { inset: -6% -4% -8% -6%; }
+  .acolhe-mark-hero .hero-brand-image { inset: -34% -8% -8% -8%; width: 116%; height: 144%; }
   .mark-scene { animation-duration: 12s; }
 }
 
