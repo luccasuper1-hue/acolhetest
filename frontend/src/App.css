@@ -1182,8 +1182,8 @@ html.intro-on .hero h1 em { display: inline-block; animation: emIn 900ms var(--e
 @keyframes emIn { from { opacity: 0; transform: translateY(10px); filter: blur(6px); } to { opacity: 1; transform: none; filter: none; } }
 
 /* Microparallax do mockup (desktop, sem reduced motion) */
-.hero-product { transform: rotate(1.6deg) translate3d(var(--hero-px,0px), var(--hero-py,0px), 0); transition: transform 620ms var(--ease); }
-.hero::before, .hero::after { transform: translate3d(calc(var(--hero-px,0px) * -1.6), calc(var(--hero-py,0px) * -1.6), 0); transition: transform 900ms var(--ease); }
+.hero-product { transform: rotate(1.6deg); transition: none; }
+.hero::before, .hero::after { transform: none; transition: none; }
 
 /* Navegação: indicador sutil + menu mobile elegante */
 .nav-links a { position: relative; }
