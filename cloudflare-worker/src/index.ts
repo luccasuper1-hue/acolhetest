@@ -1,6 +1,9 @@
 export { MongoGateway } from "./db";
 import { apiRoute } from "./routes";
 
+// Keep the worker entry in the deployment diff when frontend copy changes;
+// runtime behavior is intentionally unchanged.
+
 export interface Env {
   /** Secrets are configured only at publication time; never commit their values. */
   MONGO_URL: string;
