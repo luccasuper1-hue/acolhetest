@@ -47,16 +47,15 @@ export default function ProfessionalArea() {
       testid="professional-area"
       kicker="Área do profissional"
       title={<>Sua agenda no <em>piloto.</em></>}
-      lead="Publique horários, receba solicitações e registre o desfecho operacional de cada conversa."
+      lead="Publique horários, responda solicitações e registre o desfecho de cada conversa."
     >
       <div className="mvp-kpis">
-        <MvpKpi label="Solicitações aguardando" value={pending.length} testid="pro-kpi-pending" />
-        <MvpKpi label="Conversas agendadas" value={scheduled.length} testid="pro-kpi-scheduled" />
-        <MvpKpi label="Conversas realizadas" value={completed.length} testid="pro-kpi-completed" />
-        <MvpKpi label="Horários abertos" value={availability.filter(a => a.status === "open").length} testid="pro-kpi-open-slots" />
+        <MvpKpi label="Solicitações pendentes" value={pending.length} testid="pro-kpi-pending" />
+        <MvpKpi label="Próximas conversas" value={scheduled.length} testid="pro-kpi-scheduled" />
+        <MvpKpi label="Horários disponíveis" value={availability.filter(a => a.status === "open").length} testid="pro-kpi-open-slots" />
       </div>
 
-      <MvpCard title="Definir disponibilidade" subtitle="Horários abertos ficam visíveis apenas para estudantes da sua instituição." testid="pro-availability-card">
+      <MvpCard title="Definir disponibilidade" subtitle="Horários publicados ficam visíveis aos estudantes da instituição." testid="pro-availability-card">
         <div className="mvp-inline-form">
           <label>Data
             <input type="date" value={date} onChange={e => setDate(e.target.value)} data-testid="availability-date-input" />
@@ -92,7 +91,7 @@ export default function ProfessionalArea() {
         </div>
       </MvpCard>
 
-      <MvpCard title="Solicitações recebidas" subtitle="Motivo geral informado pelo estudante — sem triagem clínica." testid="pro-requests-card">
+      <MvpCard title="Solicitações recebidas" subtitle="Motivo geral informado pelo estudante." testid="pro-requests-card">
         {!pending.length && <MvpEmpty testid="pro-requests-empty">Nenhuma solicitação aguardando.</MvpEmpty>}
         {pending.map(r => (
           <div className="mvp-row" key={r.id} data-testid={`pro-request-${r.id}`}>
@@ -111,7 +110,7 @@ export default function ProfessionalArea() {
         ))}
       </MvpCard>
 
-      <MvpCard title="Próximas conversas" subtitle="Cole o link da sala externa (Meet, Zoom) e marque como realizada ao final." testid="pro-sessions-card">
+      <MvpCard title="Próximas conversas" subtitle="Adicione o link da sala e marque ao finalizar." testid="pro-sessions-card">
         {!scheduled.length && <MvpEmpty testid="pro-sessions-empty">Nenhuma conversa agendada.</MvpEmpty>}
         {scheduled.map(s => (
           <div className="mvp-row" key={s.id} style={{ display: "block" }} data-testid={`pro-session-${s.id}`}>
@@ -127,7 +126,7 @@ export default function ProfessionalArea() {
               </div>
             </div>
             <div className="mvp-inline-form" style={{ marginTop: 12 }}>
-              <label>Link da sala (externo · provisório no piloto)
+              <label>Link da sala
                 <input placeholder="https://meet.google.com/…" value={links[s.request_id] ?? s.room_link ?? ""}
                   onChange={e => setLinks(l => ({ ...l, [s.request_id]: e.target.value }))}
                   data-testid={`room-link-input-${s.id}`} />
@@ -140,7 +139,7 @@ export default function ProfessionalArea() {
         ))}
       </MvpCard>
 
-      <MvpCard title="Conversas realizadas e encaminhamentos" subtitle="Registro operacional simples — sem prontuário clínico." testid="pro-completed-card">
+      <MvpCard title="Conversas realizadas" subtitle="Registro operacional simples, sem prontuário clínico." testid="pro-completed-card">
         {!completed.length && <MvpEmpty testid="pro-completed-empty">Nenhuma conversa realizada ainda.</MvpEmpty>}
         {completed.map(s => (
           <div className="mvp-row" key={s.id} style={{ display: "block" }} data-testid={`pro-completed-${s.id}`}>

@@ -53,22 +53,18 @@ export default function InstitutionArea() {
       testid="institution-area"
       kicker="Painel institucional · piloto"
       title={<>Utilização agregada, <em>nunca individual.</em></>}
-      lead="Indicadores reais do piloto. A instituição não acessa o conteúdo das conversas nem quem conversou sobre o quê."
+      lead="Indicadores agregados do piloto. O conteúdo das conversas permanece privado."
     >
       <div className="mvp-kpis">
-        <MvpKpi label="Estudantes cadastrados" value={metrics?.students_registered} testid="inst-kpi-students" />
-        <MvpKpi label="Estudantes que acessaram" value={metrics?.students_accessed} note="login efetivo" testid="inst-kpi-accessed" />
-        <MvpKpi label="Ativos (30 dias)" value={metrics?.students_active_30d} testid="inst-kpi-active" />
-        <MvpKpi label="Estudantes que solicitaram" value={metrics?.students_requested} testid="inst-kpi-requesting" />
+        <MvpKpi label="Estudantes" value={metrics?.students_registered} testid="inst-kpi-students" />
+        <MvpKpi label="Profissionais" value={metrics?.professionals_linked} testid="inst-kpi-professionals" />
         <MvpKpi label="Solicitações" value={metrics?.requests_total} testid="inst-kpi-requests" />
         <MvpKpi label="Conversas realizadas" value={metrics?.sessions_completed} testid="inst-kpi-sessions" />
-        <MvpKpi label="Profissionais vinculados" value={metrics?.professionals_linked} note={`${metrics?.professionals_accessed ?? 0} já acessaram`} testid="inst-kpi-professionals" />
-        <MvpKpi label="Encaminhamentos" value={metrics?.referrals_total} testid="inst-kpi-referrals" />
       </div>
       {noData && <MvpEmpty testid="inst-no-data">Sem dados suficientes ainda. Os indicadores aparecem conforme o piloto é utilizado.</MvpEmpty>}
 
       <div className="mvp-grid">
-        <MvpCard title="Solicitações por período" subtitle="Solicitações por mês (dados do piloto)." testid="inst-usage-card">
+        <MvpCard title="Solicitações por período" subtitle="Visão mensal do piloto." testid="inst-usage-card">
           {metrics?.requests_by_month?.length ? metrics.requests_by_month.map(u => (
             <div className="mvp-row" key={u.month} data-testid={`inst-usage-${u.month}`}>
               <div className="mvp-row-main"><strong>{u.month}</strong><span>{u.requests} solicitações</span></div>
@@ -76,7 +72,7 @@ export default function InstitutionArea() {
           )) : <MvpEmpty testid="inst-usage-empty" />}
         </MvpCard>
 
-        <MvpCard title="Situação das solicitações" subtitle="Contagens administrativas, sem conteúdo." testid="inst-status-card">
+        <MvpCard title="Situação das solicitações" subtitle="Contagens administrativas." testid="inst-status-card">
           {metrics ? (
             <>
               <div className="mvp-row"><div className="mvp-row-main"><strong>Aguardando profissional</strong></div><span className="mvp-tag wait">{metrics.requests_pending}</span></div>
@@ -90,7 +86,7 @@ export default function InstitutionArea() {
         </MvpCard>
       </div>
 
-      <MvpCard title="Vincular profissional" subtitle="Você informa o e-mail e o profissional cria a própria senha pelo link do convite. Tipo 1: profissional da instituição (prioritário no piloto). Tipo 2: profissional parceiro da rede Acolhe (futuro)."
+      <MvpCard title="Vincular profissional" subtitle="Informe o e-mail; o profissional cria a própria senha pelo convite."
         testid="inst-invite-card">
         <form className="mvp-inline-form" onSubmit={submitInvite}>
           <label>Nome<input required value={invite.name} onChange={e => setInvite({ ...invite, name: e.target.value })} data-testid="invite-name-input" /></label>
@@ -128,7 +124,7 @@ export default function InstitutionArea() {
           ))}
         </MvpCard>
 
-        <MvpCard title="Estudantes vinculados" subtitle="Apenas informação administrativa: nunca motivos ou conteúdo." testid="inst-students-card">
+        <MvpCard title="Estudantes vinculados" subtitle="Apenas informação administrativa." testid="inst-students-card">
           {!students.length && <MvpEmpty testid="inst-students-empty">Nenhum estudante vinculado ainda.</MvpEmpty>}
           {students.map(s => (
             <div className="mvp-row" key={s.id} data-testid={`inst-student-${s.id}`}>
@@ -143,14 +139,14 @@ export default function InstitutionArea() {
         </MvpCard>
       </div>
 
-      <MvpCard title="Informações da instituição" subtitle={`Código de vínculo dos estudantes: ${institution?.code || "—"} · Plano: piloto (sem cobrança)`} testid="inst-profile-card">
+      <MvpCard title="Informações da instituição" subtitle={`Código de vínculo: ${institution?.code || "—"}`} testid="inst-profile-card">
         <form className="mvp-inline-form" onSubmit={saveProfile}>
           <label>Nome<input value={profile.name} onChange={e => setProfile({ ...profile, name: e.target.value })} data-testid="inst-name-input" /></label>
           <label>E-mail de contato<input type="email" value={profile.contact_email} onChange={e => setProfile({ ...profile, contact_email: e.target.value })} data-testid="inst-email-input" /></label>
           <label>Observação de apoio<input value={profile.support_note} onChange={e => setProfile({ ...profile, support_note: e.target.value })} data-testid="inst-note-input" /></label>
           <button className="button secondary" data-testid="inst-save-button">Salvar</button>
         </form>
-        <p className="mvp-foot-note">Modelo institucional <strong>em validação</strong>: o piloto não tem cobrança e formas de contratação serão definidas depois das evidências.</p>
+        <p className="mvp-foot-note">O piloto está em validação e não tem cobrança.</p>
       </MvpCard>
     </MvpShell>
   );
