@@ -1182,7 +1182,7 @@ html.intro-on .hero h1 em { display: inline-block; animation: emIn 900ms var(--e
 @keyframes emIn { from { opacity: 0; transform: translateY(10px); filter: blur(6px); } to { opacity: 1; transform: none; filter: none; } }
 
 /* Microparallax do mockup (desktop, sem reduced motion) */
-.hero-product { transform: rotate(1.6deg); transition: none; }
+.hero-product { transform: none; transition: none; }
 .hero::before, .hero::after { transform: none; transition: none; }
 
 /* Navegação: indicador sutil + menu mobile elegante */
