@@ -30,6 +30,7 @@ html[data-theme="dark"] .mini-note { color: var(--faint); }
 html[data-theme="dark"] .hero-product { background: linear-gradient(160deg,#241b33 0%,#2a2039 58%,#221a30 100%); box-shadow: var(--shadow-lg); border: 1px solid rgba(255,255,255,.06); }
 html[data-theme="dark"] .hero-product::after { border-color: rgba(255,255,255,.07); }
 html[data-theme="dark"] .hero-product:has(.mvp-entry-card) { background: transparent; border: 0; box-shadow: none; }
+html[data-theme="dark"] .mvp-logo-mark { opacity: .38; }
 html[data-theme="dark"] .product-window { background: rgba(36,27,50,.92); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border: 1px solid rgba(255,255,255,.09); box-shadow: 0 26px 54px -26px rgba(0,0,0,.65); }
 html[data-theme="dark"] .product-window:hover { box-shadow: 0 34px 66px -28px rgba(0,0,0,.7); }
 html[data-theme="dark"] .product-top { border-bottom-color: var(--line); }
