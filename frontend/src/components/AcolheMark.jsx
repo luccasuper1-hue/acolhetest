@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import BrandMark from "./BrandMark";
 
 export default function AcolheMark({ size = "large", parallax = false, label = "Símbolo Acolhe: duas formas orgânicas com um pequeno espaço entre elas" }) {
   const ref = useRef(null);
@@ -31,6 +32,7 @@ export default function AcolheMark({ size = "large", parallax = false, label = "
   return (
     <div ref={ref} className={`acolhe-mark acolhe-mark-${size}`} role="img" aria-label={label} data-testid="acolhe-3d-mark">
       <div className="mark-halo" aria-hidden="true"/>
+      {size === "hero" && <BrandMark size={420} title={label} className="hero-brand-image"/>}
       <div className="mark-scene" aria-hidden="true">
         <div className="blob blob-a"/>
         <div className="blob blob-b"/>
