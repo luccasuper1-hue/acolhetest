@@ -204,8 +204,8 @@
 .mvp-logo-mark {
   position: absolute;
   inset: 50% auto auto 50%;
-  width: 880px;
-  height: 880px;
+  width: 792px;
+  height: 792px;
   transform: translate(-50%, -50%);
   opacity: .44;
   filter: saturate(1.05);
