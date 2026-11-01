@@ -5,7 +5,7 @@ import {
   ShieldCheck, Sparkles, UserRound, Users, X,
 } from "lucide-react";
 import {
-  accessLevels, aiUses, audiences, b2b2cFlow, futureVision, howByAudience, impactIndicators,
+  accessLevels, aiUses, audiences, futureVision, howByAudience, impactIndicators,
   institutionCapabilities, marketSegments, mvpToday, noReplaceCases, plans, proCapabilities,
   referralSteps, studentCan,
 } from "../data-institutional";
@@ -46,20 +46,8 @@ export const AudienceBand = () => (
           </article>
         ))}
       </div>
-      <div className="b2b2c-flow" data-testid="b2b2c-flow">
-        {b2b2cFlow.map((n, i) => (
-          <div key={n.label} style={{ display: "contents" }}>
-            <div className={n.label === "Acolhe" ? "b2b2c-node b2b2c-hub" : "b2b2c-node"}>
-              <span>{n.label}</span>
-              <strong>{n.title}</strong>
-              <small>{n.text}</small>
-            </div>
-            {i < b2b2cFlow.length - 1 && <div className="b2b2c-arrow" aria-hidden="true">→</div>}
-          </div>
-        ))}
-      </div>
       <p className="disclaimer-inline" style={{ marginTop: 26 }}>
-        A Acolhe não substitui psicólogos, psicólogos escolares ou serviços especializados. Ela organiza o acesso e o encaminhamento.
+        A Acolhe organiza o acesso e o encaminhamento; não substitui psicólogos, psicólogos escolares ou serviços especializados.
       </p>
     </div>
   </section>
