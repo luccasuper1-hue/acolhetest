@@ -29,8 +29,6 @@ html[data-theme="dark"] .hero::after { background: radial-gradient(circle at 45%
 html[data-theme="dark"] .mini-note { color: var(--faint); }
 html[data-theme="dark"] .hero-product { background: linear-gradient(160deg,#241b33 0%,#2a2039 58%,#221a30 100%); box-shadow: var(--shadow-lg); border: 1px solid rgba(255,255,255,.06); }
 html[data-theme="dark"] .hero-product::after { border-color: rgba(255,255,255,.07); }
-html[data-theme="dark"] .hero-product:has(.mvp-entry-card) { background: transparent; border: 0; box-shadow: none; }
-html[data-theme="dark"] .mvp-logo-mark { opacity: .38; }
 html[data-theme="dark"] .product-window { background: rgba(36,27,50,.92); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border: 1px solid rgba(255,255,255,.09); box-shadow: 0 26px 54px -26px rgba(0,0,0,.65); }
 html[data-theme="dark"] .product-window:hover { box-shadow: 0 34px 66px -28px rgba(0,0,0,.7); }
 html[data-theme="dark"] .product-top { border-bottom-color: var(--line); }
@@ -43,14 +41,6 @@ html[data-theme="dark"] .demo-option span { background: rgba(255,255,255,.09); c
 html[data-theme="dark"] .demo-option.selected span { background: var(--brand-strong); color: #fff; }
 html[data-theme="dark"] .demo-response { color: var(--mint-ink); }
 html[data-theme="dark"] .product-caption { color: var(--faint); }
-html[data-theme="dark"] .mvp-entry-card .product-question span { color: #d1bdff; }
-html[data-theme="dark"] .mvp-entry-card .product-question p { color: #d8cce8; }
-html[data-theme="dark"] .mvp-entry-card .model-card { background: rgba(255,255,255,.035); border-color: rgba(255,255,255,.14); }
-html[data-theme="dark"] .mvp-entry-card .model-card strong { color: #f7f1ff; }
-html[data-theme="dark"] .mvp-entry-card .model-card:hover { background: rgba(255,255,255,.08); }
-html[data-theme="dark"] .mvp-entry-card .model-card > svg { color: #ede3ff; }
-html[data-theme="dark"] .mvp-entry-card .model-icon { background: rgba(191,164,242,.16); color: #d8c6ff; }
-html[data-theme="dark"] .mvp-entry-card .model-icon.mint { background: rgba(126,214,185,.16); color: #9de0c6; }
 
 /* ---------- Faixas editoriais ---------- */
 html[data-theme="dark"] .problem-band { background: #1e1729; }

@@ -2,10 +2,10 @@
    Marca Acolhe — símbolo oficial (dois lobos + ponto de partida).
    Um único componente para a marca aparecer igual em todo lugar:
    header, rodapé, logo flutuante, wordmarks e avatar do app.
-   A arte vem de um SVG vetorial para permanecer nítida em qualquer escala.
+   A arte vem de public/brand-mark.png (mesma usada nos favicons).
    ============================================================ */
 
-const SRC = `${import.meta.env.BASE_URL}brand-mark.svg`;
+const SRC = `${import.meta.env.BASE_URL}brand-mark.png`;
 
 export const BrandMark = ({ size = 28, className = "", title }) => (
   <img

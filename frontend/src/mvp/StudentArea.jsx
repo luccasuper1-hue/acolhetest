@@ -66,9 +66,9 @@ export default function StudentArea() {
       testid="student-area"
       kicker="Área do estudante"
       title={<>Um primeiro passo, <em>quando você quiser.</em></>}
-      lead="Escolha um horário disponível e conte, se quiser, o motivo geral. O Acolhe não faz diagnóstico."
+      lead="Acesse o Acolhe pela sua instituição. Escolha um horário disponível e conte, se quiser, o motivo geral. O Acolhe não faz diagnóstico."
     >
-      <MvpCard title="Solicitar uma conversa" subtitle="Escolha um horário e, se quiser, um motivo geral." testid="student-request-card">
+      <MvpCard title="Solicitar uma conversa" subtitle="Motivo geral + horário disponível dos profissionais da sua instituição." testid="student-request-card">
         <div className="mvp-form">
           <label>Por que você gostaria de conversar?
             <select value={reason} onChange={e => setReason(e.target.value)} data-testid="reason-select">
@@ -78,7 +78,8 @@ export default function StudentArea() {
           <label>Quer acrescentar algo? (opcional)
             <textarea value={note} onChange={e => setNote(e.target.value)} placeholder="Pode ser do seu jeito." data-testid="reason-note-input" />
             <small style={{ opacity: .68, fontSize: 12 }}>
-              Escreva apenas o necessário. Evite dados sensíveis ou informações de outras pessoas.
+              Escreva apenas o necessário para organizar a conversa. Evite dados sensíveis, endereços ou informações de
+              outras pessoas — você poderá falar com o profissional diretamente.
             </small>
           </label>
         </div>
@@ -109,7 +110,7 @@ export default function StudentArea() {
         </button>
       </MvpCard>
 
-      <MvpCard title="Próximas conversas" subtitle="Você pode cancelar e escolher outro horário." testid="student-upcoming-card">
+      <MvpCard title="Suas próximas conversas" subtitle="Você pode cancelar e escolher outro horário." testid="student-upcoming-card">
         {!upcoming.length && <MvpEmpty testid="student-upcoming-empty">Nenhuma conversa agendada ainda.</MvpEmpty>}
         {upcoming.map(r => (
           <div className="mvp-row" key={r.id} data-testid={`student-request-${r.id}`}>
@@ -130,7 +131,7 @@ export default function StudentArea() {
         ))}
       </MvpCard>
 
-      <MvpCard title="Histórico" subtitle="Orientações operacionais podem aparecer depois da conversa." testid="student-history-card">
+      <MvpCard title="Histórico e orientações" subtitle="Depois da conversa, o profissional pode registrar uma orientação." testid="student-history-card">
         {!history.length && <MvpEmpty testid="student-history-empty">Sem conversas concluídas ainda.</MvpEmpty>}
         {history.map(r => (
           <div className="mvp-row" key={r.id} style={{ display: "block" }} data-testid={`student-history-${r.id}`}>
