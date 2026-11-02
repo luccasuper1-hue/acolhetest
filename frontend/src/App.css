@@ -1241,14 +1241,14 @@ html.intro-complete .hero-product.reveal {
 
 /* Entrada da Home por rota: a opacidade permanece visível desde o primeiro
    frame, mas a composição volta a respirar ao abrir ou retornar à página. */
-.home-route .hero-copy > * { animation: homeEnter 700ms var(--ease) both; }
-.home-route .hero-copy > *:nth-child(1) { animation-delay: 40ms; }
-.home-route .hero-copy > *:nth-child(2) { animation-delay: 100ms; }
-.home-route .hero-copy > *:nth-child(3) { animation-delay: 160ms; }
-.home-route .hero-copy > *:nth-child(4) { animation-delay: 220ms; }
-.home-route .hero-copy > *:nth-child(5) { animation-delay: 280ms; }
-.home-route .hero-product .product-window { animation: homePanelEnter 760ms var(--ease) 120ms both; }
-.home-route .hero-product .product-caption { animation: homeEnter 700ms var(--ease) 260ms both; }
+.home-route.home-return .hero-copy > * { animation: homeEnter 700ms var(--ease) both; }
+.home-route.home-return .hero-copy > *:nth-child(1) { animation-delay: 40ms; }
+.home-route.home-return .hero-copy > *:nth-child(2) { animation-delay: 100ms; }
+.home-route.home-return .hero-copy > *:nth-child(3) { animation-delay: 160ms; }
+.home-route.home-return .hero-copy > *:nth-child(4) { animation-delay: 220ms; }
+.home-route.home-return .hero-copy > *:nth-child(5) { animation-delay: 280ms; }
+.home-route.home-return .hero-product .product-window { animation: homePanelEnter 760ms var(--ease) 120ms both; }
+.home-route.home-return .hero-product .product-caption { animation: homeEnter 700ms var(--ease) 260ms both; }
 @keyframes homeEnter { from { opacity: 1; transform: translateY(18px); } to { opacity: 1; transform: none; } }
 @keyframes homePanelEnter { from { opacity: 1; transform: translateY(18px) scale(.98); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) {
