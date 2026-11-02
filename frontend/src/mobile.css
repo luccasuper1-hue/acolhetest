@@ -386,12 +386,20 @@
    ------------------------------------------------------------ */
 @media (max-width: 390px) {
   .nav-wrap { padding: 0 14px; gap: 8px; }
-  .header-cta { padding: 11px 13px; font-size: 11px; }
+  .header-cta { padding: 10px 11px; font-size: 10px; }
   .section { padding: 46px 20px; }
-  .hero { padding-top: 38px; }
-  .hero h1 { font-size: 35px; letter-spacing: -1.7px; }
-  .hero-lead { font-size: 15.5px; }
-  .hero-actions .button { min-height: 50px; padding: 14px 18px; font-size: 13px; }
+  .hero { padding-top: 14px; padding-bottom: 24px; gap: 14px; }
+  .hero .eyebrow { margin-bottom: 8px; }
+  .hero h1 { font-size: 34px; line-height: 1.04; letter-spacing: -1.7px; }
+  .hero-lead { font-size: 14px; line-height: 1.42; }
+  .hero-actions .button { min-height: 46px; padding: 11px 14px; font-size: 12px; }
+  .hero-product { max-width: 330px; padding: 12px 10px 8px; }
+  .product-window { padding: 12px 10px; }
+  .product-question { padding: 11px 2px 6px; }
+  .product-question h3 { font-size: 18px; }
+  .demo-option { padding: 8px 10px; font-size: 11.5px; }
+  .mvp-role-options .demo-option { min-height: 42px; }
+  .audience-band .audience-card p { -webkit-line-clamp: 4; }
   .section h2 { font-size: clamp(25px, 7vw, 29px); }
   .info-hero h1 { font-size: 31px; }
   .app-greeting h1 { font-size: 28px; }
@@ -402,10 +410,17 @@
   .corner-logo { right: 12px; bottom: 82px; }
 }
 
+@media (max-width: 360px) {
+  .header-cta { display: none; }
+  .nav-wrap { justify-content: space-between; }
+}
+
 /* ------------------------------------------------------------
    Proteção global mobile: nada ultrapassa a viewport
    ------------------------------------------------------------ */
 @media (max-width: 850px) {
+  .skip-link { left: 10px; transform: translateY(-200%); }
+  .skip-link:focus-visible { transform: translateY(0); }
   /* O menu desktop fechado não deve ampliar a página nem aparecer para
      leitores de tela; só o drawer aberto entra no layout. */
   .nav-wrap > .nav-links:not(.open) {
