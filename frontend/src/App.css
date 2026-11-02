@@ -1501,7 +1501,7 @@ html.intro-on .hero h1 em { display: inline-block; animation: emIn 900ms var(--e
   .nav-drawer-head .logo { display: flex; }
   .nav-drawer-actions { position: relative; display: flex; align-items: center; gap: 8px; }
   .nav-drawer-actions .theme-toggle { position: static; }
-  .nav-drawer-actions .theme-menu { position: absolute; top: 50px; right: 48px; left: auto; width: min(178px, calc(100vw - 40px)); min-width: 0; }
+  .nav-drawer-actions .theme-menu { position: absolute; top: 50px; right: 0; left: auto; width: min(178px, calc(100vw - 40px)); min-width: 0; }
   .nav-drawer-close { display: grid; place-items: center; width: 40px; height: 40px; border: 1px solid var(--line); border-radius: 50%; background: var(--lavender); color: var(--deep); }
   .nav-drawer-close:hover { background: var(--surface-3); }
   .nav-links a::after { display: none; }
