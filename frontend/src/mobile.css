@@ -361,6 +361,14 @@
    Proteção global mobile: nada ultrapassa a viewport
    ------------------------------------------------------------ */
 @media (max-width: 850px) {
+  /* O menu desktop fechado não deve ampliar a página nem aparecer para
+     leitores de tela; só o drawer aberto entra no layout. */
+  .nav-wrap > .nav-links:not(.open) {
+    display: none;
+  }
+  .nav-wrap > .nav-links.open {
+    display: flex;
+  }
   .hero-product, .product-window, .quote-panel, .demo-form,
   .login-card, .lead-form, .journey-doc, .onboarding-card {
     max-width: 100%;
