@@ -10,6 +10,15 @@ export const api = axios.create({
 });
 
 api.interceptors.request.use(config => {
+  // The API enforces JSON Content-Type on state-changing requests, including
+  // action endpoints that intentionally carry no body (accept, decline,
+  // complete, toggle-active). Axios omits the header when data is undefined.
+  if (["post", "put", "patch", "delete"].includes(String(config.method || "").toLowerCase())) {
+    const headers = config.headers || {};
+    const hasContentType = Object.keys(headers).some(key => key.toLowerCase() === "content-type");
+    if (!hasContentType) headers["Content-Type"] = "application/json";
+    config.headers = headers;
+  }
   return config;
 });
 
