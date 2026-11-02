@@ -48,12 +48,13 @@ export default function ProfessionalArea() {
       kicker="Área do profissional"
       title={<>Sua agenda no <em>piloto.</em></>}
       lead="Publique horários, receba solicitações e registre o desfecho operacional de cada conversa."
+      flow={["Publique horários", "Receba solicitações", "Registre o desfecho"]}
     >
       <div className="mvp-kpis">
         <MvpKpi label="Solicitações aguardando" value={pending.length} testid="pro-kpi-pending" />
         <MvpKpi label="Conversas agendadas" value={scheduled.length} testid="pro-kpi-scheduled" />
         <MvpKpi label="Conversas realizadas" value={completed.length} testid="pro-kpi-completed" />
-        <MvpKpi label="Horários abertos" value={availability.filter(a => a.status === "open").length} testid="pro-kpi-open-slots" />
+        <MvpKpi label="Horários disponíveis" value={availability.filter(a => a.status === "open").length} testid="pro-kpi-open-slots" />
       </div>
 
       <MvpCard title="Definir disponibilidade" subtitle="Horários abertos ficam visíveis apenas para estudantes da sua instituição." testid="pro-availability-card" className="availability-card">
@@ -86,10 +87,10 @@ export default function ProfessionalArea() {
                 <span>{a.status === "open" ? "Disponível" : "Reservado por um estudante"}</span>
               </div>
               <div className="mvp-row-actions">
-                <span className={`mvp-tag ${a.status === "open" ? "ok" : "wait"}`}>{a.status === "open" ? "Aberto" : "Reservado"}</span>
+                <span className={`mvp-tag ${a.status === "open" ? "ok" : "wait"}`}>{a.status === "open" ? "Disponível" : "Reservado"}</span>
                 {a.status === "open" && (
                   <button className="button small quiet" onClick={() => run(() => api.delete(`/professionals/me/availability/${a.id}`), "Horário removido.")}
-                    data-testid={`remove-availability-${a.id}`}><Trash2 size={14} /></button>
+                    aria-label={`Remover horário ${formatDate(a.date)} às ${a.time}`} data-testid={`remove-availability-${a.id}`}><Trash2 size={14} /></button>
                 )}
               </div>
             </div>

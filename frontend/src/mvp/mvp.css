@@ -68,6 +68,12 @@ html[data-theme="dark"] .admin-filter-bar button.active { color: var(--ink); }
 .mvp-card-head { display: flex; gap: 12px; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; flex-wrap: wrap; }
 .mvp-card-head h2 { font-size: 19px; letter-spacing: -.5px; }
 .mvp-card-head p { font-size: 13px; opacity: .68; margin-top: 4px; max-width: 48ch; }
+.mvp-flow { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0 0; padding: 0; list-style: none; }
+.mvp-flow li { display: inline-flex; align-items: center; gap: 7px; color: var(--muted); font-size: 12px; }
+.mvp-flow li:not(:last-child)::after { content: "→"; margin-left: 3px; opacity: .5; }
+.mvp-flow li span { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--surface-3, #f1ebfb); color: var(--deep); font-size: 10px; font-weight: 700; }
+.mvp-flow li.current { color: var(--deep); font-weight: 600; }
+.mvp-flow li.current span { background: var(--brand); color: #fff; }
 .mvp-empty { font-size: 14px; opacity: .62; padding: 16px; border-radius: 16px; border: 1px dashed var(--line, #e7e1ee); }
 .mvp-row { display: flex; gap: 12px; align-items: center; justify-content: space-between; padding: 13px 0;
   border-top: 1px solid var(--line, #e7e1ee); flex-wrap: wrap; }
@@ -89,6 +95,7 @@ html[data-theme="dark"] .admin-filter-bar button.active { color: var(--ink); }
 .availability-times-head { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
 .availability-times-head span, .availability-published-head span { font-size: 12px; opacity: .65; font-weight: 400; }
 .mvp-slots { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 10px; }
+.mvp-slot:focus-visible, .button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, a:focus-visible { outline: 3px solid color-mix(in srgb, var(--brand) 42%, transparent); outline-offset: 3px; }
 .mvp-slot { min-height: 76px; padding: 11px 13px; border-radius: 15px; border: 1px solid color-mix(in srgb, #4c967f 36%, var(--line, #e7e1ee));
   background: color-mix(in srgb, #4c967f 7%, transparent); color: inherit; cursor: pointer; font-size: 13px;
   transition: transform .18s ease, border-color .18s ease, background-color .18s ease, box-shadow .18s ease;
@@ -117,6 +124,9 @@ html[data-theme="dark"] .admin-filter-bar button.active { color: var(--ink); }
   background: color-mix(in srgb, var(--surface, #fff) 92%, transparent);
   color: inherit; font: inherit;
 }
+.mvp-invite-result { display: grid; gap: 8px; margin-top: 14px; padding: 14px; border: 1px solid color-mix(in srgb, var(--brand) 22%, var(--line)); border-radius: 16px; background: color-mix(in srgb, var(--brand) 5%, transparent); }
+.mvp-invite-result p { margin: 0; }
+.mvp-invite-result code { display: block; overflow-wrap: anywhere; font: 12px/1.5 ui-monospace, SFMono-Regular, Consolas, monospace; color: var(--deep); }
 .mvp-card[data-testid="password-change-card"] .mvp-inline-form {
   display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) auto; gap: 14px; align-items: end;
 }
@@ -186,6 +196,9 @@ html[data-theme="dark"] .mvp-consent p { opacity: 1; color: var(--muted); }
 html[data-theme="dark"] .mvp-scale button { color: var(--ink); }
 html[data-theme="dark"] .mvp-scale button.selected { background: var(--brand-strong); color: #fff; }
 @media (max-width: 640px) {
+  .mvp-flow { gap: 6px; }
+  .mvp-flow li { font-size: 11px; }
+  .mvp-flow li:not(:last-child)::after { content: "·"; }
   .mvp-shell[data-testid="admin-area"] .mvp-kpis { grid-template-columns: 1fr 1fr; gap: 9px; }
   .mvp-shell[data-testid="admin-area"] .mvp-kpi { min-height: 96px; padding: 13px; }
   .admin-institution-card .mvp-inline-form { grid-template-columns: 1fr; }
@@ -193,7 +206,7 @@ html[data-theme="dark"] .mvp-scale button.selected { background: var(--brand-str
   .mvp-card[data-testid="password-change-card"] .mvp-inline-form { grid-template-columns: 1fr; }
   .availability-builder { grid-template-columns: 1fr; gap: 18px; }
   .availability-times-head { align-items: flex-start; flex-direction: column; gap: 3px; }
-  .mvp-slots { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .mvp-slots { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .mvp-head { align-items: flex-start; }
   .mvp-identity { text-align: left; }
   .mvp-row { align-items: flex-start; }

@@ -67,6 +67,7 @@ export default function StudentArea() {
       kicker="Área do estudante"
       title={<>Um primeiro passo, <em>quando você quiser.</em></>}
       lead="Acesse o Acolhe pela sua instituição. Escolha um horário disponível e conte, se quiser, o motivo geral. O Acolhe não faz diagnóstico."
+      flow={["Conte o motivo geral", "Escolha um horário", "Confirme a conversa"]}
     >
       <MvpCard title="Solicitar uma conversa" subtitle="1. Conte o motivo geral · 2. Escolha um profissional · 3. Selecione um horário." testid="student-request-card" className="student-request-card">
         <div className="mvp-form">

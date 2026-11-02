@@ -10,6 +10,7 @@ export default function InstitutionArea() {
   const [institution, setInstitution] = useState(null);
   const [invite, setInvite] = useState({ name: "", email: "", link_type: "institution", specialty: "" });
   const [inviteLink, setInviteLink] = useState(null);
+  const [inviteBusy, setInviteBusy] = useState(false);
   const [profile, setProfile] = useState({ name: "", contact_email: "", support_note: "" });
 
   const load = useCallback(async () => {
@@ -26,6 +27,8 @@ export default function InstitutionArea() {
 
   const submitInvite = async e => {
     e.preventDefault();
+    if (inviteBusy) return;
+    setInviteBusy(true);
     try {
       const { data } = await api.post("/institutions/me/professionals", { ...invite, specialty: invite.specialty || null });
       setInviteLink(`${window.location.origin}${data.invite_path}`);
@@ -33,6 +36,7 @@ export default function InstitutionArea() {
       setInvite({ name: "", email: "", link_type: "institution", specialty: "" });
       await load();
     } catch (err) { toast.error(apiError(err)); }
+    finally { setInviteBusy(false); }
   };
 
   const saveProfile = async e => {
@@ -52,6 +56,7 @@ export default function InstitutionArea() {
       kicker="Painel institucional · piloto"
       title={<>Utilização agregada, <em>nunca individual.</em></>}
       lead="Indicadores reais do piloto. A instituição não acessa a relação nominal de estudantes, o conteúdo das conversas nem quem conversou sobre o quê."
+      flow={["Vincule profissionais", "Acompanhe indicadores", "Revise o piloto"]}
     >
       <div className="mvp-kpis">
         <MvpKpi label="Estudantes cadastrados" value={metrics?.students_registered} testid="inst-kpi-students" />
@@ -100,12 +105,14 @@ export default function InstitutionArea() {
             </select>
           </label>
           <label>Atuação (opcional)<input value={invite.specialty} onChange={e => setInvite({ ...invite, specialty: e.target.value })} data-testid="invite-specialty-input" /></label>
-          <button className="button primary" data-testid="invite-submit-button">Criar convite <UserPlus size={15} /></button>
+          <button className="button primary" disabled={inviteBusy} data-testid="invite-submit-button">{inviteBusy ? "Criando…" : "Criar convite"} {!inviteBusy && <UserPlus size={15} />}</button>
         </form>
         {inviteLink && (
-          <p className="mvp-ok" style={{ marginTop: 14, wordBreak: "break-all" }} data-testid="invite-link-result">
-            Link do convite (válido por 14 dias): {inviteLink}
-          </p>
+          <div className="mvp-invite-result" data-testid="invite-link-result">
+            <p className="mvp-ok">Convite criado. Link válido por 14 dias:</p>
+            <code>{inviteLink}</code>
+            <button className="button secondary small" type="button" onClick={async () => { await navigator.clipboard.writeText(inviteLink); toast.success("Link copiado."); }} data-testid="invite-copy-button">Copiar link</button>
+          </div>
         )}
       </MvpCard>
 

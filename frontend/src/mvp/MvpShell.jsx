@@ -14,7 +14,7 @@ const ROLE_LABEL = {
   admin: "Administração",
 };
 
-export const MvpShell = ({ title, kicker, lead, children, testid }) => {
+export const MvpShell = ({ title, kicker, lead, flow = [], children, testid }) => {
   const { user, institution, signOut } = useMvpAuth();
   const navigate = useNavigate();
   const exit = async () => { await signOut(); navigate("/"); };
@@ -40,6 +40,9 @@ export const MvpShell = ({ title, kicker, lead, children, testid }) => {
             <span className="section-kicker">{kicker}</span>
             <h1>{title}</h1>
             {lead && <p className="mvp-lead">{lead}</p>}
+            {flow.length > 0 && <ol className="mvp-flow" aria-label="Etapas deste fluxo">
+              {flow.map((step, index) => <li key={step} className={index === 0 ? "current" : ""}><span>{index + 1}</span>{step}</li>)}
+            </ol>}
           </div>
           <div className="mvp-identity" data-testid="mvp-identity">
             <strong>{user?.name}</strong>
