@@ -36,7 +36,7 @@ export default function InvitePage() {
       <section className="mvp-auth-card" data-testid="invite-card">
         <BrandMark size={30} />
         <div className="section-kicker" style={{ marginTop: 14 }}>Convite · piloto</div>
-        <h1>Crie sua <em>senha.</em></h1>
+        <h1>{invite ? <>Crie sua <em>senha.</em></> : <>Convite <em>inválido.</em></>}</h1>
         {invite ? (
           <p data-testid="invite-details">
             {invite.name} · {invite.email}<br />

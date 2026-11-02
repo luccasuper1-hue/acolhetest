@@ -5,7 +5,8 @@ export default function AcolheMark({ size = "large", parallax = false, label = "
   useEffect(() => {
     if (!parallax || !ref.current) return;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduced) return;
+    const finePointer = window.matchMedia("(pointer: fine)").matches;
+    if (reduced || !finePointer) return;
     const el = ref.current;
     const onMove = e => {
       const rect = el.getBoundingClientRect();

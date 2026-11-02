@@ -12,6 +12,10 @@ export interface Env {
   /** HTTPS endpoint of the chosen transactional-email adapter. */
   RESET_EMAIL_WEBHOOK_URL?: string;
   RESET_EMAIL_WEBHOOK_TOKEN?: string;
+  RESEND_API_KEY?: string;
+  LEAD_EMAIL_TO?: string;
+  RESEND_FROM?: string;
+  DEFAULT_ACCOUNT_PASSWORD?: string;
   MONGO_GATEWAY: DurableObjectNamespace;
 }
 

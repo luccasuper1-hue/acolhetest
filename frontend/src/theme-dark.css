@@ -6,7 +6,8 @@
    ============================================================ */
 
 html[data-theme="dark"] .site-header { background: rgba(25,19,34,.72); border-bottom-color: var(--line); }
-html[data-theme="dark"] .logo-mark { background: linear-gradient(145deg,#8e6fd4,#63479f); color: #fff; box-shadow: 0 6px 18px -8px rgba(140,108,204,.7); }
+/* O símbolo do cabeçalho já tem transparência própria; não o coloque em um cartão. */
+html[data-theme="dark"] .logo-mark { background: transparent; color: #fff; box-shadow: none; border-radius: 0; }
 html[data-theme="dark"] .header-cta { background: var(--brand); box-shadow: 0 10px 26px -14px rgba(140,108,204,.75); }
 html[data-theme="dark"] .header-cta:hover { background: var(--brand-strong); box-shadow: 0 16px 34px -16px rgba(140,108,204,.8); }
 
@@ -39,6 +40,35 @@ html[data-theme="dark"] .demo-option:hover { background: rgba(255,255,255,.085);
 html[data-theme="dark"] .demo-option.selected { background: rgba(191,164,242,.16); border-color: var(--purple); color: #fff; }
 html[data-theme="dark"] .demo-option span { background: rgba(255,255,255,.09); color: var(--purple); }
 html[data-theme="dark"] .demo-option.selected span { background: var(--brand-strong); color: #fff; }
+html[data-theme="dark"] .mvp-role-options .demo-option {
+  background: linear-gradient(100deg, rgba(255,255,255,.065), rgba(255,255,255,.035));
+  border-color: rgba(191,164,242,.2);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035), 0 10px 24px -20px rgba(0,0,0,.8);
+}
+html[data-theme="dark"] .mvp-role-options .demo-option:hover {
+  background: linear-gradient(100deg, rgba(191,164,242,.16), rgba(255,255,255,.06));
+  border-color: rgba(191,164,242,.48);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 16px 28px -22px rgba(0,0,0,.9);
+}
+html[data-theme="dark"] .mvp-role-options .demo-option > svg { color: #d8c7f6; }
+html[data-theme="dark"] .mvp-role-options .demo-option .role-icon {
+  background: rgba(191,164,242,.16);
+  color: #d5c0ff;
+  box-shadow: inset 0 0 0 1px rgba(191,164,242,.18);
+}
+html[data-theme="dark"] .mvp-role-options .demo-option .role-icon.role-student {
+  background: rgba(126,214,185,.15);
+  color: #9ee1c8;
+  box-shadow: inset 0 0 0 1px rgba(126,214,185,.18);
+}
+html[data-theme="dark"] .mvp-role-options .role-copy strong { color: #f5efff; }
+html[data-theme="dark"] .mvp-role-options .role-copy small {
+  color: #b9accb;
+  font-family: "DM Sans", sans-serif;
+  font-style: normal;
+  font-size: 11px;
+  letter-spacing: -.05px;
+}
 html[data-theme="dark"] .demo-response { color: var(--mint-ink); }
 html[data-theme="dark"] .product-caption { color: var(--faint); }
 

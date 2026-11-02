@@ -10,7 +10,7 @@ export const audiences = [
     tag: "Usuário",
     role: "Quem usa e se beneficia",
     title: "O estudante continua no centro",
-    text: "Chega sem precisar saber o que fazer, conta o que está sentindo e encontra o próximo passo — orientação, recursos ou encaminhamento.",
+    text: "Chega sem precisar saber o que fazer, informa um motivo geral e encontra um horário disponível dentro da estrutura da sua instituição.",
     to: "/para-estudantes",
     cta: "Ver a experiência do estudante",
   },
@@ -77,12 +77,9 @@ export const institutionCapabilities = [
 ];
 
 export const proCapabilities = [
-  { icon: "user", title: "Perfil profissional", text: "Áreas de atuação, formatos de atendimento e informações públicas." },
   { icon: "calendar", title: "Disponibilidade e horários", text: "Definição dos dias e janelas em que pode receber conversas." },
   { icon: "inbox", title: "Solicitações sob sua responsabilidade", text: "Apenas o que pertence à sua atuação, nada além disso." },
-  { icon: "route", title: "Encaminhamentos", text: "Registro do direcionamento para o serviço mais adequado." },
-  { icon: "folder", title: "Registros em ambiente apropriado", text: "Anotações profissionais separadas da visão institucional." },
-  { icon: "history", title: "Acompanhamento dos casos", text: "Histórico do que está sob sua atuação, com confidencialidade." },
+  { icon: "history", title: "Conversas e encaminhamentos", text: "Marcação de conversas realizadas e registro operacional do próximo passo." },
 ];
 
 export const accessLevels = [
@@ -107,8 +104,8 @@ export const accessLevels = [
     tag: "Instituição",
     title: "Indicadores, não conversas",
     can: ["Indicadores agregados de utilização", "Dados administrativos e operacionais", "Visão geral de alcance e demanda"],
-    cannot: ["Não acessa conversas entre estudante e profissional", "Não acessa registros individuais de estudantes"],
-    scope: "A instituição enxerga a operação, nunca o conteúdo privado de quem buscou apoio.",
+    cannot: ["Não acessa conversas entre estudante e profissional", "Não acessa motivos detalhados nem solicitações específicas"],
+    scope: "A instituição enxerga indicadores e dados administrativos da operação, nunca o conteúdo privado de quem buscou apoio.",
   },
 ];
 
@@ -187,7 +184,7 @@ export const howByAudience = [
     tag: "Estudante",
     title: "Para quem precisa de apoio",
     text: "Sem formulários longos, sem precisar explicar tudo de uma vez.",
-    steps: ["Você chega", "Conta o que precisa", "Encontra o próximo passo", "Recebe orientação ou encaminhamento adequado"],
+    steps: ["Você chega", "Informa um motivo geral", "Escolhe um horário disponível", "Acompanha a solicitação e o encaminhamento"],
   },
   {
     id: "profissional",
@@ -208,20 +205,20 @@ export const howByAudience = [
 export const studentCan = [
   { title: "Acessar a Acolhe pela sua instituição", text: "O acesso é disponibilizado pela escola ou rede de ensino." },
   { title: "Dizer como está se sentindo", text: "Com as palavras que você tiver — não precisa ser exato." },
-  { title: "Encontrar orientação inicial", text: "Um ponto de partida para entender o que está acontecendo." },
+  { title: "Escolher um horário disponível", text: "Quando houver um profissional vinculado à sua instituição." },
   { title: "Ver recursos de apoio", text: "Conteúdos educativos curtos sobre o que aparece na vida escolar." },
   { title: "Descobrir os caminhos disponíveis", text: "O que existe para você agora, de forma clara." },
   { title: "Solicitar ou agendar atendimento", text: "Quando isso fizer sentido e estiver disponível." },
-  { title: "Ser encaminhado ao serviço adequado", text: "Para um profissional ou serviço apropriado ao seu caso." },
-  { title: "Acompanhar seus encaminhamentos", text: "Saber em que ponto do caminho você está." },
+  { title: "Registrar um encaminhamento", text: "O profissional pode registrar o próximo passo operacional após a conversa." },
+  { title: "Acompanhar o que foi combinado", text: "Ver o status da solicitação e os registros disponíveis para você." },
 ];
 
 export const referralSteps = [
   { icon: "user", title: "O estudante chega", text: "Sem precisar de diagnóstico prévio, vocabulário técnico ou clareza total sobre o que sente." },
-  { icon: "search", title: "Identificação da necessidade", text: "A plataforma ajuda a organizar o que a pessoa trouxe e a entender o tipo de apoio que faz sentido." },
-  { icon: "book", title: "Orientação e recursos", text: "Conteúdo educativo e orientações iniciais para o que pode ser resolvido com informação e acolhimento." },
-  { icon: "route", title: "Encaminhamento quando necessário", focus: true, text: "Quando o caso pede mais do que uma conversa inicial, a Acolhe direciona para o caminho adequado." },
-  { icon: "badge", title: "Profissional ou serviço adequado", text: "Um profissional da rede ou um serviço especializado — a escolha considera adequação, não conveniência." },
+  { icon: "search", title: "Organização do pedido", text: "A plataforma registra apenas o motivo geral e os dados necessários para organizar a solicitação." },
+  { icon: "book", title: "Recursos disponíveis", text: "Conteúdo educativo pode apoiar o primeiro passo, sem diagnóstico ou orientação clínica automática." },
+  { icon: "route", title: "Encaminhamento operacional", focus: true, text: "Após a conversa, o profissional pode registrar um próximo passo ou encaminhamento." },
+  { icon: "badge", title: "Apoio da instituição", text: "O fluxo conecta o estudante ao profissional vinculado e aos serviços definidos pela instituição." },
 ];
 
 /* Séries do painel institucional — fictícias, marcadas como DEMO */

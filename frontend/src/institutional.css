@@ -259,6 +259,28 @@ html[data-theme="dark"] .plan-card.featured { border-color: rgba(191, 164, 242, 
   color: var(--purple); opacity: .8; margin-top: 3px;
 }
 
+/* As páginas institucionais usam uma leitura mais larga no desktop para não
+   deixar metade da tela vazia. Mantemos a coluna confortável no mobile. */
+.mvp-vs-future-section,
+.student-journey-section { max-width: 1280px; }
+.mvp-vs-future-section .section-intro,
+.student-journey-section .section-intro { max-width: 760px; }
+.mvp-vs-future-section .how-audiences {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  max-width: 1120px;
+  margin-left: auto;
+  margin-right: auto;
+  gap: 24px;
+}
+.student-journey-section .journey-track {
+  max-width: 1120px;
+  margin-left: auto;
+  margin-right: auto;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 20px;
+}
+.student-journey-section .journey-line { display: none; }
+
 /* ------------------------------------------------------------
    10. O QUE O ESTUDANTE PODE FAZER
    ------------------------------------------------------------ */
@@ -432,6 +454,8 @@ html[data-theme="dark"] .plan-card.featured { border-color: rgba(191, 164, 242, 
   .inst-strip { grid-template-columns: 1fr; gap: 24px; padding: 34px; }
   .validation-inner { grid-template-columns: 1fr; gap: 22px; }
   .pro-preview-grid { grid-template-columns: 1fr 1fr; }
+  .mvp-vs-future-section .how-audiences,
+  .student-journey-section .journey-track { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 700px) {
   .audience-grid, .capability-grid, .access-grid, .plans-grid, .how-audiences,
@@ -447,6 +471,8 @@ html[data-theme="dark"] .plan-card.featured { border-color: rgba(191, 164, 242, 
   .dash-kpi strong { font-size: 25px; }
   .dash-card { padding: 20px 18px; border-radius: var(--r-lg); }
   .dash-chart { height: 200px; }
+  .mvp-vs-future-section .how-audiences,
+  .student-journey-section .journey-track { grid-template-columns: 1fr; }
   .lead-intro h2 { font-size: 25px; }
   .student-reassure { padding: 22px; }
   .student-reassure blockquote { font-size: 19px; }
@@ -466,3 +492,21 @@ html[data-theme="dark"] .plan-card.featured { border-color: rgba(191, 164, 242, 
 
 /* Nó central do ecossistema (Instituição + Profissional + Estudante → Acolhe) */
 .b2b2c-node.b2b2c-hub { border-color: color-mix(in srgb, var(--brand, #7254ad) 45%, transparent); background: color-mix(in srgb, var(--brand, #7254ad) 10%, transparent); }
+/* A página institucional mantém somente o fluxo real do MVP; conteúdos conceituais
+   continuam disponíveis em Como funciona, sem alongar o caminho principal. */
+main.info-page:has([data-testid="institution-dashboard-link"]) [data-testid="mvp-vs-future"],
+main.info-page:has([data-testid="institution-dashboard-link"]) [data-testid="institution-section"],
+main.info-page:has([data-testid="institution-dashboard-link"]) [data-testid="no-replace-section"],
+main.info-page:has([data-testid="institution-dashboard-link"]) [data-testid="plans-section"],
+main.info-page:has([data-testid="institution-dashboard-link"]) [data-testid="market-section"],
+main.info-page:has([data-testid="institution-dashboard-link"]) [data-testid="impact-section"],
+main.info-page:has([data-testid="institution-dashboard-link"]) .future-band {
+  display: none;
+}
+
+/* A página pública de profissionais prioriza o fluxo existente no MVP;
+   a explicação de rede futura e a prévia duplicada ficam fora dela. */
+main.info-page:has([data-testid="professional-form-cta"]) [data-testid="partnership-section"],
+main.info-page:has([data-testid="professional-form-cta"]) [data-testid="pro-panel-preview"] {
+  display: none;
+}
