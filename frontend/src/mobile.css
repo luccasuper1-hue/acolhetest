@@ -224,7 +224,7 @@
   .time-grid { grid-template-columns: repeat(3, 1fr); }
   .duration-choice { grid-template-columns: 1fr 1fr; }
 
-  .hero-product { max-width: 380px; }
+  .hero-product { max-width: 380px; overflow-x: clip; }
   .acolhe-mark-hero { inset: -4% -3% -7% -5%; }
 
   .dashboard-stats { grid-template-columns: repeat(3, 1fr); gap: 7px; }
@@ -249,7 +249,7 @@
   .hero-actions .button { flex: 1; min-height: 52px; }
   .hero-actions .button.quiet { flex: 0 1 auto; }
 
-  .hero-product { padding: 20px 16px 14px; border-radius: 26px; }
+  .hero-product { padding: 20px 16px 14px; border-radius: 26px; overflow-x: clip; }
   .hero-product::after { inset: 9px -8px -8px 8px; border-radius: 26px; }
   .product-window { padding: 17px 15px; border-radius: 19px; }
   .product-top { padding-bottom: 13px; }
