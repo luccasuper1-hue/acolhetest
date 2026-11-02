@@ -13,7 +13,9 @@ api.interceptors.request.use(config => {
   // The API enforces JSON Content-Type on state-changing requests, including
   // action endpoints that intentionally carry no body (accept, decline,
   // complete, toggle-active). Axios omits the header when data is undefined.
-  if (["post", "put", "patch", "delete"].includes(String(config.method || "").toLowerCase())) {
+  const method = String(config.method || "").toLowerCase();
+  if (["post", "put", "patch"].includes(method) && config.data === undefined) config.data = {};
+  if (["post", "put", "patch", "delete"].includes(method)) {
     const headers = config.headers || {};
     const hasContentType = Object.keys(headers).some(key => key.toLowerCase() === "content-type");
     if (!hasContentType) headers["Content-Type"] = "application/json";
