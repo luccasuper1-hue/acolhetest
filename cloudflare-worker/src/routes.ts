@@ -250,6 +250,11 @@ async function authRoutes(request: Request, env: Env, pathname: string): Promise
     const user = await store.findOne("users", { email: address }); if (!user) return json(generic);
     if (!pilotReset && !emailEnabled) { console.error("Password recovery provider is not configured"); return json(generic); }
     const resetToken = tokenSecret();
+    // Keep only one active recovery request per account. Besides avoiding
+    // multiple valid links, this also handles the unique user_id index used
+    // by earlier pilot data where an old token could otherwise make the next
+    // request fail with a duplicate-key error.
+    await store.remove("password_reset_tokens", { user_id: user.id }, true);
     await store.insert("password_reset_tokens", { id: id(), user_id: user.id, token_hash: await hashToken(resetToken), expires_at: isoAfter(1, "hours"), used: false, created_at: now() });
     if (pilotReset) return json({ ...generic, reset_token: resetToken, pilot_note: "PROVISÓRIO PARA PILOTO: envio por e-mail é P1." });
     const sent = await sendResetEmail(env, address, resetToken);
