@@ -28,11 +28,12 @@ const Icon = ({ name, size = 18 }) => {
 export const AudienceBand = () => (
   <section className="audience-band" data-testid="audience-band">
     <div className="section">
-      <div className="section-kicker">Cada pessoa tem um próximo passo</div>
-      <h2>O estudante encontra apoio, a instituição <em>organiza.</em></h2>
+      <div className="section-kicker">Uma plataforma, três lugares</div>
+      <h2>O estudante no centro, a instituição como <em>parceira.</em></h2>
       <p className="section-intro">
-        A instituição disponibiliza a estrutura, o profissional participa dela e o estudante acessa o apoio.
-        Cada papel é claro, sem transformar cuidado em uma vitrine.
+        O Acolhe funciona como infraestrutura entre instituição, profissional e estudante: a instituição
+        disponibiliza e organiza a estrutura, o profissional participa dela e o estudante acessa o apoio.
+        Um ecossistema conectado — não uma loja de conversas.
       </p>
       <div className="audience-grid">
         {audiences.map(a => (
@@ -218,7 +219,7 @@ export const ProPanelPreview = () => (
       <div className="pro-confidential">
         <Lock size={17}/>
         <span>
-          A instituição não acessa o conteúdo das conversas, os motivos detalhados ou as solicitações específicas dos estudantes.
+          A instituição não acessa o conteúdo das conversas nem os registros dos casos.
           A confidencialidade profissional é um princípio do produto, não uma configuração opcional.
         </span>
       </div>
@@ -316,7 +317,7 @@ export const NoReplaceSection = () => (
 
 /* MVP de hoje x visão futura */
 export const MvpVsFuture = () => (
-  <section className="section mvp-vs-future-section" data-testid="mvp-vs-future">
+  <section className="section" data-testid="mvp-vs-future">
     <div className="section-kicker">Hoje e depois</div>
     <h2>O que funciona <em>hoje</em> e o que é <em>visão futura.</em></h2>
     <p className="section-intro">
@@ -414,9 +415,8 @@ export const AiSection = () => (
     <div className="ai-limit" data-testid="ai-limit">
       <ShieldCheck size={17}/>
       <span>
-        A versão atual não usa nenhuma IA ativa: esta seção é apenas uma visão conceitual do futuro.
-        A Acolhe não pretende oferecer “IA terapeuta”; o cuidado continua sendo responsabilidade de
-        pessoas habilitadas.
+        A Acolhe não pretende oferecer “IA terapeuta”. Nenhuma tecnologia aqui é apresentada como
+        profissional de saúde, e o cuidado continua sendo responsabilidade de pessoas habilitadas.
       </span>
     </div>
   </section>
