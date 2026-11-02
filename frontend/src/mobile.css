@@ -253,6 +253,15 @@
    ------------------------------------------------------------ */
 @media (max-width: 480px) {
   .section { padding: 50px 20px; }
+  main > .audience-band > .section { padding-top: 40px; padding-bottom: 38px; }
+  .audience-band h2 { font-size: 28px; line-height: 1.12; margin-bottom: 10px; }
+  .audience-band .section-intro { font-size: 14px; line-height: 1.5; margin-bottom: 0; }
+  .audience-band .audience-grid { gap: 12px; margin-top: 24px; }
+  .audience-band .audience-card { padding: 18px 16px; gap: 8px; border-radius: 18px; }
+  .audience-band .audience-card h3 { font-size: 19px; line-height: 1.2; }
+  .audience-band .audience-card p { font-size: 12.5px; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .audience-band .audience-card .text-link { margin-top: 2px; font-size: 12px; }
+  .audience-band .disclaimer-inline { margin-top: 18px !important; line-height: 1.4; }
   main > .problem-band > .section { padding-top: 38px; padding-bottom: 40px; }
   .problem-band .section-kicker { margin-bottom: 12px; }
   .problem-band h2 { margin-bottom: 0; }
