@@ -252,6 +252,12 @@
    elegante, cards com padding reduzido, densidade maior
    ------------------------------------------------------------ */
 @media (max-width: 480px) {
+  .site-header { height: 60px; }
+  .nav-wrap { padding-left: 14px; padding-right: 14px; gap: 8px; }
+  .logo { font-size: 20px; }
+  .logo-mark, .logo-mark .brand-mark { width: 24px; height: 24px; }
+  .header-cta { padding: 10px 13px; font-size: 12px; }
+  .mobile-menu { width: 38px; height: 38px; }
   .section { padding: 50px 20px; }
   main > .cta-band > .cta-inner { padding-top: 38px; padding-bottom: 38px; gap: 14px; }
   .cta-inner h2 { font-size: 28px; line-height: 1.12; margin: 8px 0 4px; }
@@ -278,24 +284,25 @@
   .problem-band .brand-quote { font-size: 18px; line-height: 1.3; padding: 4px 0 4px 14px; margin-top: 24px !important; }
   .problem-band .brand-quote .quote-mark { font-size: 34px; margin-right: 5px; }
   .problem-band .disclaimer-inline { margin-top: 22px; line-height: 1.4; }
-  .hero { padding-top: 32px; padding-bottom: 38px; gap: 24px; }
-  .hero h1 { font-size: 36px; line-height: 1.06; letter-spacing: -1.8px; margin-bottom: 14px; }
-  .hero-lead { font-size: 15px; line-height: 1.48; max-width: 330px; }
-  .hero-actions { gap: 8px; margin: 20px 0 10px; }
-  .hero-actions .button { flex: 1; min-height: 52px; }
+  .hero { padding-top: 24px; padding-bottom: 28px; gap: 18px; }
+  .hero .eyebrow { margin-bottom: 12px; }
+  .hero h1 { font-size: 34px; line-height: 1.04; letter-spacing: -1.7px; margin-bottom: 12px; }
+  .hero-lead { font-size: 14px; line-height: 1.42; max-width: 320px; }
+  .hero-actions { gap: 7px; margin: 16px 0 8px; }
+  .hero-actions .button { flex: 1; min-height: 46px; padding: 11px 14px; }
   .hero-actions .button.quiet { flex: 0 1 auto; }
 
-  .hero-product { padding: 16px 12px 10px; border-radius: 24px; overflow-x: clip; max-width: 350px; }
-  .hero-product::after { inset: 8px -7px -7px 7px; border-radius: 24px; }
-  .product-window { padding: 14px 12px; border-radius: 18px; }
-  .product-top { padding-bottom: 10px; }
-  .product-question { padding: 14px 2px 8px; }
-  .product-question h3 { font-size: 19px; }
+  .hero-product { padding: 12px 10px 8px; border-radius: 22px; overflow-x: clip; max-width: 330px; }
+  .hero-product::after { inset: 7px -6px -6px 6px; border-radius: 22px; }
+  .product-window { padding: 12px 10px; border-radius: 17px; }
+  .product-top { padding-bottom: 8px; }
+  .product-question { padding: 11px 2px 6px; }
+  .product-question h3 { font-size: 18px; }
   .product-question p { display: none; }
   .demo-options { gap: 8px; }
-  .demo-option { padding: 10px 11px; font-size: 12px; }
-  .mvp-role-options .demo-option { min-height: 46px; }
-  .product-caption { padding-top: 9px; font-size: 10px; }
+  .demo-option { padding: 8px 10px; font-size: 11.5px; }
+  .mvp-role-options .demo-option { min-height: 42px; }
+  .product-caption { padding-top: 7px; font-size: 9px; }
 
   .section h2 { font-size: clamp(26px, 7.4vw, 32px); }
   .info-hero { padding-top: 54px; padding-bottom: 44px; }
