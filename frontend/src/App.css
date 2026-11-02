@@ -198,7 +198,7 @@
 .mvp-entry-card .model-card > svg { color: var(--deep); flex: none; }
 .mvp-entry-card .model-icon { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--lavender); color: var(--purple); flex: none; }
 .mvp-entry-card .model-icon.mint { background: var(--mint); color: #3b8e76; }
-.mvp-label { color: #4c927e; background: #e5f4ee; }
+.mvp-label { color: #3a9f7b; background: rgba(98,221,176,.18); }
 html[data-theme="dark"] .mvp-label { color: #b7ead7; background: rgba(120,198,171,.16); }
 html[data-theme="dark"] .mvp-entry-card .model-card strong { color: var(--ink); }
 .product-top { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0ecf6; padding-bottom: 18px; }
@@ -232,7 +232,7 @@ html[data-theme="dark"] .mvp-entry-card .model-card strong { color: var(--ink); 
 .mvp-role-options .demo-option .role-copy { display: grid; gap: 2px; width: auto; height: auto; min-width: 0; flex: 1 1 auto; background: transparent; border-radius: 0; color: inherit; }
 .role-copy strong { font-size: 14px; color: var(--deep); font-weight: 600; letter-spacing: -.35px; }
 .role-copy small { color: var(--muted); font-family: "DM Sans", sans-serif; font-style: normal; font-size: 12px; line-height: 1.3; letter-spacing: -.08px; }
-.mvp-label { color: #4c927e; background: #e5f4ee; }
+.mvp-label { color: #3a9f7b; background: rgba(98,221,176,.18); }
 html[data-theme="dark"] .mvp-label { color: #b7ead7; background: rgba(120,198,171,.16); }
 html[data-theme="dark"] .role-copy strong { color: var(--ink); }
 .demo-response {
