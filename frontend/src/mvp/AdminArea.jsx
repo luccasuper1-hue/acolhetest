@@ -30,7 +30,7 @@ export default function AdminArea() {
 
   const removeUser = async user => {
     if (!window.confirm(`Excluir permanentemente a conta de ${user.name}? Esta ação remove o acesso e os registros operacionais vinculados e não pode ser desfeita.`)) return;
-    try { await api.delete(`/admin/users/${user.id}`, { headers: { "content-type": "application/json" } }); toast.success("Conta excluída."); await load(); }
+    try { await api.delete(`/admin/users/${user.id}`, { data: {}, headers: { "content-type": "application/json" } }); toast.success("Conta excluída."); await load(); }
     catch (e) { toast.error(apiError(e)); }
   };
 

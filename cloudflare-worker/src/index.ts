@@ -61,6 +61,9 @@ function csrfFailure(request: Request, env: Env) {
   const hasCookie = Boolean(request.headers.get("cookie")?.includes("access_token="));
   if (hasCookie && origin !== env.FRONTEND_URL) return new Response(JSON.stringify({ detail: "Origem não autorizada" }), { status: 403, headers: { "content-type": "application/json; charset=utf-8" } });
   const contentType = request.headers.get("content-type") || "";
+  // Browsers may omit Content-Type for an empty DELETE body. The origin and
+  // authenticated-cookie checks above still protect this same-origin case.
+  if (request.method === "DELETE" && !contentType) return;
   if (!contentType.toLowerCase().includes("application/json")) return new Response(JSON.stringify({ detail: "Content-Type inválido" }), { status: 415, headers: { "content-type": "application/json; charset=utf-8" } });
 }
 
