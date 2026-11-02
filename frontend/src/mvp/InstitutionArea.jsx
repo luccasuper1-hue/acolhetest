@@ -14,13 +14,9 @@ export default function InstitutionArea() {
   const [profile, setProfile] = useState({ name: "", contact_email: "", support_note: "" });
 
   const load = useCallback(async () => {
-    const [m, p, i] = await Promise.all([
-      api.get("/institutions/me/metrics"),
-      api.get("/institutions/me/professionals"),
-      api.get("/institutions/me"),
-    ]);
-    setMetrics(m.data); setProfessionals(p.data); setInstitution(i.data);
-    setProfile({ name: i.data.name || "", contact_email: i.data.contact_email || "", support_note: i.data.support_note || "" });
+    const { data } = await api.get("/institutions/me/dashboard");
+    setMetrics(data.metrics); setProfessionals(data.professionals || []); setInstitution(data.institution);
+    setProfile({ name: data.institution?.name || "", contact_email: data.institution?.contact_email || "", support_note: data.institution?.support_note || "" });
   }, []);
 
   useEffect(() => { load().catch(e => toast.error(apiError(e))); }, [load]);

@@ -301,28 +301,51 @@ async function publicRoutes(request: Request, env: Env, pathname: string): Promi
   return undefined;
 }
 
+async function studentProfessionals(store: ReturnType<typeof db>, student: Doc) {
+  const professionals = await store.findMany("professionals", { institution_id: student.institution_id }, { limit: 100 });
+  const userIds = professionals.map((professional) => professional.user_id), professionalIds = professionals.map((professional) => professional.id);
+  const [accounts, slots] = await Promise.all([
+    userIds.length ? store.findMany("users", { id: { $in: userIds } }, { projection: { id: 1, name: 1, active: 1 }, limit: 100 }) : Promise.resolve([]),
+    professionalIds.length ? store.findMany("availability", { professional_id: { $in: professionalIds }, status: "open", date: { $gte: now().slice(0, 10) } }, { sort: sortDate, limit: 500 }) : Promise.resolve([]),
+  ]);
+  const accountById = new Map(accounts.map((account) => [account.id, account]));
+  const slotsByProfessional = new Map<string, Doc[]>();
+  for (const slot of slots) { const list = slotsByProfessional.get(slot.professional_id) || []; list.push(slot); slotsByProfessional.set(slot.professional_id, list); }
+  return professionals.flatMap((professional) => { const account = accountById.get(professional.user_id); return !account || account.active === false ? [] : [{ id: professional.id, name: account.name, specialty: professional.specialty, link_type: professional.link_type, slots: slotsByProfessional.get(professional.id) || [] }]; });
+}
+
+async function studentRequests(store: ReturnType<typeof db>, student: Doc) {
+  const records = await store.findMany("requests", { student_id: student.id }, { sort: sortDate, limit: 200 });
+  const professionalIds = records.map((record) => record.professional_id), requestIds = records.map((record) => record.id);
+  const [professionals, sessions] = await Promise.all([
+    professionalIds.length ? store.findMany("professionals", { id: { $in: professionalIds } }, { projection: { id: 1, user_id: 1 }, limit: 200 }) : Promise.resolve([]),
+    requestIds.length ? store.findMany("sessions", { request_id: { $in: requestIds } }, { limit: 200 }) : Promise.resolve([]),
+  ]);
+  const userIds = professionals.map((professional) => professional.user_id);
+  const [accounts, referrals, feedback] = await Promise.all([
+    userIds.length ? store.findMany("users", { id: { $in: userIds } }, { projection: { id: 1, name: 1 }, limit: 200 }) : Promise.resolve([]),
+    sessions.length ? store.findMany("referrals", { session_id: { $in: sessions.map((session) => session.id) } }, { limit: 200 }) : Promise.resolve([]),
+    sessions.length ? store.findMany("feedback", { session_id: { $in: sessions.map((session) => session.id) } }, { limit: 200 }) : Promise.resolve([]),
+  ]);
+  const proById = new Map(professionals.map((professional) => [professional.id, professional]));
+  const accountById = new Map(accounts.map((account) => [account.id, account.name]));
+  const sessionByRequest = new Map(sessions.map((session) => [session.request_id, session]));
+  const referralBySession = new Map(referrals.map((referral) => [referral.session_id, referral]));
+  const feedbackBySession = new Map(feedback.map((entry) => [entry.session_id, entry]));
+  return records.map((record) => { const pro = proById.get(record.professional_id), session = sessionByRequest.get(record.id); return { ...record, professional_name: pro ? accountById.get(pro.user_id) || "Profissional" : "Profissional", session: session || null, referral: session ? referralBySession.get(session.id) || null : null, feedback: session ? feedbackBySession.get(session.id) || null : null }; });
+}
+
 async function studentRoutes(request: Request, env: Env, pathname: string): Promise<Response | undefined> {
   if (!pathname.startsWith("/api/students/")) return undefined;
   const identity = await getStudent(request, env); if (isResponse(identity)) return identity;
   const { user, student } = identity, store = db(env);
   if (pathname === "/api/students/me" && request.method === "GET") return json({ student, name: user.name, institution: await store.findOne("institutions", { id: student.institution_id }) });
+  if (pathname === "/api/students/me/dashboard" && request.method === "GET") {
+    const [professionals, requests] = await Promise.all([studentProfessionals(store, student), studentRequests(store, student)]);
+    return json({ professionals, requests });
+  }
   if (pathname === "/api/students/me/professionals" && request.method === "GET") {
-    const professionals = await store.findMany("professionals", { institution_id: student.institution_id }, { limit: 100 });
-    const userIds = professionals.map((professional) => professional.user_id);
-    const professionalIds = professionals.map((professional) => professional.id);
-    const [accounts, slots] = await Promise.all([
-      userIds.length ? store.findMany("users", { id: { $in: userIds } }, { projection: { id: 1, name: 1, active: 1 }, limit: 100 }) : Promise.resolve([]),
-      professionalIds.length ? store.findMany("availability", { professional_id: { $in: professionalIds }, status: "open", date: { $gte: now().slice(0, 10) } }, { sort: sortDate, limit: 500 }) : Promise.resolve([]),
-    ]);
-    const accountById = new Map(accounts.map((account) => [account.id, account]));
-    const slotsByProfessional = new Map<string, Doc[]>();
-    for (const slot of slots) { const list = slotsByProfessional.get(slot.professional_id) || []; list.push(slot); slotsByProfessional.set(slot.professional_id, list); }
-    const out: Doc[] = [];
-    for (const professional of professionals) {
-      const professionalUser = accountById.get(professional.user_id); if (!professionalUser || professionalUser.active === false) continue;
-      out.push({ id: professional.id, name: professionalUser.name, specialty: professional.specialty, link_type: professional.link_type, slots: slotsByProfessional.get(professional.id) || [] });
-    }
-    return json(out);
+    return json(await studentProfessionals(store, student));
   }
   if (pathname === "/api/students/me/requests" && request.method === "POST") {
     const payload = await requestBody(request), availabilityId = string(payload?.availability_id), reason = payload?.reason_code;
@@ -335,24 +358,7 @@ async function studentRoutes(request: Request, env: Env, pathname: string): Prom
     await logEvent(env, "request_created", user, student.institution_id, { reason_code: reason }); return json(record, 201);
   }
   if (pathname === "/api/students/me/requests" && request.method === "GET") {
-    const records = await store.findMany("requests", { student_id: student.id }, { sort: sortDate, limit: 200 });
-    const professionalIds = records.map((record) => record.professional_id), requestIds = records.map((record) => record.id);
-    const [professionals, sessions] = await Promise.all([
-      professionalIds.length ? store.findMany("professionals", { id: { $in: professionalIds } }, { projection: { id: 1, user_id: 1 }, limit: 200 }) : Promise.resolve([]),
-      requestIds.length ? store.findMany("sessions", { request_id: { $in: requestIds } }, { limit: 200 }) : Promise.resolve([]),
-    ]);
-    const userIds = professionals.map((professional) => professional.user_id);
-    const [accounts, referrals, feedback] = await Promise.all([
-      userIds.length ? store.findMany("users", { id: { $in: userIds } }, { projection: { id: 1, name: 1 }, limit: 200 }) : Promise.resolve([]),
-      sessions.length ? store.findMany("referrals", { session_id: { $in: sessions.map((session) => session.id) } }, { limit: 200 }) : Promise.resolve([]),
-      sessions.length ? store.findMany("feedback", { session_id: { $in: sessions.map((session) => session.id) } }, { limit: 200 }) : Promise.resolve([]),
-    ]);
-    const proById = new Map(professionals.map((professional) => [professional.id, professional]));
-    const accountById = new Map(accounts.map((account) => [account.id, account.name]));
-    const sessionByRequest = new Map(sessions.map((session) => [session.request_id, session]));
-    const referralBySession = new Map(referrals.map((referral) => [referral.session_id, referral]));
-    const feedbackBySession = new Map(feedback.map((entry) => [entry.session_id, entry]));
-    return json(records.map((record) => { const pro = proById.get(record.professional_id), session = sessionByRequest.get(record.id); return { ...record, professional_name: pro ? accountById.get(pro.user_id) || "Profissional" : "Profissional", session: session || null, referral: session ? referralBySession.get(session.id) || null : null, feedback: session ? feedbackBySession.get(session.id) || null : null }; }));
+    return json(await studentRequests(store, student));
   }
   const cancelId = pathParameter(pathname, "/api/students/me/requests/", "/cancel");
   if (cancelId && request.method === "POST") { const record = await store.findOne("requests", { id: cancelId, student_id: student.id }); if (!record) return fail("Solicitação não encontrada", 404); if (!(record.status === "pending" || record.status === "accepted")) return fail("Esta solicitação não pode mais ser cancelada", 409); if (await store.update("requests", { id: cancelId, student_id: student.id, status: { $in: ["pending", "accepted"] } }, { $set: { status: "cancelled" } }) === 0) return fail("Esta solicitação não pode mais ser cancelada", 409); await store.update("availability", { id: record.availability_id, status: "reserved" }, { $set: { status: "open" } }); await store.remove("sessions", { request_id: cancelId, status: "scheduled" }, true); await logEvent(env, "request_cancelled", user, student.institution_id, { request_id: cancelId }); return json({ ok: true }); }
@@ -366,6 +372,23 @@ async function professionalRoutes(request: Request, env: Env, pathname: string):
   const identity = await getProfessional(request, env); if (isResponse(identity)) return identity;
   const { user, professional } = identity, store = db(env);
   if (pathname === "/api/professionals/me" && request.method === "GET") return json({ professional, name: user.name, institution: await store.findOne("institutions", { id: professional.institution_id }) });
+  if (pathname === "/api/professionals/me/dashboard" && request.method === "GET") {
+    const [availability, requests, sessions] = await Promise.all([
+      store.findMany("availability", { professional_id: professional.id }, { sort: sortDate, limit: 500 }),
+      store.findMany("requests", { professional_id: professional.id }, { sort: sortDate, limit: 500 }),
+      store.findMany("sessions", { professional_id: professional.id }, { sort: sortDate, limit: 500 }),
+    ]);
+    const requestIds = requests.map((record) => record.id), sessionRequestIds = sessions.map((session) => session.request_id);
+    const [requestSessions, sessionRequests, referrals] = await Promise.all([
+      requestIds.length ? store.findMany("sessions", { request_id: { $in: requestIds } }, { limit: 500 }) : Promise.resolve([]),
+      sessionRequestIds.length ? store.findMany("requests", { id: { $in: sessionRequestIds } }, { limit: 500 }) : Promise.resolve([]),
+      sessions.length ? store.findMany("referrals", { session_id: { $in: sessions.map((session) => session.id) } }, { limit: 500 }) : Promise.resolve([]),
+    ]);
+    const requestSessionById = new Map(requestSessions.map((session) => [session.request_id, session]));
+    const requestById = new Map(sessionRequests.map((record) => [record.id, record]));
+    const referralBySession = new Map(referrals.map((referral) => [referral.session_id, referral]));
+    return json({ availability, requests: requests.map((record) => ({ id: record.id, date: record.date, time: record.time, status: record.status, reason_code: record.reason_code, reason_note: record.reason_note, room_link: record.room_link, created_at: record.created_at, session: requestSessionById.get(record.id) || null })), sessions: sessions.map((session) => { const record = requestById.get(session.request_id); return { ...session, reason_code: record?.reason_code, reason_note: record?.reason_note, room_link: record?.room_link, referral: referralBySession.get(session.id) || null }; }) });
+  }
   if (pathname === "/api/professionals/me/availability" && request.method === "GET") return json(await store.findMany("availability", { professional_id: professional.id }, { sort: sortDate, limit: 500 }));
   if (pathname === "/api/professionals/me/availability" && request.method === "POST") {
     const payload = await requestBody(request), date = payload?.date, times = payload?.times;
@@ -415,14 +438,36 @@ async function institutionMetrics(env: Env, institutionId: string) {
   return { students_registered: students.length, students_accessed: students.filter((student) => student.last_access).length, students_active_30d: students.filter((student) => student.last_access && String(student.last_access) >= cutoff).length, students_requested: requestingStudents.size, requests_total: requests.length, requests_pending: requests.filter((record) => record.status === "pending").length, requests_scheduled: requests.filter((record) => record.status === "accepted").length, requests_cancelled: requests.filter((record) => record.status === "cancelled").length, requests_declined: requests.filter((record) => record.status === "declined").length, sessions_completed: sessions.filter((session) => session.status === "completed").length, referrals_total: referrals.length, referrals_by_status: referralsByStatus, professionals_linked: professionals.length, professionals_accessed: professionals.filter((professional) => professional.last_access).length, professionals_with_availability: prosWithSlots.length, open_slots: openSlots, requests_by_month: Object.entries(byMonth).sort(([a], [b]) => a.localeCompare(b)).map(([month, count]) => ({ month, requests: count })), feedback_count: scores.length, feedback_average: scores.length ? Math.round((scores.reduce((a, b) => a + b, 0) / scores.length) * 100) / 100 : null, has_data: Boolean(requests.length || sessions.length), data_source: "pilot" };
 }
 
+async function institutionProfessionals(store: ReturnType<typeof db>, institutionId: string) {
+  const professionals = await store.findMany("professionals", { institution_id: institutionId }, { limit: 200 });
+  const userIds = professionals.map((professional) => professional.user_id), professionalIds = professionals.map((professional) => professional.id);
+  const [accounts, openSlots, completedSessions] = await Promise.all([
+    userIds.length ? store.findMany("users", { id: { $in: userIds } }, { projection: { id: 1, name: 1, email: 1, active: 1, invite_token: 1 }, limit: 200 }) : Promise.resolve([]),
+    professionalIds.length ? store.findMany("availability", { professional_id: { $in: professionalIds }, status: "open" }, { projection: { professional_id: 1 }, limit: 1000 }) : Promise.resolve([]),
+    professionalIds.length ? store.findMany("sessions", { professional_id: { $in: professionalIds }, status: "completed" }, { projection: { professional_id: 1 }, limit: 1000 }) : Promise.resolve([]),
+  ]);
+  const accountById = new Map(accounts.map((account) => [account.id, account]));
+  const slotsByProfessional = new Map<string, number>(), sessionsByProfessional = new Map<string, number>();
+  for (const slot of openSlots) slotsByProfessional.set(slot.professional_id, (slotsByProfessional.get(slot.professional_id) || 0) + 1);
+  for (const session of completedSessions) sessionsByProfessional.set(session.professional_id, (sessionsByProfessional.get(session.professional_id) || 0) + 1);
+  return professionals.map((professional) => {
+    const account = accountById.get(professional.user_id);
+    return { id: professional.id, name: account?.name || "—", email: account?.email, active: account?.active !== false, link_type: professional.link_type, specialty: professional.specialty, open_slots: slotsByProfessional.get(professional.id) || 0, completed_sessions: sessionsByProfessional.get(professional.id) || 0, invite_pending: Boolean(account?.invite_token), invite_path: account?.invite_token ? `/convite/${account.invite_token}` : null, last_access: professional.last_access };
+  });
+}
+
 async function institutionRoutes(request: Request, env: Env, pathname: string): Promise<Response | undefined> {
   if (!pathname.startsWith("/api/institutions/")) return undefined;
   const identity = await getInstitution(request, env); if (isResponse(identity)) return identity;
   const { user, institution } = identity, store = db(env);
   if (pathname === "/api/institutions/me" && request.method === "GET") return json(institution);
+  if (pathname === "/api/institutions/me/dashboard" && request.method === "GET") {
+    const [metrics, professionals] = await Promise.all([institutionMetrics(env, institution.id), institutionProfessionals(store, institution.id)]);
+    return json({ institution, metrics, professionals });
+  }
   if (pathname === "/api/institutions/me" && request.method === "PUT") { const payload = await requestBody(request); if (!payload) return fail("Corpo JSON inválido", 422); const patch: Doc = {}; if (payload.name !== undefined) { const value = string(payload.name); if (value.length < 2 || value.length > 120) return fail("Dados inválidos", 422); patch.name = value; } if (payload.contact_email !== undefined) { const value = email(payload.contact_email); if (!value) return fail("Dados inválidos", 422); patch.contact_email = value; } if (payload.support_note !== undefined) { const value = string(payload.support_note); if (value.length > 400) return fail("Dados inválidos", 422); patch.support_note = value || null; } if (Object.keys(patch).length) await store.update("institutions", { id: institution.id }, { $set: patch }); return json(await store.findOne("institutions", { id: institution.id })); }
   if (pathname === "/api/institutions/me/students" && request.method === "GET") return json({ visible: false, message: "A relação nominal de estudantes não é disponibilizada. Consulte os indicadores agregados do piloto." });
-  if (pathname === "/api/institutions/me/professionals" && request.method === "GET") { const professionals = await store.findMany("professionals", { institution_id: institution.id }, { limit: 200 }); const userIds = professionals.map((professional) => professional.user_id), professionalIds = professionals.map((professional) => professional.id); const [accounts, openSlots, completedSessions] = await Promise.all([userIds.length ? store.findMany("users", { id: { $in: userIds } }, { projection: { id: 1, name: 1, email: 1, active: 1, invite_token: 1 }, limit: 200 }) : Promise.resolve([]), professionalIds.length ? store.findMany("availability", { professional_id: { $in: professionalIds }, status: "open" }, { projection: { professional_id: 1 }, limit: 1000 }) : Promise.resolve([]), professionalIds.length ? store.findMany("sessions", { professional_id: { $in: professionalIds }, status: "completed" }, { projection: { professional_id: 1 }, limit: 1000 }) : Promise.resolve([])]); const accountById = new Map(accounts.map((account) => [account.id, account])); const slotsByProfessional = new Map<string, number>(), sessionsByProfessional = new Map<string, number>(); for (const slot of openSlots) slotsByProfessional.set(slot.professional_id, (slotsByProfessional.get(slot.professional_id) || 0) + 1); for (const session of completedSessions) sessionsByProfessional.set(session.professional_id, (sessionsByProfessional.get(session.professional_id) || 0) + 1); return json(professionals.map((professional) => { const account = accountById.get(professional.user_id); return { id: professional.id, name: account?.name || "—", email: account?.email, active: account?.active !== false, link_type: professional.link_type, specialty: professional.specialty, open_slots: slotsByProfessional.get(professional.id) || 0, completed_sessions: sessionsByProfessional.get(professional.id) || 0, invite_pending: Boolean(account?.invite_token), invite_path: account?.invite_token ? `/convite/${account.invite_token}` : null, last_access: professional.last_access }; })); }
+  if (pathname === "/api/institutions/me/professionals" && request.method === "GET") return json(await institutionProfessionals(store, institution.id));
   if (pathname === "/api/institutions/me/professionals" && request.method === "POST") { const payload = await requestBody(request), name = string(payload?.name), address = email(payload?.email), linkType = payload?.link_type === undefined ? "institution" : payload.link_type, specialty = payload?.specialty === undefined ? null : string(payload.specialty); if (name.length < 2 || name.length > 90 || !address || !oneOf(linkType, ["institution", "partner"]) || (specialty && specialty.length > 120)) return fail("Dados inválidos", 422); if (await store.findOne("users", { email: address })) return fail("Este e-mail já possui conta", 409); const invite = tokenSecret(), account = { id: id(), name, email: address, password_hash: "", role: "professional", institution_id: institution.id, active: false, invite_token: invite, invite_expires_at: isoAfter(14, "days"), created_at: now() }, professional = { id: id(), user_id: account.id, institution_id: institution.id, link_type: linkType, specialty, created_at: now(), last_access: null }; try { await store.insert("users", account); await store.insert("professionals", professional); } catch (error) { await store.remove("professionals", { id: professional.id }, true); await store.remove("users", { id: account.id }, true); console.error("Professional invitation rolled back", error); return fail("Não foi possível criar o convite. Verifique o e-mail e tente novamente.", 503); } await logEvent(env, "professional_invited", user, institution.id, { professional_id: professional.id }); return json({ id: professional.id, name, email: address, link_type: linkType, invite_path: `/convite/${invite}`, note: "O profissional define a própria senha ao abrir o convite." }, 201); }
   if (pathname === "/api/institutions/me/metrics" && request.method === "GET") return json(await institutionMetrics(env, institution.id));
   return undefined;

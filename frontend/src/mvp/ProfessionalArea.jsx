@@ -17,12 +17,8 @@ export default function ProfessionalArea() {
   const [referrals, setReferrals] = useState({});
 
   const load = useCallback(async () => {
-    const [a, r, s] = await Promise.all([
-      api.get("/professionals/me/availability"),
-      api.get("/professionals/me/requests"),
-      api.get("/professionals/me/sessions"),
-    ]);
-    setAvailability(a.data); setRequests(r.data); setSessions(s.data);
+    const { data } = await api.get("/professionals/me/dashboard");
+    setAvailability(data.availability || []); setRequests(data.requests || []); setSessions(data.sessions || []);
   }, []);
 
   useEffect(() => { load().catch(e => toast.error(apiError(e))); }, [load]);

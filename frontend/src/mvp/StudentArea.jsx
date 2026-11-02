@@ -17,12 +17,9 @@ export default function StudentArea() {
   const [feedback, setFeedback] = useState({});
 
   const load = useCallback(async () => {
-    const [pros, reqs] = await Promise.all([
-      api.get("/students/me/professionals"),
-      api.get("/students/me/requests"),
-    ]);
-    setProfessionals(pros.data);
-    setRequests(reqs.data);
+    const { data } = await api.get("/students/me/dashboard");
+    setProfessionals(data.professionals || []);
+    setRequests(data.requests || []);
   }, []);
 
   useEffect(() => { load().catch(e => toast.error(apiError(e))); }, [load]);
