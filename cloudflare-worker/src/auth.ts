@@ -8,6 +8,7 @@ export interface AccessClaims {
   email: string;
   role: Role;
   type: "access";
+  session_version?: number;
 }
 
 const encoder = new TextEncoder();
@@ -35,7 +36,7 @@ function key(secret: string) {
 }
 
 export async function createAccessToken(claims: Omit<AccessClaims, "type">, secret: string) {
-  return new SignJWT({ email: claims.email, role: claims.role, type: "access" })
+  return new SignJWT({ email: claims.email, role: claims.role, session_version: claims.session_version || 0, type: "access" })
     .setProtectedHeader({ alg: "HS256" })
     .setSubject(claims.sub)
     .setIssuedAt()
@@ -51,7 +52,7 @@ export async function verifyAccessToken(token: string, secret: string): Promise<
   if (!["student", "professional", "institution", "admin"].includes(String(payload.role))) {
     throw new Error("Token inválido");
   }
-  return { sub: payload.sub, email: payload.email, role: payload.role as Role, type: "access" };
+  return { sub: payload.sub, email: payload.email, role: payload.role as Role, session_version: Number(payload.session_version || 0), type: "access" };
 }
 
 export async function hashPassword(password: string) {

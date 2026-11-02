@@ -1,7 +1,5 @@
 import axios from "axios";
 
-const TOKEN_KEY = "acolhe-mvp-token";
-
 const backendUrl = (import.meta.env.VITE_BACKEND_URL || "").trim().replace(/\/+$/, "");
 
 export const api = axios.create({
@@ -12,13 +10,11 @@ export const api = axios.create({
 });
 
 api.interceptors.request.use(config => {
-  const token = localStorage.getItem(TOKEN_KEY);
-  if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
-export const saveToken = token => localStorage.setItem(TOKEN_KEY, token);
-export const clearToken = () => localStorage.removeItem(TOKEN_KEY);
+export const saveToken = () => {};
+export const clearToken = () => localStorage.removeItem("acolhe-mvp-token");
 
 export function apiError(error) {
   const detail = error?.response?.data?.detail;

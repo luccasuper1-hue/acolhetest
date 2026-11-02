@@ -9,8 +9,8 @@ export const json = (body: unknown, status = 200, headers: HeadersInit = {}) => 
 export const fail = (detail: string, status: number) => json({ detail }, status);
 export const db = (env: Env): Mongo => gateway(env);
 export const publicUser = (user: Doc) => ({ id: user.id, name: user.name, email: user.email, role: user.role, institution_id: user.institution_id, active: user.active });
-export const cookie = (token: string) => ({ "set-cookie": `access_token=${token}; HttpOnly; Secure; SameSite=None; Max-Age=604800; Path=/` });
-export const clearCookie = () => ({ "set-cookie": "access_token=; HttpOnly; Secure; SameSite=None; Max-Age=0; Path=/" });
+export const cookie = (token: string) => ({ "set-cookie": `access_token=${token}; HttpOnly; Secure; SameSite=Lax; Max-Age=604800; Path=/` });
+export const clearCookie = () => ({ "set-cookie": "access_token=; HttpOnly; Secure; SameSite=Lax; Max-Age=0; Path=/" });
 
 export async function requestBody(request: Request): Promise<Doc | null> {
   try {
@@ -30,6 +30,11 @@ export function tokenSecret() {
   return [...bytes].map((byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
+export async function hashToken(token: string) {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(token));
+  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
 export async function logEvent(env: Env, type: string, user?: Doc, institutionId?: string, meta: Doc = {}) {
   await db(env).insert("events", { id: id(), type, user_id: user?.id, role: user?.role, institution_id: institutionId || user?.institution_id, meta, created_at: now() });
 }
@@ -42,6 +47,7 @@ export async function currentUser(request: Request, env: Env): Promise<Doc | Res
     const user = await db(env).findOne("users", { id: claims.sub });
     if (!user) return fail("Usuário não encontrado", 401);
     if (user.active === false) return fail("Acesso desativado", 403);
+    if (Number(user.session_version || 0) !== Number(claims.session_version || 0)) return fail("Sessão expirada. Entre novamente.", 401);
     delete user.password_hash;
     return user;
   } catch { return fail("Sessão expirada ou token inválido", 401); }

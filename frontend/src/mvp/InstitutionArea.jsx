@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Lock, UserPlus } from "lucide-react";
+import { UserPlus } from "lucide-react";
 import { MvpShell, MvpCard, MvpEmpty, MvpKpi } from "./MvpShell";
-import { api, apiError, formatDate } from "./api";
+import { api, apiError } from "./api";
 
 export default function InstitutionArea() {
   const [metrics, setMetrics] = useState(null);
-  const [students, setStudents] = useState([]);
   const [professionals, setProfessionals] = useState([]);
   const [institution, setInstitution] = useState(null);
   const [invite, setInvite] = useState({ name: "", email: "", link_type: "institution", specialty: "" });
@@ -14,13 +13,12 @@ export default function InstitutionArea() {
   const [profile, setProfile] = useState({ name: "", contact_email: "", support_note: "" });
 
   const load = useCallback(async () => {
-    const [m, s, p, i] = await Promise.all([
+    const [m, p, i] = await Promise.all([
       api.get("/institutions/me/metrics"),
-      api.get("/institutions/me/students"),
       api.get("/institutions/me/professionals"),
       api.get("/institutions/me"),
     ]);
-    setMetrics(m.data); setStudents(s.data); setProfessionals(p.data); setInstitution(i.data);
+    setMetrics(m.data); setProfessionals(p.data); setInstitution(i.data);
     setProfile({ name: i.data.name || "", contact_email: i.data.contact_email || "", support_note: i.data.support_note || "" });
   }, []);
 
@@ -53,7 +51,7 @@ export default function InstitutionArea() {
       testid="institution-area"
       kicker="Painel institucional · piloto"
       title={<>Utilização agregada, <em>nunca individual.</em></>}
-      lead="Indicadores reais do piloto. A instituição não acessa o conteúdo das conversas nem quem conversou sobre o quê."
+      lead="Indicadores reais do piloto. A instituição não acessa a relação nominal de estudantes, o conteúdo das conversas nem quem conversou sobre o quê."
     >
       <div className="mvp-kpis">
         <MvpKpi label="Estudantes cadastrados" value={metrics?.students_registered} testid="inst-kpi-students" />
@@ -128,19 +126,6 @@ export default function InstitutionArea() {
           ))}
         </MvpCard>
 
-        <MvpCard title="Estudantes vinculados" subtitle="Apenas informação administrativa: nunca motivos ou conteúdo." testid="inst-students-card">
-          {!students.length && <MvpEmpty testid="inst-students-empty">Nenhum estudante vinculado ainda.</MvpEmpty>}
-          {students.map(s => (
-            <div className="mvp-row" key={s.id} data-testid={`inst-student-${s.id}`}>
-              <div className="mvp-row-main">
-                <strong>{s.name}</strong>
-                <span>Último acesso: {s.last_access ? formatDate(s.last_access) : "—"}</span>
-              </div>
-              <span className={`mvp-tag ${s.active ? "ok" : "off"}`}>{s.active ? "Ativo" : "Inativo"}</span>
-            </div>
-          ))}
-          <p className="mvp-foot-note"><Lock size={14} /> Não exibimos se um estudante específico solicitou apoio nem o motivo.</p>
-        </MvpCard>
       </div>
 
       <MvpCard title="Informações da instituição" subtitle={`Código de vínculo dos estudantes: ${institution?.code || "—"} · Plano: piloto (sem cobrança)`} testid="inst-profile-card">

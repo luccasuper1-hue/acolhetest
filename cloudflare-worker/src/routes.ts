@@ -1,5 +1,5 @@
 import { createAccessToken, hashPassword, verifyPassword } from "./auth";
-import { clearCookie, cookie, currentUser, db, email, fail, id, isResponse, json, logEvent, now, oneOf, profile, publicUser, requestBody, string, tokenSecret, userWithRole, type Doc } from "./core";
+import { clearCookie, cookie, currentUser, db, email, fail, hashToken, id, isResponse, json, logEvent, now, oneOf, profile, publicUser, requestBody, string, tokenSecret, userWithRole, type Doc } from "./core";
 import type { Env } from "./index";
 
 const roles = ["student", "professional", "institution", "admin"] as const;
@@ -13,8 +13,12 @@ const pathParameter = (pathname: string, prefix: string, suffix = "") => pathnam
 const isoAfter = (hoursOrDays: number, kind: "hours" | "days") => new Date(Date.now() + hoursOrDays * (kind === "hours" ? 3_600_000 : 86_400_000)).toISOString();
 const minutesFromNow = (minutes: number) => new Date(Date.now() + minutes * 60_000).toISOString();
 const validPassword = (value: unknown) => typeof value === "string" && value.length >= 8 && value.length <= 128;
-const defaultAccountPassword = (env: Env) => validPassword(env.DEFAULT_ACCOUNT_PASSWORD) ? String(env.DEFAULT_ACCOUNT_PASSWORD) : null;
-const validDate = (value: unknown) => typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value);
+const validDate = (value: unknown) => {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const parsed = new Date(`${value}T00:00:00Z`);
+  return !Number.isNaN(parsed.valueOf()) && parsed.toISOString().slice(0, 10) === value && value >= now().slice(0, 10);
+};
+const validTime = (value: unknown) => typeof value === "string" && /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(value);
 const sortDate = { date: 1 as const, time: 1 as const };
 
 function base64Url(value: string) {
@@ -160,12 +164,12 @@ async function register(request: Request, env: Env) {
   const store = db(env), institution = await store.findOne("institutions", { code });
   if (!institution) return fail("Código de instituição não encontrado", 404);
   if (await store.findOne("users", { email: address }, { id: 1 })) return fail("Este e-mail já possui conta", 409);
-  const user = { id: id(), name, email: address, password_hash: await hashPassword(password as string), role: "student", institution_id: institution.id, active: true, consent_accepted_at: now(), created_at: now() };
+  const user = { id: id(), name, email: address, password_hash: await hashPassword(password as string), role: "student", institution_id: institution.id, active: true, session_version: 0, consent_accepted_at: now(), created_at: now() };
   try { await store.insert("users", user); } catch { return fail("Este e-mail já possui conta", 409); }
   await store.insert("students", { id: id(), user_id: user.id, institution_id: institution.id, created_at: now(), last_access: null });
   await logEvent(env, "student_registered", user, institution.id);
-  const accessToken = await createAccessToken({ sub: user.id, email: address, role: "student" }, env.JWT_SECRET);
-  return json({ user: publicUser(user), access_token: accessToken, institution: institution.name }, 200, cookie(accessToken));
+  const accessToken = await createAccessToken({ sub: user.id, email: address, role: "student", session_version: 0 }, env.JWT_SECRET);
+  return json({ user: publicUser(user), institution: institution.name }, 200, cookie(accessToken));
 }
 
 async function login(request: Request, env: Env) {
@@ -189,8 +193,8 @@ async function login(request: Request, env: Env) {
   if (user.role === "student") await store.update("students", { user_id: user.id }, { $set: { last_access: now() } });
   if (user.role === "professional") await store.update("professionals", { user_id: user.id }, { $set: { last_access: now() } });
   await logEvent(env, "access", user, user.institution_id);
-  const accessToken = await createAccessToken({ sub: user.id, email: address, role: user.role }, env.JWT_SECRET);
-  return json({ user: publicUser(user), access_token: accessToken }, 200, cookie(accessToken));
+  const accessToken = await createAccessToken({ sub: user.id, email: address, role: user.role, session_version: Number(user.session_version || 0) }, env.JWT_SECRET);
+  return json({ user: publicUser(user) }, 200, cookie(accessToken));
 }
 
 async function authRoutes(request: Request, env: Env, pathname: string): Promise<Response | undefined> {
@@ -210,7 +214,7 @@ async function authRoutes(request: Request, env: Env, pathname: string): Promise
     if (currentPassword === newPassword) return fail("A nova senha precisa ser diferente da atual", 422);
     const stored = await store.findOne("users", { id: user.id });
     if (!stored || !(await verifyPassword(String(currentPassword), String(stored.password_hash)))) return fail("Senha atual incorreta", 401);
-    await store.update("users", { id: user.id }, { $set: { password_hash: await hashPassword(String(newPassword)), password_changed_at: now() } });
+    await store.update("users", { id: user.id }, { $set: { password_hash: await hashPassword(String(newPassword)), password_changed_at: now(), session_version: Number(user.session_version || 0) + 1 } });
     await logEvent(env, "password_changed", user, user.institution_id);
     return json({ ok: true });
   }
@@ -228,11 +232,11 @@ async function authRoutes(request: Request, env: Env, pathname: string): Promise
     const user = await store.findOne("users", { invite_token: acceptToken });
     if (!user) return fail("Convite inválido ou já utilizado", 404);
     if (user.invite_expires_at && String(user.invite_expires_at) < now()) return fail("Convite expirado. Peça um novo à instituição.", 410);
-    const changed = await store.update("users", { id: user.id, invite_token: acceptToken }, { $set: { password_hash: await hashPassword(payload.password), active: true, consent_accepted_at: now() }, $unset: { invite_token: "", invite_expires_at: "" } });
+    const changed = await store.update("users", { id: user.id, invite_token: acceptToken }, { $set: { password_hash: await hashPassword(payload.password), active: true, session_version: Number(user.session_version || 0), consent_accepted_at: now() }, $unset: { invite_token: "", invite_expires_at: "" } });
     if (changed !== 1) return fail("Convite inválido ou já utilizado", 404);
     await logEvent(env, "invite_accepted", user, user.institution_id);
-    const accessToken = await createAccessToken({ sub: user.id, email: user.email, role: user.role }, env.JWT_SECRET);
-    return json({ user: publicUser({ ...user, active: true }), access_token: accessToken }, 200, cookie(accessToken));
+    const accessToken = await createAccessToken({ sub: user.id, email: user.email, role: user.role, session_version: Number(user.session_version || 0) }, env.JWT_SECRET);
+    return json({ user: publicUser({ ...user, active: true }) }, 200, cookie(accessToken));
   }
   if (pathname === "/api/auth/forgot-password" && request.method === "POST") {
     const payload = await requestBody(request), address = email(payload?.email); if (!address) return fail("E-mail inválido", 422);
@@ -242,25 +246,27 @@ async function authRoutes(request: Request, env: Env, pathname: string): Promise
       (env.RESET_EMAIL_WEBHOOK_URL && env.RESET_EMAIL_WEBHOOK_TOKEN) ||
       env.RESEND_API_KEY,
     );
-    if (!pilotReset && !emailEnabled) return fail("Recuperação de senha indisponível. Fale com a operação do Acolhe.", 503);
     const generic: Doc = { ok: true, message: "Se o e-mail existir, as instruções de redefinição serão enviadas." };
     const user = await store.findOne("users", { email: address }); if (!user) return json(generic);
+    if (!pilotReset && !emailEnabled) { console.error("Password recovery provider is not configured"); return json(generic); }
     const resetToken = tokenSecret();
-    await store.insert("password_reset_tokens", { id: id(), user_id: user.id, token: resetToken, expires_at: isoAfter(1, "hours"), used: false, created_at: now() });
+    await store.insert("password_reset_tokens", { id: id(), user_id: user.id, token_hash: await hashToken(resetToken), expires_at: isoAfter(1, "hours"), used: false, created_at: now() });
     if (pilotReset) return json({ ...generic, reset_token: resetToken, pilot_note: "PROVISÓRIO PARA PILOTO: envio por e-mail é P1." });
     const sent = await sendResetEmail(env, address, resetToken);
     if (!sent) {
       // Keep the response non-enumerating: do not reveal whether this
       // address belongs to an account, but do not claim delivery either.
-      return fail("Não foi possível enviar a recuperação agora. Tente novamente mais tarde ou fale com a operação do Acolhe.", 503);
+      console.error("Reset email was not delivered");
     }
     return json(generic);
   }
   if (pathname === "/api/auth/reset-password" && request.method === "POST") {
     const payload = await requestBody(request); if (!payload || !string(payload.token) || !validPassword(payload.password)) return fail("Dados inválidos", 422);
-    const reset = await store.findOneAndUpdate("password_reset_tokens", { token: string(payload.token), used: false, expires_at: { $gt: now() } }, { $set: { used: true } });
+    const reset = await store.findOneAndUpdate("password_reset_tokens", { token_hash: await hashToken(string(payload.token)), used: false, expires_at: { $gt: now() } }, { $set: { used: true } });
     if (!reset) return fail("Link inválido ou expirado", 400);
-    await store.update("users", { id: reset.user_id }, { $set: { password_hash: await hashPassword(payload.password) } });
+    const user = await store.findOne("users", { id: reset.user_id });
+    if (!user) return fail("Link inválido ou expirado", 400);
+    await store.update("users", { id: reset.user_id }, { $set: { password_hash: await hashPassword(payload.password), password_changed_at: now(), session_version: Number(user.session_version || 0) + 1 } });
     return json({ ok: true });
   }
   return undefined;
@@ -281,7 +287,7 @@ async function studentRoutes(request: Request, env: Env, pathname: string): Prom
     const professionals = await store.findMany("professionals", { institution_id: student.institution_id }, { limit: 100 }); const out: Doc[] = [];
     for (const professional of professionals) {
       const professionalUser = await store.findOne("users", { id: professional.user_id }); if (!professionalUser || professionalUser.active === false) continue;
-      const slots = await store.findMany("availability", { professional_id: professional.id, status: "open" }, { sort: sortDate, limit: 100 });
+      const slots = await store.findMany("availability", { professional_id: professional.id, status: "open", date: { $gte: now().slice(0, 10) } }, { sort: sortDate, limit: 100 });
       out.push({ id: professional.id, name: professionalUser.name, specialty: professional.specialty, link_type: professional.link_type, slots });
     } return json(out);
   }
@@ -289,10 +295,11 @@ async function studentRoutes(request: Request, env: Env, pathname: string): Prom
     const payload = await requestBody(request), availabilityId = string(payload?.availability_id), reason = payload?.reason_code;
     if (!availabilityId || !oneOf(reason, reasonCodes) || (payload?.reason_note !== undefined && string(payload.reason_note).length > 500)) return fail("Dados inválidos", 422);
     const slot = await store.findOne("availability", { id: availabilityId });
-    if (!slot || slot.institution_id !== student.institution_id) return fail("Horário não encontrado", 404);
+    if (!slot || slot.institution_id !== student.institution_id || !validDate(slot.date) || !validTime(slot.time) || String(slot.date) < now().slice(0, 10)) return fail("Horário não encontrado", 404);
     if (await store.update("availability", { id: slot.id, status: "open" }, { $set: { status: "reserved" } }) === 0) return fail("Este horário acabou de ser reservado. Escolha outro.", 409);
     const record = { id: id(), student_id: student.id, professional_id: slot.professional_id, institution_id: student.institution_id, availability_id: slot.id, date: slot.date, time: slot.time, reason_code: reason, reason_note: payload?.reason_note ? string(payload.reason_note) : null, status: "pending", created_at: now() };
-    await store.insert("requests", record); await logEvent(env, "request_created", user, student.institution_id, { reason_code: reason }); return json(record, 201);
+    try { await store.insert("requests", record); } catch (error) { await store.update("availability", { id: slot.id, status: "reserved" }, { $set: { status: "open" } }); console.error("Request creation rolled back", error); return fail("Não foi possível criar a solicitação. Tente novamente.", 503); }
+    await logEvent(env, "request_created", user, student.institution_id, { reason_code: reason }); return json(record, 201);
   }
   if (pathname === "/api/students/me/requests" && request.method === "GET") {
     const records = await store.findMany("requests", { student_id: student.id }, { sort: sortDate, limit: 200 }); const out: Doc[] = [];
@@ -313,20 +320,22 @@ async function professionalRoutes(request: Request, env: Env, pathname: string):
   if (pathname === "/api/professionals/me/availability" && request.method === "GET") return json(await store.findMany("availability", { professional_id: professional.id }, { sort: sortDate, limit: 500 }));
   if (pathname === "/api/professionals/me/availability" && request.method === "POST") {
     const payload = await requestBody(request), date = payload?.date, times = payload?.times;
-    if (!validDate(date) || !Array.isArray(times) || times.length < 1 || times.length > 20 || times.some((time) => typeof time !== "string" || !time.trim())) return fail("Dados inválidos", 422);
+    const uniqueTimes = Array.isArray(times) ? new Set(times) : new Set();
+    const today = now().slice(0, 10), currentTime = now().slice(11, 16);
+    if (!validDate(date) || !Array.isArray(times) || times.length < 1 || times.length > 20 || uniqueTimes.size !== times.length || times.some((time) => !validTime(time) || (date === today && time <= currentTime))) return fail("Dados inválidos", 422);
     const created: Doc[] = [];
-    for (const time of times) { const slot = { id: id(), professional_id: professional.id, institution_id: professional.institution_id, date, time: time.trim(), status: "open", created_at: now() }; try { await store.insert("availability", slot); created.push(slot); } catch { /* unique index preserves original duplicate behavior */ } }
+    try { for (const time of times) { const slot = { id: id(), professional_id: professional.id, institution_id: professional.institution_id, date, time: time.trim(), status: "open", created_at: now() }; await store.insert("availability", slot); created.push(slot); } } catch (error) { if (created.length) await store.remove("availability", { id: { $in: created.map((slot) => slot.id) } }, true); console.error("Availability creation rolled back", error); return fail("Não foi possível publicar todos os horários. Verifique duplicidades e tente novamente.", 409); }
     await logEvent(env, "availability_created", user, professional.institution_id, { count: created.length }); return json(created, 201);
   }
   const slotId = pathParameter(pathname, "/api/professionals/me/availability/");
   if (slotId && request.method === "DELETE") { const slot = await store.findOne("availability", { id: slotId, professional_id: professional.id }); if (!slot) return fail("Horário não encontrado", 404); if (slot.status === "reserved") return fail("Horário reservado por um estudante", 409); await store.remove("availability", { id: slotId }); return json({ ok: true }); }
   if (pathname === "/api/professionals/me/requests" && request.method === "GET") { const requests = await store.findMany("requests", { professional_id: professional.id }, { sort: sortDate, limit: 500 }); const records: Doc[] = []; for (const record of requests) records.push({ id: record.id, date: record.date, time: record.time, status: record.status, reason_code: record.reason_code, reason_note: record.reason_note, room_link: record.room_link, created_at: record.created_at, session: await store.findOne("sessions", { request_id: record.id }) }); return json(records); }
   const acceptId = pathParameter(pathname, "/api/professionals/me/requests/", "/accept");
-  if (acceptId && request.method === "POST") { const record = await store.findOne("requests", { id: acceptId, professional_id: professional.id }); if (!record) return fail("Solicitação não encontrada", 404); if (await store.update("requests", { id: acceptId, professional_id: professional.id, status: "pending" }, { $set: { status: "accepted" } }) === 0) return fail("Solicitação já tratada", 409); const session = { id: id(), request_id: acceptId, student_id: record.student_id, professional_id: professional.id, institution_id: professional.institution_id, date: record.date, time: record.time, status: "scheduled", created_at: now() }; await store.insert("sessions", session); await logEvent(env, "request_accepted", user, professional.institution_id, { request_id: acceptId }); return json(session); }
+  if (acceptId && request.method === "POST") { const record = await store.findOne("requests", { id: acceptId, professional_id: professional.id }); if (!record) return fail("Solicitação não encontrada", 404); if (await store.update("requests", { id: acceptId, professional_id: professional.id, status: "pending" }, { $set: { status: "accepted" } }) === 0) return fail("Solicitação já tratada", 409); const session = { id: id(), request_id: acceptId, student_id: record.student_id, professional_id: professional.id, institution_id: professional.institution_id, date: record.date, time: record.time, status: "scheduled", created_at: now() }; try { await store.insert("sessions", session); } catch (error) { await store.update("requests", { id: acceptId, status: "accepted" }, { $set: { status: "pending" } }); console.error("Request acceptance rolled back", error); return fail("Não foi possível confirmar a conversa. Tente novamente.", 503); } await logEvent(env, "request_accepted", user, professional.institution_id, { request_id: acceptId }); return json(session); }
   const declineId = pathParameter(pathname, "/api/professionals/me/requests/", "/decline");
   if (declineId && request.method === "POST") { const record = await store.findOne("requests", { id: declineId, professional_id: professional.id }); if (!record) return fail("Solicitação não encontrada", 404); if (await store.update("requests", { id: declineId, professional_id: professional.id, status: "pending" }, { $set: { status: "declined" } }) === 0) return fail("Solicitação já tratada", 409); await store.update("availability", { id: record.availability_id }, { $set: { status: "open" } }); await logEvent(env, "request_declined", user, professional.institution_id, { request_id: declineId }); return json({ ok: true }); }
   const roomId = pathParameter(pathname, "/api/professionals/me/requests/", "/room-link");
-  if (roomId && request.method === "POST") { const payload = await requestBody(request), roomLink = string(payload?.room_link); if (roomLink.length < 8 || roomLink.length > 300 || !/^https?:\/\//.test(roomLink)) return fail("Informe um link válido (https://...)", 422); const record = await store.findOne("requests", { id: roomId, professional_id: professional.id }); if (!record) return fail("Solicitação não encontrada", 404); if (record.status !== "accepted") return fail("Só é possível definir a sala de uma conversa confirmada", 409); const session = await store.findOne("sessions", { request_id: roomId }); if (session?.status === "completed") return fail("Conversa já concluída", 409); await store.update("requests", { id: roomId }, { $set: { room_link: roomLink } }); return json({ ok: true, room_link: roomLink }); }
+  if (roomId && request.method === "POST") { const payload = await requestBody(request), roomLink = string(payload?.room_link); let parsedLink: URL; try { parsedLink = new URL(roomLink); } catch { return fail("Informe um link HTTPS válido", 422); } if (roomLink.length < 8 || roomLink.length > 300 || parsedLink.protocol !== "https:" || !parsedLink.hostname) return fail("Informe um link HTTPS válido", 422); const record = await store.findOne("requests", { id: roomId, professional_id: professional.id }); if (!record) return fail("Solicitação não encontrada", 404); if (record.status !== "accepted") return fail("Só é possível definir a sala de uma conversa confirmada", 409); const session = await store.findOne("sessions", { request_id: roomId }); if (session?.status === "completed") return fail("Conversa já concluída", 409); await store.update("requests", { id: roomId }, { $set: { room_link: roomLink } }); return json({ ok: true, room_link: roomLink }); }
   if (pathname === "/api/professionals/me/sessions" && request.method === "GET") { const sessions = await store.findMany("sessions", { professional_id: professional.id }, { sort: sortDate, limit: 500 }); const records: Doc[] = []; for (const session of sessions) { const record = await store.findOne("requests", { id: session.request_id }); records.push({ ...session, reason_code: record?.reason_code, reason_note: record?.reason_note, room_link: record?.room_link, referral: await store.findOne("referrals", { session_id: session.id }) }); } return json(records); }
   const completeId = pathParameter(pathname, "/api/professionals/me/sessions/", "/complete");
   if (completeId && request.method === "POST") { const session = await store.findOne("sessions", { id: completeId, professional_id: professional.id }); if (!session) return fail("Conversa não encontrada", 404); if (session.status === "completed") return fail("Conversa já concluída", 409); await store.update("sessions", { id: completeId }, { $set: { status: "completed", completed_at: now() } }); await store.update("requests", { id: session.request_id }, { $set: { status: "completed" } }); await logEvent(env, "session_completed", user, professional.institution_id, { session_id: completeId }); return json({ ok: true }); }
@@ -352,7 +361,7 @@ async function institutionRoutes(request: Request, env: Env, pathname: string): 
   const { user, institution } = identity, store = db(env);
   if (pathname === "/api/institutions/me" && request.method === "GET") return json(institution);
   if (pathname === "/api/institutions/me" && request.method === "PUT") { const payload = await requestBody(request); if (!payload) return fail("Corpo JSON inválido", 422); const patch: Doc = {}; if (payload.name !== undefined) { const value = string(payload.name); if (value.length < 2 || value.length > 120) return fail("Dados inválidos", 422); patch.name = value; } if (payload.contact_email !== undefined) { const value = email(payload.contact_email); if (!value) return fail("Dados inválidos", 422); patch.contact_email = value; } if (payload.support_note !== undefined) { const value = string(payload.support_note); if (value.length > 400) return fail("Dados inválidos", 422); patch.support_note = value || null; } if (Object.keys(patch).length) await store.update("institutions", { id: institution.id }, { $set: patch }); return json(await store.findOne("institutions", { id: institution.id })); }
-  if (pathname === "/api/institutions/me/students" && request.method === "GET") { const students = await store.findMany("students", { institution_id: institution.id }, { limit: 500 }), output: Doc[] = []; for (const student of students) { const account = await store.findOne("users", { id: student.user_id }); output.push({ id: student.id, name: account?.name || "—", active: account?.active !== false, last_access: student.last_access, requests: await store.count("requests", { student_id: student.id }) }); } return json(output); }
+  if (pathname === "/api/institutions/me/students" && request.method === "GET") return json({ visible: false, message: "A relação nominal de estudantes não é disponibilizada. Consulte os indicadores agregados do piloto." });
   if (pathname === "/api/institutions/me/professionals" && request.method === "GET") { const professionals = await store.findMany("professionals", { institution_id: institution.id }, { limit: 200 }), output: Doc[] = []; for (const professional of professionals) { const account = await store.findOne("users", { id: professional.user_id }); output.push({ id: professional.id, name: account?.name || "—", email: account?.email, active: account?.active !== false, link_type: professional.link_type, specialty: professional.specialty, open_slots: await store.count("availability", { professional_id: professional.id, status: "open" }), completed_sessions: await store.count("sessions", { professional_id: professional.id, status: "completed" }), invite_pending: Boolean(account?.invite_token), invite_path: account?.invite_token ? `/convite/${account.invite_token}` : null, last_access: professional.last_access }); } return json(output); }
   if (pathname === "/api/institutions/me/professionals" && request.method === "POST") { const payload = await requestBody(request), name = string(payload?.name), address = email(payload?.email), linkType = payload?.link_type === undefined ? "institution" : payload.link_type, specialty = payload?.specialty === undefined ? null : string(payload.specialty); if (name.length < 2 || name.length > 90 || !address || !oneOf(linkType, ["institution", "partner"]) || (specialty && specialty.length > 120)) return fail("Dados inválidos", 422); if (await store.findOne("users", { email: address })) return fail("Este e-mail já possui conta", 409); const invite = tokenSecret(), account = { id: id(), name, email: address, password_hash: "", role: "professional", institution_id: institution.id, active: false, invite_token: invite, invite_expires_at: isoAfter(14, "days"), created_at: now() }, professional = { id: id(), user_id: account.id, institution_id: institution.id, link_type: linkType, specialty, created_at: now(), last_access: null }; try { await store.insert("users", account); await store.insert("professionals", professional); } catch { return fail("Este e-mail já possui conta", 409); } await logEvent(env, "professional_invited", user, institution.id, { professional_id: professional.id }); return json({ id: professional.id, name, email: address, link_type: linkType, invite_path: `/convite/${invite}`, note: "O profissional define a própria senha ao abrir o convite." }, 201); }
   if (pathname === "/api/institutions/me/metrics" && request.method === "GET") return json(await institutionMetrics(env, institution.id));
@@ -374,17 +383,13 @@ async function adminRoutes(request: Request, env: Env, pathname: string): Promis
     }
     let account_created = false, institution_code: string | undefined;
     if (status === "approved" && lead.status !== "approved" && lead.status !== "contacted") {
-      const initialPassword = defaultAccountPassword(env);
-      if (!initialPassword) return fail("Configure DEFAULT_ACCOUNT_PASSWORD antes de aprovar contatos", 503);
       const existing = await store.findOne("users", { email: lead.email });
       if (!existing) {
         if (lead.kind === "institution") {
           institution_code = `PILOTO-${id().slice(0, 8).toUpperCase()}`;
           const institution = { id: id(), name: String(lead.institution || lead.name), code: institution_code, contact_email: lead.email, plan: "piloto", support_note: null, lead_id: lead.id, created_at: now() };
           await store.insert("institutions", institution);
-          await store.insert("users", { id: id(), name: String(lead.name), email: lead.email, password_hash: await hashPassword(initialPassword), role: "institution", institution_id: institution.id, active: true, lead_id: lead.id, created_at: now() });
         }
-        account_created = true;
       }
     }
     const updated_at = now();
@@ -395,7 +400,7 @@ async function adminRoutes(request: Request, env: Env, pathname: string): Promis
   const targetId = pathParameter(pathname, "/api/admin/users/", "/toggle-active");
   if (targetId && request.method === "POST") { const target = await store.findOne("users", { id: targetId }); if (!target) return fail("Usuário não encontrado", 404); if (target.role === "admin") return fail("Não é possível desativar um administrador", 403); const active = target.active === false; await store.update("users", { id: targetId }, { $set: { active } }); await logEvent(env, "user_access_toggled", admin, target.institution_id, { target: targetId, active }); return json({ id: targetId, active }); }
   if (pathname === "/api/admin/institutions" && request.method === "GET") { const institutions = await store.findMany("institutions", {}, { limit: 200 }); for (const institution of institutions) { institution.students = await store.count("students", { institution_id: institution.id }); institution.professionals = await store.count("professionals", { institution_id: institution.id }); } return json(institutions); }
-  if (pathname === "/api/admin/institutions" && request.method === "POST") { const payload = await requestBody(request), name = string(payload?.name), code = string(payload?.code).toUpperCase(), contact = payload?.contact_email === undefined || payload.contact_email === null ? null : email(payload.contact_email), adminEmail = payload?.admin_email === undefined || payload.admin_email === null ? null : email(payload.admin_email), adminPassword = payload?.admin_password, accountPassword = adminPassword || (adminEmail ? defaultAccountPassword(env) : null); if (name.length < 2 || name.length > 120 || code.length < 3 || code.length > 40 || (payload?.contact_email && !contact) || (payload?.admin_email && !adminEmail) || (adminPassword !== undefined && adminPassword !== null && !validPassword(adminPassword))) return fail("Dados inválidos", 422); if (adminEmail && !accountPassword) return fail("Configure DEFAULT_ACCOUNT_PASSWORD antes de criar acessos sem senha", 503); if (await store.findOne("institutions", { code })) return fail("Código de instituição já utilizado", 409); if (adminEmail && await store.findOne("users", { email: adminEmail })) return fail("E-mail do gestor já possui conta", 409); const institution = { id: id(), name, code, contact_email: contact, plan: "piloto", support_note: null, created_at: now() }; await store.insert("institutions", institution); if (adminEmail && accountPassword) await store.insert("users", { id: id(), name: string(payload?.admin_name) || name, email: adminEmail, password_hash: await hashPassword(accountPassword), role: "institution", institution_id: institution.id, active: true, created_at: now() }); await logEvent(env, "institution_created", admin, institution.id); return json(institution, 201); }
+  if (pathname === "/api/admin/institutions" && request.method === "POST") { const payload = await requestBody(request), name = string(payload?.name), code = string(payload?.code).toUpperCase(), contact = payload?.contact_email === undefined || payload.contact_email === null ? null : email(payload.contact_email), adminEmail = payload?.admin_email === undefined || payload.admin_email === null ? null : email(payload.admin_email), adminPassword = payload?.admin_password; if (name.length < 2 || name.length > 120 || code.length < 3 || code.length > 40 || (payload?.contact_email && !contact) || (payload?.admin_email && !adminEmail) || (adminPassword !== undefined && adminPassword !== null && !validPassword(adminPassword))) return fail("Dados inválidos", 422); if (adminEmail && !validPassword(adminPassword)) return fail("Defina uma senha individual para o acesso institucional", 422); if (await store.findOne("institutions", { code })) return fail("Código de instituição já utilizado", 409); if (adminEmail && await store.findOne("users", { email: adminEmail })) return fail("E-mail do gestor já possui conta", 409); const institution = { id: id(), name, code, contact_email: contact, plan: "piloto", support_note: null, created_at: now() }; await store.insert("institutions", institution); if (adminEmail) await store.insert("users", { id: id(), name: string(payload?.admin_name) || name, email: adminEmail, password_hash: await hashPassword(adminPassword as string), role: "institution", institution_id: institution.id, active: true, session_version: 0, created_at: now() }); await logEvent(env, "institution_created", admin, institution.id); return json(institution, 201); }
   if (pathname === "/api/admin/requests" && request.method === "GET") { const records = await store.findMany("requests", {}, { projection: { reason_note: 0 }, sort: { created_at: -1 }, limit: 500 }), institutions = await store.findMany("institutions", {}, { limit: 200 }), names = new Map(institutions.map((institution) => [institution.id, institution.name])); return json(records.map((record) => ({ ...record, institution_name: names.get(record.institution_id) }))); }
   if (pathname === "/api/metrics/global" && request.method === "GET") { const institutions = await store.findMany("institutions", {}, { limit: 200 }), perInstitution = []; for (const institution of institutions) perInstitution.push({ institution: institution.name, code: institution.code, ...await institutionMetrics(env, institution.id) }); const students = await store.findMany("students", {}, { projection: { last_access: 1 }, limit: 2000 }); return json({ institutions: institutions.length, users: await store.count("users"), students_registered: students.length, students_accessed: students.filter((student) => student.last_access).length, professionals: await store.count("professionals"), requests: await store.count("requests"), sessions_completed: await store.count("sessions", { status: "completed" }), referrals: await store.count("referrals"), events: await store.count("events"), pending_invites: await store.count("users", { invite_token: { $exists: true } }), per_institution: perInstitution }); }
   return undefined;

@@ -19,7 +19,6 @@ export interface Env {
   GMAIL_CLIENT_SECRET?: string;
   GMAIL_REFRESH_TOKEN?: string;
   GMAIL_FROM?: string;
-  DEFAULT_ACCOUNT_PASSWORD?: string;
   MONGO_GATEWAY: DurableObjectNamespace;
 }
 
@@ -56,11 +55,21 @@ function corsPreflight(request: Request, env: Env) {
   } });
 }
 
+function csrfFailure(request: Request, env: Env) {
+  if (!["POST", "PUT", "PATCH", "DELETE"].includes(request.method)) return;
+  const origin = request.headers.get("origin");
+  const hasCookie = Boolean(request.headers.get("cookie")?.includes("access_token="));
+  if (hasCookie && origin !== env.FRONTEND_URL) return new Response(JSON.stringify({ detail: "Origem não autorizada" }), { status: 403, headers: { "content-type": "application/json; charset=utf-8" } });
+  const contentType = request.headers.get("content-type") || "";
+  if (!contentType.toLowerCase().includes("application/json")) return new Response(JSON.stringify({ detail: "Content-Type inválido" }), { status: 415, headers: { "content-type": "application/json; charset=utf-8" } });
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     if (request.method === "OPTIONS") return corsPreflight(request, env);
     const url = new URL(request.url);
     if (!url.pathname.startsWith("/api")) return new Response("Not found", { status: 404 });
+    const csrfError = csrfFailure(request, env); if (csrfError) return withCors(csrfError, allowedOrigin(request, env));
     try {
       return withCors(await apiRoute(request, env, url.pathname), allowedOrigin(request, env));
     } catch (error) {
