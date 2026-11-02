@@ -250,23 +250,22 @@ async function authRoutes(request: Request, env: Env, pathname: string): Promise
     const user = await store.findOne("users", { email: address }); if (!user) return json(generic);
     if (!pilotReset && !emailEnabled) { console.error("Password recovery provider is not configured"); return json(generic); }
     const resetToken = tokenSecret();
-    // Keep only one active recovery request per account. Besides avoiding
-    // multiple valid links, this also handles the unique user_id index used
-    // by earlier pilot data where an old token could otherwise make the next
-    // request fail with a duplicate-key error.
-    await store.remove("password_reset_tokens", { user_id: user.id }, true);
-    await store.insert("password_reset_tokens", {
-      id: id(),
-      user_id: user.id,
-      // Keep compatibility with the original unique `token` index. This is
-      // only an opaque index value; the usable reset token is never stored
-      // in plaintext and is looked up exclusively through token_hash.
-      token: id(),
-      token_hash: await hashToken(resetToken),
-      expires_at: isoAfter(1, "hours"),
-      used: false,
-      created_at: now(),
-    });
+    // Keep one active request per account and repair records created by the
+    // earlier pilot schema in-place. Upsert avoids duplicate-key failures on
+    // retries and is safe when two requests arrive close together.
+    await store.update("password_reset_tokens", { user_id: user.id }, {
+      $set: {
+        id: id(),
+        user_id: user.id,
+        // Compatibility value for the original unique `token` index. The
+        // usable reset token is never stored in plaintext.
+        token: id(),
+        token_hash: await hashToken(resetToken),
+        expires_at: isoAfter(1, "hours"),
+        used: false,
+        created_at: now(),
+      },
+    }, true);
     if (pilotReset) return json({ ...generic, reset_token: resetToken, pilot_note: "PROVISÓRIO PARA PILOTO: envio por e-mail é P1." });
     const sent = await sendResetEmail(env, address, resetToken);
     if (!sent) {
