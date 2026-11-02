@@ -164,7 +164,7 @@ async function register(request: Request, env: Env) {
   const store = db(env), institution = await store.findOne("institutions", { code });
   if (!institution) return fail("Código de instituição não encontrado", 404);
   if (await store.findOne("users", { email: address }, { id: 1 })) return fail("Este e-mail já possui conta", 409);
-  const user = { id: id(), name, email: address, password_hash: await hashPassword(password as string), role: "student", institution_id: institution.id, active: true, session_version: 0, consent_accepted_at: now(), created_at: now() };
+  const user = { id: id(), name, email: address, password_hash: await hashPassword(password as string), role: "student", institution_id: institution.id, active: true, session_version: 0, consent_version: "pilot-v1", consent_accepted_at: now(), created_at: now() };
   try { await store.insert("users", user); } catch { return fail("Este e-mail já possui conta", 409); }
   await store.insert("students", { id: id(), user_id: user.id, institution_id: institution.id, created_at: now(), last_access: null });
   await logEvent(env, "student_registered", user, institution.id);
