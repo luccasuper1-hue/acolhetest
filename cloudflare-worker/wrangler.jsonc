@@ -4,6 +4,9 @@
   "main": "src/index.ts",
   "compatibility_date": "2026-10-29",
   "compatibility_flags": ["nodejs_compat"],
+  "vars": {
+    "FRONTEND_URL": "https://acolhetest.luccasuper1.workers.dev"
+  },
   "assets": {
     "directory": "../frontend/build",
     "binding": "ASSETS",

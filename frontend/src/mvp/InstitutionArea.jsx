@@ -102,7 +102,7 @@ export default function InstitutionArea() {
             </select>
           </label>
           <label>Atuação (opcional)<input value={invite.specialty} onChange={e => setInvite({ ...invite, specialty: e.target.value })} data-testid="invite-specialty-input" /></label>
-          <button className="button primary" data-testid="invite-submit-button">Enviar convite <UserPlus size={15} /></button>
+          <button className="button primary" data-testid="invite-submit-button">Criar convite <UserPlus size={15} /></button>
         </form>
         {inviteLink && (
           <p className="mvp-ok" style={{ marginTop: 14, wordBreak: "break-all" }} data-testid="invite-link-result">

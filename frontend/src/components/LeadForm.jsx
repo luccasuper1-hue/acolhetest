@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { ArrowRight, Check, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
+import { api, apiError } from "../mvp/api";
 
 /* ------------------------------------------------------------------
-   Formulários de interesse — demonstrativos.
-   Nada é enviado nem armazenado, e nenhum cadastro é aprovado aqui.
+   Formulários de interesse. Eles enviam um contato para a operação,
+   mas não criam cadastro nem aprovam ninguém automaticamente.
    ------------------------------------------------------------------ */
 
 const FIELDS = {
@@ -34,19 +35,19 @@ const COPY = {
     title: "Quero levar a Acolhe para minha instituição",
     intro: "Deixe seus dados e o que você gostaria de resolver. Uma conversa inicial ajuda a entender se a Acolhe faz sentido para a sua realidade — e o que ainda falta construir.",
     submit: "Enviar interesse institucional",
-    success: "Interesse institucional registrado nesta demonstração. Nenhum dado foi enviado ou armazenado, e nenhum contrato ou proposta existe neste protótipo.",
-    toast: "Interesse institucional registrado.",
-    note: "DEMO · formulário demonstrativo. Nenhum dado é transmitido, salvo ou compartilhado.",
+    success: "Recebemos seu interesse. A operação do Acolhe entrará em contato pelo e-mail informado.",
+    toast: "Interesse institucional enviado.",
+    note: "Seus dados serão usados apenas para responder a este contato institucional.",
   },
   professional: {
     testid: "professional-lead",
-    kicker: "Rede de profissionais",
-    title: "Quero fazer parte da rede",
-    intro: "Ainda estamos definindo como a rede de profissionais vai funcionar. Preencher este formulário não cria vínculo, não aprova cadastro e não integra você à plataforma.",
-    submit: "Demonstrar interesse na rede",
-    success: "Interesse registrado nesta demonstração. Isso não representa aprovação, cadastro ou vínculo com a Acolhe — uma versão real exigiria verificação de registro profissional.",
-    toast: "Interesse na rede registrado.",
-    note: "DEMO · nenhum cadastro é criado e nenhum profissional é aprovado neste protótipo.",
+    kicker: "Interesse na rede",
+    title: "Quero participar da rede Acolhe",
+    intro: "No fluxo principal, profissionais entram por convite de uma instituição. Use este formulário apenas para demonstrar interesse em participar de uma futura rede Acolhe; ele não cria conta, vínculo ou aprovação.",
+    submit: "Enviar interesse",
+    success: "Recebemos seu interesse. A operação do Acolhe entrará em contato pelo e-mail informado.",
+    toast: "Interesse profissional registrado.",
+    note: "Seus dados serão usados apenas para responder a este contato. Para acessar o piloto, aguarde um convite da sua instituição.",
   },
 };
 
@@ -93,7 +94,7 @@ export const LeadForm = ({ variant = "institution", anchorId }) => {
 
   const set = (name, value) => setValues(prev => ({ ...prev, [name]: value }));
 
-  const submit = e => {
+  const submit = async e => {
     e.preventDefault();
     const missing = fields.filter(f => f.required && !String(values[f.name] || "").trim());
     if (missing.length) {
@@ -101,8 +102,13 @@ export const LeadForm = ({ variant = "institution", anchorId }) => {
       return;
     }
     setError("");
-    setSent(true);
-    toast.success(copy.toast, { description: "Formulário demonstrativo — nada foi enviado ou armazenado." });
+    try {
+      await api.post(`/leads/${variant}`, values);
+      setSent(true);
+      toast.success(copy.toast, { description: "A operação do Acolhe recebeu seu contato." });
+    } catch (submissionError) {
+      setError(apiError(submissionError));
+    }
   };
 
   return (

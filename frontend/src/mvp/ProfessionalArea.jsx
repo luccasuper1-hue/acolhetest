@@ -56,24 +56,29 @@ export default function ProfessionalArea() {
         <MvpKpi label="Horários abertos" value={availability.filter(a => a.status === "open").length} testid="pro-kpi-open-slots" />
       </div>
 
-      <MvpCard title="Definir disponibilidade" subtitle="Horários abertos ficam visíveis apenas para estudantes da sua instituição." testid="pro-availability-card">
-        <div className="mvp-inline-form">
-          <label>Data
-            <input type="date" value={date} onChange={e => setDate(e.target.value)} data-testid="availability-date-input" />
-          </label>
+      <MvpCard title="Definir disponibilidade" subtitle="Horários abertos ficam visíveis apenas para estudantes da sua instituição." testid="pro-availability-card" className="availability-card">
+        <div className="availability-builder">
+          <div className="availability-date-field">
+            <label htmlFor="availability-date-input">Data dos horários</label>
+            <input id="availability-date-input" type="date" value={date} onChange={e => setDate(e.target.value)} data-testid="availability-date-input" />
+          </div>
+          <div className="availability-times-field">
+            <div className="availability-times-head"><strong>Escolha os horários</strong><span>{times.length ? `${times.length} selecionado${times.length === 1 ? "" : "s"}` : "Nenhum selecionado"}</span></div>
+            <div className="mvp-slots">
+              {TIME_OPTIONS.map(t => (
+                <button type="button" key={t} className={times.includes(t) ? "mvp-slot selected" : "mvp-slot"}
+                  onClick={() => setTimes(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t])}
+                  data-testid={`availability-time-${t.replace(":", "-")}`}>{t}{times.includes(t) && <Check size={13} />}</button>
+              ))}
+            </div>
+          </div>
         </div>
-        <div className="mvp-slots" style={{ marginTop: 12 }}>
-          {TIME_OPTIONS.map(t => (
-            <button key={t} className={times.includes(t) ? "mvp-slot selected" : "mvp-slot"}
-              onClick={() => setTimes(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t])}
-              data-testid={`availability-time-${t.replace(":", "-")}`}>{t}</button>
-          ))}
-        </div>
-        <button className="button primary" style={{ marginTop: 16 }} onClick={addSlots} data-testid="add-availability-button">
+        <button className="button primary availability-publish" onClick={addSlots} data-testid="add-availability-button">
           Publicar horários <Plus size={16} />
         </button>
-        <div style={{ marginTop: 18 }}>
-          {!availability.length && <MvpEmpty testid="pro-availability-empty">Nenhum horário publicado ainda.</MvpEmpty>}
+        <div className="availability-published">
+          <div className="availability-published-head"><strong>Horários publicados</strong><span>{availability.length ? `${availability.length} horário${availability.length === 1 ? "" : "s"}` : "Ainda vazio"}</span></div>
+          {!availability.length && <MvpEmpty testid="pro-availability-empty">Publique uma data e horários para que estudantes possam solicitar uma conversa.</MvpEmpty>}
           {availability.map(a => (
             <div className="mvp-row" key={a.id} data-testid={`availability-row-${a.id}`}>
               <div className="mvp-row-main">
@@ -92,7 +97,7 @@ export default function ProfessionalArea() {
         </div>
       </MvpCard>
 
-      <MvpCard title="Solicitações recebidas" subtitle="Motivo geral informado pelo estudante — sem triagem clínica." testid="pro-requests-card">
+      <MvpCard title="Solicitações recebidas" subtitle="Motivo geral informado pelo estudante — sem triagem clínica." testid="pro-requests-card" className="compact-empty-card">
         {!pending.length && <MvpEmpty testid="pro-requests-empty">Nenhuma solicitação aguardando.</MvpEmpty>}
         {pending.map(r => (
           <div className="mvp-row" key={r.id} data-testid={`pro-request-${r.id}`}>
@@ -111,7 +116,7 @@ export default function ProfessionalArea() {
         ))}
       </MvpCard>
 
-      <MvpCard title="Próximas conversas" subtitle="Cole o link da sala externa (Meet, Zoom) e marque como realizada ao final." testid="pro-sessions-card">
+      <MvpCard title="Próximas conversas" subtitle="Cole o link da sala externa (Meet, Zoom) e marque como realizada ao final." testid="pro-sessions-card" className="compact-empty-card">
         {!scheduled.length && <MvpEmpty testid="pro-sessions-empty">Nenhuma conversa agendada.</MvpEmpty>}
         {scheduled.map(s => (
           <div className="mvp-row" key={s.id} style={{ display: "block" }} data-testid={`pro-session-${s.id}`}>
@@ -140,7 +145,7 @@ export default function ProfessionalArea() {
         ))}
       </MvpCard>
 
-      <MvpCard title="Conversas realizadas e encaminhamentos" subtitle="Registro operacional simples — sem prontuário clínico." testid="pro-completed-card">
+      <MvpCard title="Conversas realizadas e encaminhamentos" subtitle="Registro operacional simples — sem prontuário clínico." testid="pro-completed-card" className="compact-empty-card">
         {!completed.length && <MvpEmpty testid="pro-completed-empty">Nenhuma conversa realizada ainda.</MvpEmpty>}
         {completed.map(s => (
           <div className="mvp-row" key={s.id} style={{ display: "block" }} data-testid={`pro-completed-${s.id}`}>

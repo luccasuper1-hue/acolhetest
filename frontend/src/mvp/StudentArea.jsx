@@ -68,7 +68,7 @@ export default function StudentArea() {
       title={<>Um primeiro passo, <em>quando você quiser.</em></>}
       lead="Acesse o Acolhe pela sua instituição. Escolha um horário disponível e conte, se quiser, o motivo geral. O Acolhe não faz diagnóstico."
     >
-      <MvpCard title="Solicitar uma conversa" subtitle="Motivo geral + horário disponível dos profissionais da sua instituição." testid="student-request-card">
+      <MvpCard title="Solicitar uma conversa" subtitle="1. Conte o motivo geral · 2. Escolha um profissional · 3. Selecione um horário." testid="student-request-card" className="student-request-card">
         <div className="mvp-form">
           <label>Por que você gostaria de conversar?
             <select value={reason} onChange={e => setReason(e.target.value)} data-testid="reason-select">
@@ -77,16 +77,17 @@ export default function StudentArea() {
           </label>
           <label>Quer acrescentar algo? (opcional)
             <textarea value={note} onChange={e => setNote(e.target.value)} placeholder="Pode ser do seu jeito." data-testid="reason-note-input" />
-            <small style={{ opacity: .68, fontSize: 12 }}>
+            <small className="student-privacy-note">
               Escreva apenas o necessário para organizar a conversa. Evite dados sensíveis, endereços ou informações de
               outras pessoas — você poderá falar com o profissional diretamente.
             </small>
           </label>
         </div>
-        <div style={{ marginTop: 18 }}>
-          {!professionals.length && <MvpEmpty testid="student-no-professionals">Sem horários disponíveis ainda. Sua instituição precisa vincular um profissional.</MvpEmpty>}
+        <div className="student-choice-area">
+          <div className="student-choice-label"><strong>2. Escolha um profissional e um horário</strong><span>Você verá apenas disponibilidades da sua instituição.</span></div>
+          {!professionals.length && <MvpEmpty testid="student-no-professionals">Nenhum horário disponível. Sua instituição ainda precisa vincular um profissional e publicar horários.</MvpEmpty>}
           {professionals.map(p => (
-            <div key={p.id} className="mvp-row" style={{ display: "block" }} data-testid={`student-professional-${p.id}`}>
+            <div key={p.id} className="mvp-row student-professional-row" style={{ display: "block" }} data-testid={`student-professional-${p.id}`}>
               <div className="mvp-row-main">
                 <strong>{p.name}</strong>
                 <span>{p.specialty || "Escuta inicial"} · {p.link_type === "institution" ? "Profissional da instituição" : "Profissional parceiro Acolhe"}</span>
@@ -96,21 +97,24 @@ export default function StudentArea() {
                   {p.slots.map(s => (
                     <button key={s.id} className={slot === s.id ? "mvp-slot selected" : "mvp-slot"}
                       onClick={() => setSlot(s.id)} data-testid={`slot-${s.id}`}>
-                      {formatDate(s.date)} · {s.time}
+                      <span className="mvp-slot-status"><span className="mvp-slot-dot" />{slot === s.id ? "Selecionado" : "Disponível"}</span>
+                      <strong>{formatDate(s.date)}</strong>
+                      <span className="mvp-slot-time">às {s.time}</span>
                     </button>
                   ))}
                 </div>
-              ) : <MvpEmpty testid={`no-slots-${p.id}`}>Sem horários abertos no momento.</MvpEmpty>}
+              ) : <MvpEmpty testid={`no-slots-${p.id}`}>Nenhum horário aberto para este profissional no momento.</MvpEmpty>}
             </div>
           ))}
         </div>
-        <button className="button primary" style={{ marginTop: 16 }} disabled={!slot || busy}
+        <button className="button primary student-submit" style={{ marginTop: 16 }} disabled={!slot || busy}
           onClick={submitRequest} data-testid="submit-request-button">
           {busy ? "Enviando…" : "Confirmar solicitação"} <Check size={16} />
         </button>
+        {!slot && <p className="student-submit-hint">Escolha um horário para liberar a confirmação.</p>}
       </MvpCard>
 
-      <MvpCard title="Suas próximas conversas" subtitle="Você pode cancelar e escolher outro horário." testid="student-upcoming-card">
+      <MvpCard title="Suas próximas conversas" subtitle="Você pode cancelar e escolher outro horário." testid="student-upcoming-card" className="compact-empty-card">
         {!upcoming.length && <MvpEmpty testid="student-upcoming-empty">Nenhuma conversa agendada ainda.</MvpEmpty>}
         {upcoming.map(r => (
           <div className="mvp-row" key={r.id} data-testid={`student-request-${r.id}`}>
@@ -131,7 +135,7 @@ export default function StudentArea() {
         ))}
       </MvpCard>
 
-      <MvpCard title="Histórico e orientações" subtitle="Depois da conversa, o profissional pode registrar uma orientação." testid="student-history-card">
+      <MvpCard title="Histórico e orientações" subtitle="Depois da conversa, o profissional pode registrar uma orientação." testid="student-history-card" className="compact-empty-card">
         {!history.length && <MvpEmpty testid="student-history-empty">Sem conversas concluídas ainda.</MvpEmpty>}
         {history.map(r => (
           <div className="mvp-row" key={r.id} style={{ display: "block" }} data-testid={`student-history-${r.id}`}>

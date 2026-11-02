@@ -10,21 +10,34 @@ export type RecordDoc = Record<string, any>;
 export class MongoGateway extends DurableObject<Env> {
   private client: MongoClient;
   private database?: Db;
+  private connectPromise?: Promise<Db>;
 
   constructor(state: DurableObjectState, env: Env) {
     super(state, env);
     this.client = new MongoClient(env.MONGO_URL, {
-      maxPoolSize: 1,
-      minPoolSize: 0,
+      // A Durable Object can serve overlapping requests while awaiting I/O.
+      // A single connection serialized the whole authenticated flow; keep a
+      // small bounded pool so concurrent users can make progress without
+      // opening an unbounded number of Atlas connections.
+      maxPoolSize: 8,
+      minPoolSize: 1,
       maxIdleTimeMS: 20_000,
       serverSelectionTimeoutMS: 5_000,
+      waitQueueTimeoutMS: 8_000,
     });
   }
 
   private async db(): Promise<Db> {
     if (!this.database) {
-      await this.client.connect();
-      this.database = this.client.db(this.env.DB_NAME);
+      this.connectPromise ??= this.client.connect().then(() => {
+        this.database = this.client.db(this.env.DB_NAME);
+        return this.database;
+      });
+      try {
+        return await this.connectPromise;
+      } finally {
+        if (this.database) this.connectPromise = undefined;
+      }
     }
     return this.database;
   }

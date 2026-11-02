@@ -58,7 +58,14 @@ export default function RegisterPage() {
               <span>Li e aceito participar do piloto nas condições combinadas com a minha instituição.</span>
             </label>
           </div>
-          {error && <div className="mvp-error" data-testid="register-error">{error}</div>}
+          {error && <div className="mvp-error" data-testid="register-error">
+            <div>{error}</div>
+            {error.toLowerCase().includes("já possui conta") && (
+              <Link to={`/recuperar-senha?email=${encodeURIComponent(form.email)}`} className="mvp-inline-action" data-testid="register-recover-link">
+                Recuperar senha deste e-mail
+              </Link>
+            )}
+          </div>}
           <button className="button primary full" disabled={busy || !consent} data-testid="register-submit-button">
             {busy ? "Criando…" : "Criar conta"} <ArrowRight size={16} />
           </button>

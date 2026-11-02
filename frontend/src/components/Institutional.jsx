@@ -5,7 +5,7 @@ import {
   ShieldCheck, Sparkles, UserRound, Users, X,
 } from "lucide-react";
 import {
-  accessLevels, aiUses, audiences, b2b2cFlow, futureVision, howByAudience, impactIndicators,
+  accessLevels, aiUses, audiences, futureVision, howByAudience, impactIndicators,
   institutionCapabilities, marketSegments, mvpToday, noReplaceCases, plans, proCapabilities,
   referralSteps, studentCan,
 } from "../data-institutional";
@@ -28,12 +28,11 @@ const Icon = ({ name, size = 18 }) => {
 export const AudienceBand = () => (
   <section className="audience-band" data-testid="audience-band">
     <div className="section">
-      <div className="section-kicker">Uma plataforma, três lugares</div>
-      <h2>O estudante no centro, a instituição como <em>parceira.</em></h2>
+      <div className="section-kicker">Cada pessoa tem um próximo passo</div>
+      <h2>O estudante encontra apoio, a instituição <em>organiza.</em></h2>
       <p className="section-intro">
-        O Acolhe funciona como infraestrutura entre instituição, profissional e estudante: a instituição
-        disponibiliza e organiza a estrutura, o profissional participa dela e o estudante acessa o apoio.
-        Um ecossistema conectado — não uma loja de conversas.
+        A instituição disponibiliza a estrutura, o profissional participa dela e o estudante acessa o apoio.
+        Cada papel é claro, sem transformar cuidado em uma vitrine.
       </p>
       <div className="audience-grid">
         {audiences.map(a => (
@@ -46,20 +45,8 @@ export const AudienceBand = () => (
           </article>
         ))}
       </div>
-      <div className="b2b2c-flow" data-testid="b2b2c-flow">
-        {b2b2cFlow.map((n, i) => (
-          <div key={n.label} style={{ display: "contents" }}>
-            <div className={n.label === "Acolhe" ? "b2b2c-node b2b2c-hub" : "b2b2c-node"}>
-              <span>{n.label}</span>
-              <strong>{n.title}</strong>
-              <small>{n.text}</small>
-            </div>
-            {i < b2b2cFlow.length - 1 && <div className="b2b2c-arrow" aria-hidden="true">→</div>}
-          </div>
-        ))}
-      </div>
       <p className="disclaimer-inline" style={{ marginTop: 26 }}>
-        A Acolhe não substitui psicólogos, psicólogos escolares ou serviços especializados. Ela organiza o acesso e o encaminhamento.
+        A Acolhe organiza o acesso e o encaminhamento; não substitui psicólogos, psicólogos escolares ou serviços especializados.
       </p>
     </div>
   </section>
@@ -231,7 +218,7 @@ export const ProPanelPreview = () => (
       <div className="pro-confidential">
         <Lock size={17}/>
         <span>
-          A instituição não acessa o conteúdo das conversas nem os registros dos casos.
+          A instituição não acessa o conteúdo das conversas, os motivos detalhados ou as solicitações específicas dos estudantes.
           A confidencialidade profissional é um princípio do produto, não uma configuração opcional.
         </span>
       </div>
@@ -329,7 +316,7 @@ export const NoReplaceSection = () => (
 
 /* MVP de hoje x visão futura */
 export const MvpVsFuture = () => (
-  <section className="section" data-testid="mvp-vs-future">
+  <section className="section mvp-vs-future-section" data-testid="mvp-vs-future">
     <div className="section-kicker">Hoje e depois</div>
     <h2>O que funciona <em>hoje</em> e o que é <em>visão futura.</em></h2>
     <p className="section-intro">
@@ -427,8 +414,9 @@ export const AiSection = () => (
     <div className="ai-limit" data-testid="ai-limit">
       <ShieldCheck size={17}/>
       <span>
-        A Acolhe não pretende oferecer “IA terapeuta”. Nenhuma tecnologia aqui é apresentada como
-        profissional de saúde, e o cuidado continua sendo responsabilidade de pessoas habilitadas.
+        A versão atual não usa nenhuma IA ativa: esta seção é apenas uma visão conceitual do futuro.
+        A Acolhe não pretende oferecer “IA terapeuta”; o cuidado continua sendo responsabilidade de
+        pessoas habilitadas.
       </span>
     </div>
   </section>

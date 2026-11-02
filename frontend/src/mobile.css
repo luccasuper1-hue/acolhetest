@@ -66,16 +66,20 @@
      nunca empurra a página centenas de pixels para baixo */
   .hero-product {
     width: 100%;
-    max-width: 420px;
+    max-width: 370px;
     margin: 0 auto;
-    padding: 26px 22px 18px;
+    padding: 22px 18px 14px;
     border-radius: 30px;
   }
   .hero-product::after { inset: 12px -10px -10px 10px; border-radius: 30px; }
-  .product-window { padding: 20px 18px; border-radius: 22px; }
-  .product-question { padding: 24px 2px 14px; }
-  .product-question h3 { font-size: 23px; }
-  .demo-option { padding: 13px 14px; }
+  .product-window { padding: 18px 16px; border-radius: 22px; }
+  .product-question { padding: 20px 2px 12px; }
+  .product-question h3 { font-size: 21px; }
+  .product-question p { font-size: 12px; line-height: 1.45; }
+  .demo-option { padding: 12px 13px; }
+  .mvp-role-options .demo-option { min-height: 52px; }
+  .role-copy small { display: none; }
+  .product-caption { padding-top: 13px; }
 
   /* Brilhos decorativos: menores, nunca disputam espaço */
   .hero::before { width: 240px; height: 240px; left: -130px; top: -70px; }
@@ -113,6 +117,48 @@
 
   /* Sessão demonstrativa: palco proporcional */
   .video-stage { margin: 34px auto 20px; }
+}
+
+/* A entrada do site não pode remover o deslocamento do drawer fechado. */
+@media (max-width: 850px) {
+  html.intro-on .nav-wrap > .nav-links { animation: none; }
+  html.intro-on .nav-wrap > .nav-links:not(.open),
+  html.intro-complete .nav-wrap > .nav-links:not(.open) {
+    transform: translateX(102%);
+  }
+
+  /* O mockup continua visível, mas sem recomposições contínuas no celular. */
+  .mark-scene,
+  .blob-a,
+  .blob-b,
+  .mark-spark {
+    animation: none;
+  }
+  .mark-scene { transform: none; transition: none; }
+  .blob-a,
+  .blob-b { box-shadow: none; filter: none; }
+  .mark-halo,
+  .mark-shadow { filter: none; opacity: .72; }
+  html[data-theme="dark"] .product-window {
+    background: rgba(36,27,50,.98);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  /* Drawer preso ao viewport: a página atrás não acompanha a rolagem. */
+  .site-header:has(.nav-links.open) {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .nav-links.open {
+    position: fixed;
+    inset: 0 0 0 auto;
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  body:has(.nav-links.open) { overflow: hidden; }
 }
 
 /* ------------------------------------------------------------
