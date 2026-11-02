@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Archive, Ban, Building2, Check, Mail, Trash2 } from "lucide-react";
+import { Archive, Ban, Building2, Check, Mail, RotateCcw, Trash2 } from "lucide-react";
 import { MvpShell, MvpCard, MvpEmpty, MvpKpi } from "./MvpShell";
 import { api, apiError, formatDate, STATUS_LABELS } from "./api";
 
@@ -36,6 +36,13 @@ export default function AdminArea() {
 
   const updateLead = async (id, status) => {
     try { const { data } = await api.post(`/admin/leads/${id}/status`, { status }); toast.success(status === "approved" && data.account_created ? "Instituição aprovada e conta criada com a senha padrão." : status === "contacted" ? "Interesse marcado como contatado." : "Interesse atualizado."); await load(); }
+    catch (e) { toast.error(apiError(e)); }
+  };
+
+  const removeLead = async lead => {
+    const label = lead.kind === "institution" ? lead.institution || lead.name : lead.name;
+    if (!window.confirm(`Excluir permanentemente o interesse de ${label}? Esta ação não pode ser desfeita.`)) return;
+    try { await api.delete(`/admin/leads/${lead.id}`, { data: {}, headers: { "content-type": "application/json" } }); toast.success("Interesse excluído."); await load(); }
     catch (e) { toast.error(apiError(e)); }
   };
 
@@ -110,8 +117,10 @@ export default function AdminArea() {
               {lead.status === "pending" && lead.kind === "institution" && <button className="button small quiet" onClick={() => updateLead(lead.id, "approved")}><Check size={14}/> Aprovar instituição</button>}
               {lead.status === "pending" && lead.kind === "professional" && <button className="button small quiet" onClick={() => updateLead(lead.id, "contacted")}><Mail size={14}/> Marcar como contatado</button>}
               {lead.status === "approved" && <button className="button small quiet" onClick={() => updateLead(lead.id, "contacted")}><Mail size={14}/> Marcar como contatado</button>}
+              {(lead.status === "archived" || lead.status === "rejected") && <button className="button small quiet" onClick={() => updateLead(lead.id, "pending")}><RotateCcw size={14}/> Reativar</button>}
               {lead.status === "pending" && <button className="button small quiet" onClick={() => updateLead(lead.id, "rejected")}><Ban size={14}/> Rejeitar</button>}
               {lead.status !== "archived" && lead.status !== "rejected" && <button className="button small quiet" onClick={() => updateLead(lead.id, "archived")}><Archive size={14}/> Arquivar</button>}
+              <button className="button small quiet danger" onClick={() => removeLead(lead)}><Trash2 size={14}/> Excluir</button>
             </div>
           </div>
         ))}

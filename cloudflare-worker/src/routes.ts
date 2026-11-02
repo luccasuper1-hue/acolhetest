@@ -396,6 +396,14 @@ async function adminRoutes(request: Request, env: Env, pathname: string): Promis
   const admin = await userWithRole(request, env, ["admin"]); if (isResponse(admin)) return admin;
   const store = db(env);
   if (pathname === "/api/admin/leads" && request.method === "GET") return json(await store.findMany("leads", {}, { sort: { created_at: -1 }, limit: 200 }));
+  const deleteLeadId = request.method === "DELETE" && pathname.startsWith("/api/admin/leads/") ? decodeURIComponent(pathname.slice("/api/admin/leads/".length)) : undefined;
+  if (deleteLeadId) {
+    const lead = await store.findOne("leads", { id: deleteLeadId });
+    if (!lead) return fail("Interesse não encontrado", 404);
+    await store.remove("leads", { id: deleteLeadId }, true);
+    await logEvent(env, "lead_deleted", admin, lead.institution_id, { target: deleteLeadId, kind: lead.kind });
+    return json({ id: deleteLeadId, deleted: true });
+  }
   const leadId = pathParameter(pathname, "/api/admin/leads/", "/status");
   if (leadId && request.method === "POST") {
     const payload = await requestBody(request), status = payload?.status;
