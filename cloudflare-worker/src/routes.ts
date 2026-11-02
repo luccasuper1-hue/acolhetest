@@ -456,6 +456,33 @@ async function institutionProfessionals(store: ReturnType<typeof db>, institutio
   });
 }
 
+async function adminInstitutions(store: ReturnType<typeof db>): Promise<Doc[]> {
+  const [institutions, students, professionals] = await Promise.all([
+    store.findMany("institutions", {}, { limit: 200 }),
+    store.findMany("students", {}, { projection: { institution_id: 1 }, limit: 1000 }),
+    store.findMany("professionals", {}, { projection: { institution_id: 1 }, limit: 200 }),
+  ]);
+  const studentsByInstitution = new Map<string, number>(), professionalsByInstitution = new Map<string, number>();
+  for (const student of students) studentsByInstitution.set(student.institution_id, (studentsByInstitution.get(student.institution_id) || 0) + 1);
+  for (const professional of professionals) professionalsByInstitution.set(professional.institution_id, (professionalsByInstitution.get(professional.institution_id) || 0) + 1);
+  return institutions.map((institution) => ({ ...institution, students: studentsByInstitution.get(institution.id) || 0, professionals: professionalsByInstitution.get(institution.id) || 0 }));
+}
+
+async function globalMetrics(env: Env, store: ReturnType<typeof db>, institutions: Doc[]) {
+  const [perInstitution, users, students, professionals, requests, sessions, referrals, events, pendingInvites] = await Promise.all([
+    Promise.all(institutions.map(async (institution) => ({ institution: institution.name, code: institution.code, ...await institutionMetrics(env, institution.id) }))),
+    store.count("users"),
+    store.findMany("students", {}, { projection: { last_access: 1 }, limit: 2000 }),
+    store.count("professionals"),
+    store.count("requests"),
+    store.count("sessions", { status: "completed" }),
+    store.count("referrals"),
+    store.count("events"),
+    store.count("users", { invite_token: { $exists: true } }),
+  ]);
+  return { institutions: institutions.length, users, students_registered: students.length, students_accessed: students.filter((student) => student.last_access).length, professionals, requests, sessions_completed: sessions, referrals, events, pending_invites: pendingInvites, per_institution: perInstitution };
+}
+
 async function institutionRoutes(request: Request, env: Env, pathname: string): Promise<Response | undefined> {
   if (!pathname.startsWith("/api/institutions/")) return undefined;
   const identity = await getInstitution(request, env); if (isResponse(identity)) return identity;
@@ -477,6 +504,18 @@ async function adminRoutes(request: Request, env: Env, pathname: string): Promis
   if (!pathname.startsWith("/api/admin/") && pathname !== "/api/metrics/global") return undefined;
   const admin = await userWithRole(request, env, ["admin"]); if (isResponse(admin)) return admin;
   const store = db(env);
+  if (pathname === "/api/admin/dashboard" && request.method === "GET") {
+    const institutionsPromise = adminInstitutions(store);
+    const [users, requests, leads, institutions] = await Promise.all([
+      store.findMany("users", {}, { sort: { created_at: -1 }, limit: 500 }).then((records) => records.map((user) => { delete user.password_hash; return user; })),
+      store.findMany("requests", {}, { projection: { reason_note: 0 }, sort: { created_at: -1 }, limit: 500 }),
+      store.findMany("leads", {}, { sort: { created_at: -1 }, limit: 200 }),
+      institutionsPromise,
+    ]);
+    const institutionNames = new Map(institutions.map((institution) => [institution.id, institution.name]));
+    const metrics = await globalMetrics(env, store, institutions);
+    return json({ users: users.map((user) => ({ ...user, institution_name: institutionNames.get(user.institution_id) })), institutions, requests: requests.map((record) => ({ ...record, institution_name: institutionNames.get(record.institution_id) })), leads, metrics });
+  }
   if (pathname === "/api/admin/leads" && request.method === "GET") return json(await store.findMany("leads", {}, { sort: { created_at: -1 }, limit: 200 }));
   const deleteLeadId = request.method === "DELETE" && pathname.startsWith("/api/admin/leads/") ? decodeURIComponent(pathname.slice("/api/admin/leads/".length)) : undefined;
   if (deleteLeadId) {
@@ -509,7 +548,7 @@ async function adminRoutes(request: Request, env: Env, pathname: string): Promis
     await store.update("leads", { id: leadId }, { $set: { status, updated_at, ...(account_created ? { account_created_at: updated_at, account_email: lead.email, ...(institution_code ? { institution_code } : {}) } : {}) } });
     return json({ ...lead, status, updated_at, account_created, ...(institution_code ? { institution_code } : {}) });
   }
-  if (pathname === "/api/admin/users" && request.method === "GET") { const users = await store.findMany("users", {}, { sort: { created_at: -1 }, limit: 500 }), institutions = await store.findMany("institutions", {}, { limit: 200 }), names = new Map(institutions.map((institution) => [institution.id, institution.name])); return json(users.map((user) => { delete user.password_hash; return { ...user, institution_name: names.get(user.institution_id) }; })); }
+  if (pathname === "/api/admin/users" && request.method === "GET") { const [users, institutions] = await Promise.all([store.findMany("users", {}, { sort: { created_at: -1 }, limit: 500 }), store.findMany("institutions", {}, { limit: 200 })]), names = new Map(institutions.map((institution) => [institution.id, institution.name])); return json(users.map((user) => { delete user.password_hash; return { ...user, institution_name: names.get(user.institution_id) }; })); }
   const deleteUserId = request.method === "DELETE" && pathname.startsWith("/api/admin/users/") ? decodeURIComponent(pathname.slice("/api/admin/users/".length)) : undefined;
   if (deleteUserId) {
     const target = await store.findOne("users", { id: deleteUserId });
@@ -540,10 +579,10 @@ async function adminRoutes(request: Request, env: Env, pathname: string): Promis
   }
   const targetId = pathParameter(pathname, "/api/admin/users/", "/toggle-active");
   if (targetId && request.method === "POST") { const target = await store.findOne("users", { id: targetId }); if (!target) return fail("Usuário não encontrado", 404); if (target.role === "admin") return fail("Não é possível desativar um administrador", 403); const active = target.active === false; await store.update("users", { id: targetId }, { $set: { active } }); await logEvent(env, "user_access_toggled", admin, target.institution_id, { target: targetId, active }); return json({ id: targetId, active }); }
-  if (pathname === "/api/admin/institutions" && request.method === "GET") { const institutions = await store.findMany("institutions", {}, { limit: 200 }); for (const institution of institutions) { institution.students = await store.count("students", { institution_id: institution.id }); institution.professionals = await store.count("professionals", { institution_id: institution.id }); } return json(institutions); }
+  if (pathname === "/api/admin/institutions" && request.method === "GET") return json(await adminInstitutions(store));
   if (pathname === "/api/admin/institutions" && request.method === "POST") { const payload = await requestBody(request), name = string(payload?.name), code = string(payload?.code).toUpperCase(), contact = payload?.contact_email === undefined || payload.contact_email === null ? null : email(payload.contact_email), adminEmail = payload?.admin_email === undefined || payload.admin_email === null ? null : email(payload.admin_email), adminPassword = payload?.admin_password; if (name.length < 2 || name.length > 120 || code.length < 3 || code.length > 40 || (payload?.contact_email && !contact) || (payload?.admin_email && !adminEmail) || (adminPassword !== undefined && adminPassword !== null && !validPassword(adminPassword))) return fail("Dados inválidos", 422); if (adminEmail && !validPassword(adminPassword)) return fail("Defina uma senha individual para o acesso institucional", 422); if (await store.findOne("institutions", { code })) return fail("Código de instituição já utilizado", 409); if (adminEmail && await store.findOne("users", { email: adminEmail })) return fail("E-mail do gestor já possui conta", 409); const institution = { id: id(), name, code, contact_email: contact, plan: "piloto", support_note: null, created_at: now() }; const manager = adminEmail ? { id: id(), name: string(payload?.admin_name) || name, email: adminEmail, password_hash: await hashPassword(adminPassword as string), role: "institution", institution_id: institution.id, active: true, session_version: 0, created_at: now() } : null; try { await store.insert("institutions", institution); if (manager) await store.insert("users", manager); } catch (error) { if (manager) await store.remove("users", { id: manager.id }, true); await store.remove("institutions", { id: institution.id }, true); console.error("Institution creation rolled back", error); return fail("Não foi possível criar a instituição. Tente novamente.", 503); } await logEvent(env, "institution_created", admin, institution.id); return json(institution, 201); }
   if (pathname === "/api/admin/requests" && request.method === "GET") { const records = await store.findMany("requests", {}, { projection: { reason_note: 0 }, sort: { created_at: -1 }, limit: 500 }), institutions = await store.findMany("institutions", {}, { limit: 200 }), names = new Map(institutions.map((institution) => [institution.id, institution.name])); return json(records.map((record) => ({ ...record, institution_name: names.get(record.institution_id) }))); }
-  if (pathname === "/api/metrics/global" && request.method === "GET") { const institutions = await store.findMany("institutions", {}, { limit: 200 }), perInstitution = []; for (const institution of institutions) perInstitution.push({ institution: institution.name, code: institution.code, ...await institutionMetrics(env, institution.id) }); const students = await store.findMany("students", {}, { projection: { last_access: 1 }, limit: 2000 }); return json({ institutions: institutions.length, users: await store.count("users"), students_registered: students.length, students_accessed: students.filter((student) => student.last_access).length, professionals: await store.count("professionals"), requests: await store.count("requests"), sessions_completed: await store.count("sessions", { status: "completed" }), referrals: await store.count("referrals"), events: await store.count("events"), pending_invites: await store.count("users", { invite_token: { $exists: true } }), per_institution: perInstitution }); }
+  if (pathname === "/api/metrics/global" && request.method === "GET") { const institutions = await store.findMany("institutions", {}, { limit: 200 }); return json(await globalMetrics(env, store, institutions)); }
   return undefined;
 }
 

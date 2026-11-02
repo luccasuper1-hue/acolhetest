@@ -14,11 +14,8 @@ export default function AdminArea() {
   const [form, setForm] = useState({ name: "", code: "", admin_name: "", admin_email: "", admin_password: "" });
 
   const load = useCallback(async () => {
-    const [u, i, r, l, m] = await Promise.all([
-      api.get("/admin/users"), api.get("/admin/institutions"),
-      api.get("/admin/requests"), api.get("/admin/leads"), api.get("/metrics/global"),
-    ]);
-    setUsers(u.data); setInstitutions(i.data); setRequests(r.data); setLeads(l.data); setMetrics(m.data);
+    const { data } = await api.get("/admin/dashboard");
+    setUsers(data.users || []); setInstitutions(data.institutions || []); setRequests(data.requests || []); setLeads(data.leads || []); setMetrics(data.metrics || null);
   }, []);
 
   useEffect(() => { load().catch(e => toast.error(apiError(e))); }, [load]);
