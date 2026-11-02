@@ -15,6 +15,10 @@ export interface Env {
   RESEND_API_KEY?: string;
   LEAD_EMAIL_TO?: string;
   RESEND_FROM?: string;
+  GMAIL_CLIENT_ID?: string;
+  GMAIL_CLIENT_SECRET?: string;
+  GMAIL_REFRESH_TOKEN?: string;
+  GMAIL_FROM?: string;
   DEFAULT_ACCOUNT_PASSWORD?: string;
   MONGO_GATEWAY: DurableObjectNamespace;
 }

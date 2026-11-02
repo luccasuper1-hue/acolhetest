@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import BrandMark from "../components/BrandMark";
@@ -9,14 +9,36 @@ export function ForgotPasswordPage() {
   const [email, setEmail] = useState(() => params.get("email") || "");
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [secondsLeft, setSecondsLeft] = useState(0);
+
+  useEffect(() => {
+    if (!result) return undefined;
+    setSecondsLeft(12);
+    const timer = window.setInterval(() => {
+      setSecondsLeft(value => {
+        if (value <= 1) {
+          window.clearInterval(timer);
+          setResult(null);
+          return 0;
+        }
+        return value - 1;
+      });
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [result]);
 
   const submit = async e => {
     e.preventDefault();
+    if (submitting) return;
     setError("");
+    setResult(null);
+    setSubmitting(true);
     try {
       const { data } = await api.post("/auth/forgot-password", { email });
       setResult(data);
     } catch (err) { setError(apiError(err)); }
+    finally { setSubmitting(false); }
   };
 
   return (
@@ -29,11 +51,13 @@ export function ForgotPasswordPage() {
         <form className="mvp-form" onSubmit={submit}>
           <label>E-mail<input type="email" required value={email} onChange={e => setEmail(e.target.value)} data-testid="forgot-email-input" /></label>
           {error && <div className="mvp-error" data-testid="forgot-error">{error}</div>}
-          <button className="button primary full" data-testid="forgot-submit-button">Enviar instruções <ArrowRight size={16} /></button>
+          <button className="button primary full" disabled={submitting} data-testid="forgot-submit-button">{submitting ? "Enviando..." : "Enviar instruções"} {!submitting && <ArrowRight size={16} />}</button>
         </form>
+        <p className="mvp-delivery-note">Se não encontrar a mensagem, confira também a pasta de spam, lixo eletrônico ou promoções.</p>
         {result && (
           <div className="mvp-auth-foot" data-testid="forgot-result">
             <p className="mvp-ok">{result.message}</p>
+            <p className="mvp-result-timer">Este aviso desaparece em {secondsLeft}s. Você pode solicitar novamente depois.</p>
             {result.reset_token && (
               <Link to={`/redefinir-senha?token=${result.reset_token}`} data-testid="forgot-reset-link">Abrir link de redefinição</Link>
             )}

@@ -26,7 +26,11 @@ Crie no Cloudflare, sem gravar valores no Git:
 | `JWT_SECRET` | Secret | Chave aleatória forte (mínimo 32 caracteres). |
 | `FRONTEND_URL` | Variável | Origem pública exata do Worker. |
 | `APP_ENV` | Variável | `production`. |
+| `GMAIL_CLIENT_ID` | Secret | Client ID OAuth do projeto Google usado para enviar e-mails. |
+| `GMAIL_CLIENT_SECRET` | Secret | Client secret OAuth correspondente. |
+| `GMAIL_REFRESH_TOKEN` | Secret | Refresh token do Gmail autorizado com o escopo `gmail.send`. |
+| `GMAIL_FROM` | Variável | Remetente autorizado (opcional; padrão `acolheiluminado@gmail.com`). |
 
-Não crie `PILOT_RETURN_RESET_TOKEN` em produção. Para recuperação de senha por e-mail, adicione também `RESET_EMAIL_WEBHOOK_URL` e `RESET_EMAIL_WEBHOOK_TOKEN` quando um provedor de e-mail HTTPS estiver pronto.
+Não crie `PILOT_RETURN_RESET_TOKEN` em produção. A recuperação de senha tenta o Gmail API primeiro; webhook HTTPS e Resend permanecem como fallback. O OAuth em modo de teste do Google expira refresh tokens após alguns dias, então será necessário renovar a autorização ou publicar/verificar o app antes de uso contínuo.
 
 O primeiro deploy executa automaticamente a migração do Durable Object `MongoGateway`. Antes de publicar, confirme que o Atlas aceita conexões do Worker e use um banco de desenvolvimento se ainda estiver validando dados.

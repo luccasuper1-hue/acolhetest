@@ -10,6 +10,10 @@ Um único Worker entrega os arquivos estáticos do React e atende as chamadas em
 - `DB_NAME`
 - `JWT_SECRET`
 - `FRONTEND_URL`
+- `GMAIL_CLIENT_ID`
+- `GMAIL_CLIENT_SECRET`
+- `GMAIL_REFRESH_TOKEN`
+- `GMAIL_FROM` (opcional)
 
 O Worker usa um Durable Object como ponto de integração com o MongoDB, evitando criar uma conexão nova a cada chamada. Isso segue a recomendação do Cloudflare para Atlas.
 
@@ -21,7 +25,7 @@ O Worker usa um Durable Object como ponto de integração com o MongoDB, evitand
 - [x] Migrar regras de aluno, profissional, instituição, administração e métricas.
 - [x] Alterar o frontend desta cópia para usar `/api` no mesmo domínio, sem URL externa.
 - [ ] Testar contra um banco Atlas de desenvolvimento, sem reutilizar produção.
-- [ ] Fazer publicação manual, somente após revisar as variáveis e criar um Atlas de desenvolvimento.
+- [x] Publicar no Cloudflare e validar o envio de recuperação via Gmail API.
 
 ## Build único
 
@@ -40,5 +44,7 @@ Crie-as como segredos no Cloudflare, sem gravá-las em código:
 - `DB_NAME`: nome do banco correspondente.
 - `JWT_SECRET`: segredo aleatório com ao menos 32 caracteres.
 - `FRONTEND_URL`: origem pública do próprio Worker, por exemplo `https://seu-worker.seu-subdominio.workers.dev`.
+- `GMAIL_CLIENT_ID`, `GMAIL_CLIENT_SECRET`, `GMAIL_REFRESH_TOKEN`: credenciais OAuth com escopo `gmail.send`.
+- `GMAIL_FROM`: remetente autorizado no Gmail (opcional).
 
-`PILOT_RETURN_RESET_TOKEN` só pode existir em desenvolvimento. Para recuperação real de senha, configure `RESET_EMAIL_WEBHOOK_URL` e `RESET_EMAIL_WEBHOOK_TOKEN` para um adaptador HTTPS do provedor de e-mail: ele recebe `POST` autenticado por Bearer com `to`, `subject` e `text`. Isso substitui o SMTP do backend Python, que não é um transporte suportado no runtime Worker. Não use este diretório para publicar em produção enquanto as etapas pendentes existirem.
+`PILOT_RETURN_RESET_TOKEN` só pode existir em desenvolvimento. Para recuperação real de senha, o Worker usa o Gmail API com os três segredos OAuth acima; webhook HTTPS e Resend permanecem como fallback. O refresh token de um app Google em modo de teste expira após alguns dias; para operação contínua, renove a autorização ou publique/verifique o app. Isso substitui o SMTP do backend Python, que não é um transporte suportado no runtime Worker.

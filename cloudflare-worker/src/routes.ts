@@ -17,6 +17,57 @@ const defaultAccountPassword = (env: Env) => validPassword(env.DEFAULT_ACCOUNT_P
 const validDate = (value: unknown) => typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value);
 const sortDate = { date: 1 as const, time: 1 as const };
 
+function base64Url(value: string) {
+  const bytes = new TextEncoder().encode(value);
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+}
+
+async function sendGmail(env: Env, recipient: string, subject: string, text: string, html: string): Promise<boolean> {
+  if (!env.GMAIL_CLIENT_ID || !env.GMAIL_CLIENT_SECRET || !env.GMAIL_REFRESH_TOKEN) return false;
+  try {
+    const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        client_id: env.GMAIL_CLIENT_ID,
+        client_secret: env.GMAIL_CLIENT_SECRET,
+        refresh_token: env.GMAIL_REFRESH_TOKEN,
+        grant_type: "refresh_token",
+      }),
+    });
+    if (!tokenResponse.ok) { console.error("Gmail token exchange failed", tokenResponse.status); return false; }
+    const token = await tokenResponse.json<{ access_token?: string }>();
+    if (!token.access_token) return false;
+    const from = env.GMAIL_FROM || "acolheiluminado@gmail.com";
+    const mime = [
+      `From: Acolhe <${from}>`,
+      `To: ${recipient}`,
+      `Subject: ${subject}`,
+      "MIME-Version: 1.0",
+      "Content-Type: multipart/alternative; boundary=acolhe_boundary",
+      "",
+      "--acolhe_boundary",
+      "Content-Type: text/plain; charset=UTF-8",
+      "",
+      text,
+      "--acolhe_boundary",
+      "Content-Type: text/html; charset=UTF-8",
+      "",
+      html,
+      "--acolhe_boundary--",
+    ].join("\r\n");
+    const response = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/messages/send", {
+      method: "POST",
+      headers: { authorization: `Bearer ${token.access_token}`, "content-type": "application/json" },
+      body: JSON.stringify({ raw: base64Url(mime) }),
+    });
+    if (!response.ok) console.error("Gmail send failed", response.status, (await response.text()).slice(0, 300));
+    return response.ok;
+  } catch (error) { console.error("Gmail send error", error); return false; }
+}
+
 async function sendResetEmail(env: Env, recipient: string, token: string): Promise<boolean> {
   let frontend: URL;
   try {
@@ -28,6 +79,7 @@ async function sendResetEmail(env: Env, recipient: string, token: string): Promi
   const text = `Para redefinir sua senha, abra este link em até 1 hora:\n\n${resetUrl}\n`;
   const logoUrl = `${frontend.origin}/brand-mark.png`;
   const html = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${subject}</title></head><body style="margin:0;background:#f7f4fb;color:#30243f;font-family:Arial,Helvetica,sans-serif"><div style="max-width:560px;margin:0 auto;padding:36px 20px"><div style="background:#fff;border:1px solid #e5dcef;border-radius:24px;padding:36px;box-shadow:0 12px 30px rgba(59,36,93,.08)"><div style="margin-bottom:28px"><img src="${logoUrl}" width="34" height="34" alt="" style="vertical-align:middle;margin-right:8px"><span style="font-size:22px;font-weight:700;color:#51358a;vertical-align:middle">Acolhe</span></div><div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#7552b4;font-weight:700;margin-bottom:12px">Acesso ao piloto</div><h1 style="font-size:30px;line-height:1.15;font-weight:500;margin:0 0 16px;color:#30243f">Recuperar acesso.</h1><p style="font-size:16px;line-height:1.55;color:#716780;margin:0 0 26px">Recebemos uma solicitação para redefinir a senha da sua conta no Acolhe.</p><a href="${resetUrl}" style="display:inline-block;background:#6240a0;color:#fff;text-decoration:none;font-size:16px;font-weight:700;border-radius:999px;padding:15px 26px">Redefinir minha senha&nbsp; →</a><p style="font-size:13px;line-height:1.5;color:#8b8197;margin:26px 0 0">Este link expira em 1 hora. Se você não fez esta solicitação, pode ignorar este e-mail.</p></div><p style="font-size:12px;text-align:center;color:#9a91a5;margin:18px 0 0">Acolhe · um primeiro passo para buscar apoio</p></div></body></html>`;
+  if (env.GMAIL_CLIENT_ID && env.GMAIL_CLIENT_SECRET && env.GMAIL_REFRESH_TOKEN && await sendGmail(env, recipient, subject, text, html)) return true;
   if (env.RESET_EMAIL_WEBHOOK_URL && env.RESET_EMAIL_WEBHOOK_TOKEN) {
     let endpoint: URL;
     try { endpoint = new URL(env.RESET_EMAIL_WEBHOOK_URL); } catch { return false; }
@@ -41,7 +93,7 @@ async function sendResetEmail(env: Env, recipient: string, token: string): Promi
       return response.ok;
     } catch { return false; }
   }
-  if (!env.RESEND_API_KEY) { console.error("Reset email misconfigured: RESEND_API_KEY is missing"); return false; }
+  if (!env.RESEND_API_KEY) { console.error("Reset email misconfigured: no Gmail API or Resend credentials"); return false; }
   try {
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -185,7 +237,11 @@ async function authRoutes(request: Request, env: Env, pathname: string): Promise
   if (pathname === "/api/auth/forgot-password" && request.method === "POST") {
     const payload = await requestBody(request), address = email(payload?.email); if (!address) return fail("E-mail inválido", 422);
     const pilotReset = env.PILOT_RETURN_RESET_TOKEN === "true" && env.APP_ENV !== "production";
-    const emailEnabled = Boolean((env.RESET_EMAIL_WEBHOOK_URL && env.RESET_EMAIL_WEBHOOK_TOKEN) || env.RESEND_API_KEY);
+    const emailEnabled = Boolean(
+      (env.GMAIL_CLIENT_ID && env.GMAIL_CLIENT_SECRET && env.GMAIL_REFRESH_TOKEN) ||
+      (env.RESET_EMAIL_WEBHOOK_URL && env.RESET_EMAIL_WEBHOOK_TOKEN) ||
+      env.RESEND_API_KEY,
+    );
     if (!pilotReset && !emailEnabled) return fail("Recuperação de senha indisponível. Fale com a operação do Acolhe.", 503);
     const generic: Doc = { ok: true, message: "Se o e-mail existir, as instruções de redefinição serão enviadas." };
     const user = await store.findOne("users", { email: address }); if (!user) return json(generic);
