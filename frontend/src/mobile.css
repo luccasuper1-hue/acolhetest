@@ -435,3 +435,25 @@
   }
   .tags span, .filter-select { max-width: 100%; }
 }
+
+/* Camada final da home mobile: mantém uma única decisão para os pontos críticos. */
+@media (max-width: 600px) {
+  .home-route .hero-lead {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+  }
+  .home-route .mark-scene,
+  .home-route .blob-a,
+  .home-route .blob-b,
+  .home-route .mark-spark { animation: none; }
+  .home-route .mark-scene { transform: none; transition: none; }
+}
+
+@media (max-width: 390px) {
+  .home-route .hero { padding-top: 14px; padding-bottom: 24px; gap: 14px; }
+  .home-route .hero h1 { font-size: 34px; line-height: 1.04; letter-spacing: -1.7px; }
+  .home-route .hero-lead { font-size: 14px; line-height: 1.42; }
+  .home-route .hero-product { max-width: 330px; }
+}
