@@ -12,6 +12,7 @@ export default function StudentArea() {
   const [reason, setReason] = useState(REASONS[0].code);
   const [note, setNote] = useState("");
   const [slot, setSlot] = useState(null);
+  const [reasonTouched, setReasonTouched] = useState(false);
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState({});
 
@@ -60,6 +61,7 @@ export default function StudentArea() {
 
   const upcoming = requests.filter(r => ["pending", "accepted"].includes(r.status));
   const history = requests.filter(r => !["pending", "accepted"].includes(r.status));
+  const flowStep = !reasonTouched ? 0 : slot ? 3 : 1;
 
   return (
     <MvpShell
@@ -67,12 +69,13 @@ export default function StudentArea() {
       kicker="Área do estudante"
       title={<>Um primeiro passo, <em>quando você quiser.</em></>}
       lead="Acesse o Acolhe pela sua instituição. Escolha um horário disponível e conte, se quiser, o motivo geral. O Acolhe não faz diagnóstico."
-      flow={["Conte o motivo geral", "Escolha um horário", "Confirme a conversa"]}
+      flow={["Conte o motivo", "Escolha o profissional", "Escolha o horário", "Confirme"]}
+      flowStep={flowStep}
     >
-      <MvpCard title="Solicitar uma conversa" subtitle="1. Conte o motivo geral · 2. Escolha um profissional · 3. Selecione um horário." testid="student-request-card" className="student-request-card">
+      <MvpCard title="Solicitar uma conversa" subtitle="Você está no caminho certo. Escolha cada etapa no seu tempo." testid="student-request-card" className="student-request-card">
         <div className="mvp-form">
           <label>Por que você gostaria de conversar?
-            <select value={reason} onChange={e => setReason(e.target.value)} data-testid="reason-select">
+            <select value={reason} onChange={e => { setReason(e.target.value); setReasonTouched(true); }} data-testid="reason-select">
               {REASONS.map(r => <option key={r.code} value={r.code}>{r.label}</option>)}
             </select>
           </label>
