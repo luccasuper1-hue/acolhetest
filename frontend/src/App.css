@@ -1238,9 +1238,9 @@ html.intro-complete .hero-product.reveal {
    POLIMENTO FINAL — acabamento, movimento e profundidade
    ============================================================ */
 
-/* Transição entre telas do fluxo */
-.route-fade { animation: routeIn 420ms var(--ease) both; }
-@keyframes routeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+/* A entrada dos blocos já é feita pelo scroll reveal. Uma segunda animação
+   no wrapper da rota fazia cada tela parecer carregar duas vezes. */
+.route-fade { animation: none; }
 
 /* Tipografia: quebras equilibradas */
 .hero h1, .section h2, .info-hero h1, .flow-heading h1, .notfound-copy h1, .agenda-head h1, .onboarding-copy h2, .why-lead, .brand-quote { text-wrap: balance; }
