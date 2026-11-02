@@ -253,6 +253,11 @@
    ------------------------------------------------------------ */
 @media (max-width: 480px) {
   .section { padding: 50px 20px; }
+  main > .cta-band > .cta-inner { padding-top: 38px; padding-bottom: 38px; gap: 14px; }
+  .cta-inner h2 { font-size: 28px; line-height: 1.12; margin: 8px 0 4px; }
+  .cta-inner p { font-size: 14px; line-height: 1.45; max-width: 300px; }
+  .cta-inner .button { min-height: 48px; padding: 13px 20px; }
+  .corner-logo { width: 42px; height: 42px; right: 12px; bottom: 76px; }
   main > .audience-band > .section { padding-top: 40px; padding-bottom: 38px; }
   .audience-band h2 { font-size: 28px; line-height: 1.12; margin-bottom: 10px; }
   .audience-band .section-intro { font-size: 14px; line-height: 1.5; margin-bottom: 0; }
