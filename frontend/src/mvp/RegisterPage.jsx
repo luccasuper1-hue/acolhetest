@@ -55,7 +55,7 @@ export default function RegisterPage() {
             </p>
             <label className="mvp-check">
               <input type="checkbox" checked={consent} onChange={e => setConsent(e.target.checked)} data-testid="register-consent-checkbox" />
-              <span>Li e aceito que meus dados sejam usados para operar e avaliar este piloto, conforme as condições combinadas com a minha instituição.</span>
+              <span>Li e aceito o uso dos meus dados para criar minha conta, organizar minha solicitação e avaliar o piloto Acolhe, conforme as informações desta tela.</span>
             </label>
           </div>
           {error && <div className="mvp-error" data-testid="register-error">
