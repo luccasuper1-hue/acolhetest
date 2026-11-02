@@ -978,13 +978,19 @@ html.intro-on .hero-copy, html.intro-on .hero-product { animation: none; opacity
 html.intro-on .corner-logo { animation: introSoft 900ms var(--ease) both; animation-delay: 1250ms; }
 /* O conteúdo principal deve estar disponível imediatamente; a entrada pode
    animar a moldura, mas nunca esconder a primeira mensagem do site. */
-html.intro-on .hero-copy > *,
-html.intro-on .hero-product > * {
-  animation: none;
+html.intro-on .hero-copy > * {
+  animation: introSoft 700ms var(--ease) both;
   opacity: 1;
   transform: none;
   clip-path: none;
 }
+html.intro-on .hero-copy > *:nth-child(1) { animation-delay: 340ms; }
+html.intro-on .hero-copy > *:nth-child(2) { animation-delay: 440ms; }
+html.intro-on .hero-copy > *:nth-child(3) { animation-delay: 540ms; }
+html.intro-on .hero-copy > *:nth-child(4) { animation-delay: 640ms; }
+html.intro-on .hero-copy > *:nth-child(5) { animation-delay: 740ms; }
+html.intro-on .hero-product .product-window { animation: introSoft 700ms var(--ease) 460ms both; }
+html.intro-on .hero-product .product-caption { animation: introSoft 700ms var(--ease) 720ms both; }
 /* O hero já foi apresentado pela entrada cinematográfica; não reinicie o .reveal ao final dela. */
 html:not(.intro-complete) .hero-copy.reveal,
 html:not(.intro-complete) .hero-product.reveal,
