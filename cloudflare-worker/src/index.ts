@@ -64,6 +64,18 @@ function csrfFailure(request: Request, env: Env) {
   // Browsers may omit Content-Type for an empty DELETE body. The origin and
   // authenticated-cookie checks above still protect this same-origin case.
   if (request.method === "DELETE" && !contentType) return;
+  // These actions intentionally have no request body. Keep them valid for
+  // older cached clients while retaining the strict same-origin check above.
+  if (!contentType && request.method === "POST") {
+    const pathname = new URL(request.url).pathname;
+    const bodylessAction =
+      pathname === "/api/auth/logout" ||
+      /^\/api\/students\/me\/requests\/[^/]+\/cancel$/.test(pathname) ||
+      /^\/api\/professionals\/me\/requests\/[^/]+\/(accept|decline)$/.test(pathname) ||
+      /^\/api\/professionals\/me\/sessions\/[^/]+\/complete$/.test(pathname) ||
+      /^\/api\/admin\/users\/[^/]+\/toggle-active$/.test(pathname);
+    if (bodylessAction) return;
+  }
   if (!contentType.toLowerCase().includes("application/json")) return new Response(JSON.stringify({ detail: "Content-Type inválido" }), { status: 415, headers: { "content-type": "application/json; charset=utf-8" } });
 }
 
