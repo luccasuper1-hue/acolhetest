@@ -253,6 +253,17 @@
    ------------------------------------------------------------ */
 @media (max-width: 480px) {
   .section { padding: 50px 20px; }
+  main > .problem-band > .section { padding-top: 38px; padding-bottom: 40px; }
+  .problem-band .section-kicker { margin-bottom: 12px; }
+  .problem-band h2 { margin-bottom: 0; }
+  .problem-band .pathway { margin-top: 28px; gap: 10px; }
+  .problem-band .pathway > div { gap: 5px; }
+  .problem-band .pathway > svg { width: 16px; height: 16px; margin-left: 14px; }
+  .problem-band .path-focus { padding: 16px 16px; border-radius: 16px; }
+  .problem-band .pathway strong { font-size: 14px; line-height: 1.3; }
+  .problem-band .brand-quote { font-size: 18px; line-height: 1.3; padding: 4px 0 4px 14px; margin-top: 24px !important; }
+  .problem-band .brand-quote .quote-mark { font-size: 34px; margin-right: 5px; }
+  .problem-band .disclaimer-inline { margin-top: 22px; line-height: 1.4; }
   .hero { padding-top: 32px; padding-bottom: 38px; gap: 24px; }
   .hero h1 { font-size: 36px; line-height: 1.06; letter-spacing: -1.8px; margin-bottom: 14px; }
   .hero-lead { font-size: 15px; line-height: 1.48; max-width: 330px; }
