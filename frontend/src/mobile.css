@@ -170,6 +170,17 @@
     overscroll-behavior: contain;
   }
   body:has(.nav-links.open) { overflow: hidden; }
+
+  /* O menu interno do drawer deve vencer a regra geral do header e ficar
+     totalmente dentro do painel, alinhado ao botão de aparência. */
+  .nav-links .nav-drawer-actions .theme-menu {
+    position: absolute;
+    top: 50px;
+    right: 0;
+    left: auto;
+    width: min(178px, calc(100vw - 40px));
+    min-width: 0;
+  }
 }
 
 /* ------------------------------------------------------------
