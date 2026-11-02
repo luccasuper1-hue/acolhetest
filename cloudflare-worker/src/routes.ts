@@ -255,7 +255,18 @@ async function authRoutes(request: Request, env: Env, pathname: string): Promise
     // by earlier pilot data where an old token could otherwise make the next
     // request fail with a duplicate-key error.
     await store.remove("password_reset_tokens", { user_id: user.id }, true);
-    await store.insert("password_reset_tokens", { id: id(), user_id: user.id, token_hash: await hashToken(resetToken), expires_at: isoAfter(1, "hours"), used: false, created_at: now() });
+    await store.insert("password_reset_tokens", {
+      id: id(),
+      user_id: user.id,
+      // Keep compatibility with the original unique `token` index. This is
+      // only an opaque index value; the usable reset token is never stored
+      // in plaintext and is looked up exclusively through token_hash.
+      token: id(),
+      token_hash: await hashToken(resetToken),
+      expires_at: isoAfter(1, "hours"),
+      used: false,
+      created_at: now(),
+    });
     if (pilotReset) return json({ ...generic, reset_token: resetToken, pilot_note: "PROVISÓRIO PARA PILOTO: envio por e-mail é P1." });
     const sent = await sendResetEmail(env, address, resetToken);
     if (!sent) {
