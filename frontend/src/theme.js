@@ -30,7 +30,7 @@ export function ThemeProvider({ children }) {
       if (next === mode) return;
       const root = document.documentElement;
       root.classList.add("theme-anim");
-      window.setTimeout(() => root.classList.remove("theme-anim"), 420);
+      window.setTimeout(() => root.classList.remove("theme-anim"), 220);
       localStorage.setItem(KEY, next);
       setMode(next);
     },

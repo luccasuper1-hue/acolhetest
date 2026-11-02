@@ -76,9 +76,13 @@ html[data-theme="dark"] {
   --faint:#9c90b0;
 }
 
-/* Microanimação da troca de tema — sem piscar, sem recarregar */
+/* Microanimação da troca de tema.
+   Sombras e SVGs ficam fora da transição: interpolá-los em toda a árvore
+   provoca repaints caros (especialmente em cards com backdrop-filter). */
 html.theme-anim, html.theme-anim *, html.theme-anim *::before, html.theme-anim *::after {
-  transition: background-color 320ms var(--ease), border-color 320ms var(--ease), color 320ms var(--ease), box-shadow 320ms var(--ease), fill 320ms var(--ease) !important;
+  transition-property: background-color, border-color, color !important;
+  transition-duration: 180ms !important;
+  transition-timing-function: var(--ease) !important;
 }
 
 * { box-sizing:border-box; }
