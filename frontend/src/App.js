@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { BrowserRouter, Link, Navigate, Route, Routes, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { AlertTriangle, ArrowRight, BookOpen, Building2, CalendarDays, Check, ChevronLeft, ChevronDown, ChevronRight, Clock3, Download, FileText, Globe, GraduationCap, HeartHandshake, History, Image as ImageIcon, LifeBuoy, Menu, MessageCircle, Play, Search, Share2, ShieldCheck, Sparkles, Users, UserRound, Video, X } from "lucide-react";
 import { categories, demoDays, demoTimes, demoDurations, professionals, resources, unavailableTimes } from "./data";
@@ -242,7 +242,7 @@ function useScrollReveal() {
     const demoPath = location.pathname === "/login-demo" || location.pathname === "/profissional-dashboard" || location.pathname === "/instituicoes/painel" || location.pathname === "/app" || location.pathname.startsWith("/app/");
     if (demoPath) window.location.replace("/entrar");
   }, [location.pathname]);
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const observer = new IntersectionObserver(entries => {
       entries.forEach(entry => {
@@ -251,17 +251,18 @@ function useScrollReveal() {
         observer.unobserve(entry.target);
       });
     }, { rootMargin: "0px 0px -10% 0px", threshold: 0.06 });
-    const timer = setTimeout(() => {
-      document.querySelectorAll(REVEAL_SELECTORS).forEach(el => {
-        if (el.dataset.sr) return;
-        el.dataset.sr = "1";
-        el.classList.add("sr");
-        const index = Array.prototype.indexOf.call(el.parentElement.children, el);
-        el.style.setProperty("--sr-delay", `${Math.min(index, 5) * 70}ms`);
-        observer.observe(el);
-      });
-    }, 60);
-    return () => { clearTimeout(timer); observer.disconnect(); };
+    // Apply the hidden state before the browser paints the new route. Applying
+    // it from a delayed effect caused a visible first render followed by a
+    // second reveal, which looked like the page loaded twice.
+    document.querySelectorAll(REVEAL_SELECTORS).forEach(el => {
+      if (el.dataset.sr) return;
+      el.dataset.sr = "1";
+      el.classList.add("sr");
+      const index = Array.prototype.indexOf.call(el.parentElement.children, el);
+      el.style.setProperty("--sr-delay", `${Math.min(index, 5) * 70}ms`);
+      observer.observe(el);
+    });
+    return () => observer.disconnect();
   }, [location.pathname]);
 }
 
