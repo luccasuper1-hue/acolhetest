@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://acolhetest.luccasuper1.workers.dev/sitemap.xml

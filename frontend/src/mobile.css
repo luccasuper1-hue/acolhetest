@@ -127,6 +127,17 @@
     transform: translateX(102%);
   }
 
+  /* O drawer fechado não participa da árvore visual nem da navegação por
+     teclado, mesmo permanecendo montado para abrir sem recarregar a página. */
+  .nav-wrap > .nav-links:not(.open) {
+    visibility: hidden;
+    pointer-events: none;
+  }
+  .nav-wrap > .nav-links.open {
+    visibility: visible;
+    pointer-events: auto;
+  }
+
   /* O mockup continua visível, mas sem recomposições contínuas no celular. */
   .mark-scene,
   .blob-a,

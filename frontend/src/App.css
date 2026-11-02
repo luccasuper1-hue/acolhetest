@@ -988,6 +988,15 @@ html.intro-on .hero-product .acolhe-mark { animation: introMark 1500ms var(--eas
 html.intro-on .hero-product .product-window { animation: introPanel 1100ms var(--ease) both; animation-delay: 600ms; }
 html.intro-on .hero-product .product-caption { animation: introSoft 800ms var(--ease) both; animation-delay: 980ms; }
 html.intro-on .corner-logo { animation: introSoft 900ms var(--ease) both; animation-delay: 1250ms; }
+/* O conteúdo principal deve estar disponível imediatamente; a entrada pode
+   animar a moldura, mas nunca esconder a primeira mensagem do site. */
+html.intro-on .hero-copy > *,
+html.intro-on .hero-product > * {
+  animation: none;
+  opacity: 1;
+  transform: none;
+  clip-path: none;
+}
 /* O hero já foi apresentado pela entrada cinematográfica; não reinicie o .reveal ao final dela. */
 html:not(.intro-complete) .hero-copy.reveal,
 html:not(.intro-complete) .hero-product.reveal,
