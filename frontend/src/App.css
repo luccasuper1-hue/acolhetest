@@ -989,6 +989,7 @@ html.intro-on .hero-copy > *:nth-child(2) { animation-delay: 440ms; }
 html.intro-on .hero-copy > *:nth-child(3) { animation-delay: 540ms; }
 html.intro-on .hero-copy > *:nth-child(4) { animation-delay: 640ms; }
 html.intro-on .hero-copy > *:nth-child(5) { animation-delay: 740ms; }
+html.intro-on .hero-product .acolhe-mark { animation: introSoft 700ms var(--ease) 300ms both; }
 html.intro-on .hero-product .product-window { animation: introSoft 700ms var(--ease) 460ms both; }
 html.intro-on .hero-product .product-caption { animation: introSoft 700ms var(--ease) 720ms both; }
 /* O hero já foi apresentado pela entrada cinematográfica; não reinicie o .reveal ao final dela. */
@@ -1252,6 +1253,7 @@ html.intro-complete .hero-product.reveal {
 .home-route.home-return .hero-copy > *:nth-child(3) { animation-delay: 160ms; }
 .home-route.home-return .hero-copy > *:nth-child(4) { animation-delay: 220ms; }
 .home-route.home-return .hero-copy > *:nth-child(5) { animation-delay: 280ms; }
+.home-route.home-return .hero-product .acolhe-mark { animation: introSoft 700ms var(--ease) 40ms both; }
 .home-route.home-return .hero-product .product-window { animation: introSoft 700ms var(--ease) 120ms both; }
 .home-route.home-return .hero-product .product-caption { animation: introSoft 700ms var(--ease) 260ms both; }
 @media (prefers-reduced-motion: reduce) {
