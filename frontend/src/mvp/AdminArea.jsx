@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Archive, Ban, Building2, Check, Mail } from "lucide-react";
+import { Archive, Ban, Building2, Check, Mail, Trash2 } from "lucide-react";
 import { MvpShell, MvpCard, MvpEmpty, MvpKpi } from "./MvpShell";
 import { api, apiError, formatDate, STATUS_LABELS } from "./api";
 
@@ -25,6 +25,12 @@ export default function AdminArea() {
 
   const toggle = async id => {
     try { await api.post(`/admin/users/${id}/toggle-active`); toast.success("Acesso atualizado."); await load(); }
+    catch (e) { toast.error(apiError(e)); }
+  };
+
+  const removeUser = async user => {
+    if (!window.confirm(`Excluir permanentemente a conta de ${user.name}? Esta ação remove o acesso e os registros operacionais vinculados e não pode ser desfeita.`)) return;
+    try { await api.delete(`/admin/users/${user.id}`, { headers: { "content-type": "application/json" } }); toast.success("Conta excluída."); await load(); }
     catch (e) { toast.error(apiError(e)); }
   };
 
@@ -133,7 +139,7 @@ export default function AdminArea() {
         </MvpCard>
       </div>
 
-      <MvpCard title="Usuários" subtitle="Ativar ou desativar acesso rapidamente durante o piloto." testid="admin-users-card" className="admin-users-card">
+      <MvpCard title="Usuários" subtitle="Desative para bloquear o acesso ou exclua permanentemente uma conta de teste." testid="admin-users-card" className="admin-users-card">
         {users.map(u => (
           <div className="mvp-row" key={u.id} data-testid={`admin-user-${u.id}`}>
             <div className="mvp-row-main">
@@ -143,9 +149,14 @@ export default function AdminArea() {
             <div className="mvp-row-actions">
               <span className={`mvp-tag ${u.active ? "ok" : "off"}`}>{u.active ? "Ativo" : "Inativo"}</span>
               {u.role !== "admin" && (
-                <button className="button small quiet" onClick={() => toggle(u.id)} data-testid={`admin-toggle-${u.id}`}>
-                  {u.active ? "Desativar" : "Ativar"}
-                </button>
+                <>
+                  <button className="button small quiet" onClick={() => toggle(u.id)} data-testid={`admin-toggle-${u.id}`}>
+                    {u.active ? "Desativar" : "Reativar"}
+                  </button>
+                  <button className="button small quiet danger" onClick={() => removeUser(u)} data-testid={`admin-delete-${u.id}`}>
+                    <Trash2 size={14}/> Excluir
+                  </button>
+                </>
               )}
             </div>
           </div>

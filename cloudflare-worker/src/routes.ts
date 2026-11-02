@@ -420,6 +420,34 @@ async function adminRoutes(request: Request, env: Env, pathname: string): Promis
     return json({ ...lead, status, updated_at, account_created, ...(institution_code ? { institution_code } : {}) });
   }
   if (pathname === "/api/admin/users" && request.method === "GET") { const users = await store.findMany("users", {}, { sort: { created_at: -1 }, limit: 500 }), institutions = await store.findMany("institutions", {}, { limit: 200 }), names = new Map(institutions.map((institution) => [institution.id, institution.name])); return json(users.map((user) => { delete user.password_hash; return { ...user, institution_name: names.get(user.institution_id) }; })); }
+  const deleteUserId = request.method === "DELETE" && pathname.startsWith("/api/admin/users/") ? decodeURIComponent(pathname.slice("/api/admin/users/".length)) : undefined;
+  if (deleteUserId) {
+    const target = await store.findOne("users", { id: deleteUserId });
+    if (!target) return fail("Usuário não encontrado", 404);
+    if (target.role === "admin") return fail("Não é possível excluir um administrador", 403);
+    const professional = target.role === "professional" ? await store.findOne("professionals", { user_id: target.id }) : null;
+    const student = target.role === "student" ? await store.findOne("students", { user_id: target.id }) : null;
+    const sessionFilter = professional ? { professional_id: professional.id } : student ? { student_id: student.id } : null;
+    const sessions = sessionFilter ? await store.findMany("sessions", sessionFilter, { projection: { id: 1 } }) : [];
+    for (const session of sessions) {
+      await store.remove("referrals", { session_id: session.id }, true);
+      await store.remove("feedback", { session_id: session.id }, true);
+    }
+    if (professional) {
+      await store.remove("availability", { professional_id: professional.id }, true);
+      await store.remove("requests", { professional_id: professional.id }, true);
+      await store.remove("sessions", { professional_id: professional.id }, true);
+      await store.remove("professionals", { id: professional.id }, true);
+    }
+    if (student) {
+      await store.remove("requests", { student_id: student.id }, true);
+      await store.remove("sessions", { student_id: student.id }, true);
+      await store.remove("students", { id: student.id }, true);
+    }
+    await store.remove("users", { id: target.id }, true);
+    await logEvent(env, "user_deleted", admin, target.institution_id, { target: target.id, role: target.role });
+    return json({ id: target.id, deleted: true });
+  }
   const targetId = pathParameter(pathname, "/api/admin/users/", "/toggle-active");
   if (targetId && request.method === "POST") { const target = await store.findOne("users", { id: targetId }); if (!target) return fail("Usuário não encontrado", 404); if (target.role === "admin") return fail("Não é possível desativar um administrador", 403); const active = target.active === false; await store.update("users", { id: targetId }, { $set: { active } }); await logEvent(env, "user_access_toggled", admin, target.institution_id, { target: targetId, active }); return json({ id: targetId, active }); }
   if (pathname === "/api/admin/institutions" && request.method === "GET") { const institutions = await store.findMany("institutions", {}, { limit: 200 }); for (const institution of institutions) { institution.students = await store.count("students", { institution_id: institution.id }); institution.professionals = await store.count("professionals", { institution_id: institution.id }); } return json(institutions); }
