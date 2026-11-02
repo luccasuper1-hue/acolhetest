@@ -89,7 +89,7 @@ export default function InstitutionArea() {
         </MvpCard>
       </div>
 
-      <MvpCard title="Vincular profissional" subtitle="Você informa o e-mail e o profissional cria a própria senha pelo link do convite. Tipo 1: profissional da instituição (prioritário no piloto). Tipo 2: profissional parceiro da rede Acolhe (futuro)."
+      <MvpCard title="Vincular profissional" subtitle="Crie um convite para o profissional definir a própria senha. Depois, envie o link por e-mail ou compartilhe diretamente. Tipo 1: profissional da instituição (prioritário no piloto). Tipo 2: profissional parceiro da rede Acolhe (futuro)."
         testid="inst-invite-card">
         <form className="mvp-inline-form" onSubmit={submitInvite}>
           <label>Nome<input required value={invite.name} onChange={e => setInvite({ ...invite, name: e.target.value })} data-testid="invite-name-input" /></label>
