@@ -19,11 +19,11 @@ export class MongoGateway extends DurableObject<Env> {
       // A single connection serialized the whole authenticated flow; keep a
       // small bounded pool so concurrent users can make progress without
       // opening an unbounded number of Atlas connections.
-      maxPoolSize: 8,
+      maxPoolSize: 16,
       minPoolSize: 1,
       maxIdleTimeMS: 20_000,
       serverSelectionTimeoutMS: 5_000,
-      waitQueueTimeoutMS: 8_000,
+      waitQueueTimeoutMS: 15_000,
     });
   }
 
