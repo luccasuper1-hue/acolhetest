@@ -124,8 +124,8 @@
 .section h2 { font-size: clamp(29px,3.5vw,47px); line-height: 1.12; letter-spacing: -1.7px; font-weight: 500; margin: 14px 0 0; max-width: 680px; }
 .section-kicker, .eyebrow { font-size: 11px; text-transform: uppercase; letter-spacing: 1.7px; color: var(--purple); font-weight: 700; }
 .eyebrow { display: flex; align-items: center; gap: 9px; margin-bottom: 25px; }
-.eyebrow-dot, .live-dot { width: 7px; height: 7px; background: #70b7a5; border-radius: 50%; display: inline-block; }
-.live-dot { box-shadow: 0 0 0 3px rgba(112,183,165,.22); }
+.eyebrow-dot, .live-dot { width: 7px; height: 7px; background: var(--mint-accent); border-radius: 50%; display: inline-block; }
+.live-dot { box-shadow: 0 0 0 3px color-mix(in srgb, var(--mint-accent) 22%, transparent); }
 .section-heading { display: flex; justify-content: space-between; align-items: end; }
 .section-intro { max-width: 580px; color: var(--muted); font-size: 15px; line-height: 1.65; }
 .text-link { display: inline-flex; align-items: center; gap: 8px; color: var(--deep); font-weight: 600; background: none; border: 0; font-size: 13px; padding: 8px 12px; border-radius: var(--r-pill); transition: background-color var(--t-fast) var(--ease); }
@@ -207,7 +207,7 @@ html[data-theme="dark"] .mvp-entry-card .model-card strong { color: var(--ink); 
 .demo-label { font-size: 9px; letter-spacing: 1.3px; color: #9b91a4; font-weight: 700; background: #f4f1fa; padding: 5px 10px; border-radius: var(--r-pill); }
 .product-question { padding: 32px 4px 18px; }
 .product-question span { color: var(--purple); font-size: 10px; text-transform: uppercase; letter-spacing: 1.6px; font-weight: 700; display: inline-flex; align-items: center; gap: 7px; }
-.product-question span::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #70b7a5; box-shadow: 0 0 0 3px rgba(112,183,165,.16); }
+.product-question span::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--mint-accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--mint-accent) 16%, transparent); }
 .product-question h3 { font-size: 26px; margin: 8px 0 4px; letter-spacing: -1.2px; font-weight: 500; color: var(--deep); }
 .product-question h3 { letter-spacing: -1.35px; }
 .product-question p { margin: 0; color: var(--muted); font-size: 13px; }

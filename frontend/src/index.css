@@ -9,6 +9,7 @@
   --purple:#7b4fc2;
   --deep:#52358d;
   --mint:#d9f2e9;
+  --mint-accent:#63d9aa;
   --paper:#ffffff;
   --line:#e4deea;
   --peach:#f8e5dd;
@@ -52,6 +53,7 @@ html[data-theme="dark"] {
   --purple:#c9a8ff;
   --deep:#eee5ff;
   --mint:rgba(126,214,185,.14);
+  --mint-accent:#72e0b5;
   --paper:#191322;
   --line:rgba(238,230,255,.12);
   --peach:rgba(240,178,150,.14);
