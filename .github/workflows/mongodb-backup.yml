@@ -1,0 +1,37 @@
+name: MongoDB daily backup
+
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Create compressed dump
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          MONGODB_DB: ${{ secrets.MONGODB_DB }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$MONGODB_URI"
+          test -n "$MONGODB_DB"
+          mkdir -p backup
+          docker run --rm \
+            -e MONGODB_URI \
+            -e MONGODB_DB \
+            -v "$PWD/backup:/backup" \
+            mongo:7.0 \
+            sh -c 'mongodump --uri "$MONGODB_URI" --db "$MONGODB_DB" --archive=/backup/acolhe.archive.gz --gzip --excludeCollection=login_attempts'
+      - name: Upload private artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: acolhe-mongodb-${{ github.run_id }}
+          path: backup/acolhe.archive.gz
+          retention-days: 14
