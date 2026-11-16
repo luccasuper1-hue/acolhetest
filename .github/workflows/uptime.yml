@@ -1,0 +1,19 @@
+name: Acolhe uptime
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check home and health endpoint
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="https://acolhetest.luccasuper1.workers.dev"
+          curl --fail --silent --show-error --location --max-time 20 "$base/" >/dev/null
+          health="$(curl --fail --silent --show-error --location --max-time 20 "$base/api/health")"
+          echo "$health" | grep -q '"ok":true'
