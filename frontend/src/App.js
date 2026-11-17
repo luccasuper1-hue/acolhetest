@@ -411,7 +411,7 @@ function InstitutionDashboard() {
 function NavigateToLogin({ next = "/app" }) { return <Navigate to={`/login-demo?next=${next}`} replace/>; }
 function HomeEntry() {
   const { user, checking } = useMvpAuth();
-  if (checking) return <div className="mvp-loading" data-testid="mvp-loading">Carregando sua área…</div>;
+  if (checking) return <div className="mvp-loading" role="status" aria-live="polite" aria-busy="true" data-testid="mvp-loading">Carregando sua área…</div>;
   const dashboard = user && HOME_BY_ROLE[user.role];
   if (dashboard) return <Navigate to={dashboard} replace />;
   return <Home/>;

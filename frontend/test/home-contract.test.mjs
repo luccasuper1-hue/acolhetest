@@ -551,6 +551,13 @@ test("authentication errors are announced to assistive technology", async () => 
   }
 });
 
+test("authentication loading state is announced to assistive technology", async () => {
+  const app = await readFile(resolve(root, "src/App.js"), "utf8");
+  const auth = await readFile(resolve(root, "src/mvp/AuthMvp.jsx"), "utf8");
+  assert.match(app, /className="mvp-loading" role="status" aria-live="polite" aria-busy="true"/);
+  assert.match(auth, /className="mvp-loading" role="status" aria-live="polite" aria-busy="true"/);
+});
+
 test("overlay panels move focus to their close actions", async () => {
   const shell = await readFile(resolve(root, "src/mvp/MvpShell.jsx"), "utf8");
   assert.match(shell, /notificationCloseRef\.current\?\.focus\(\)/);

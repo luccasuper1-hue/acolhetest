@@ -69,7 +69,7 @@ export function useMvpAuth() {
 export function RequireRole({ role, children }) {
   const { user, checking } = useMvpAuth();
   const location = useLocation();
-  if (checking) return <div className="mvp-loading" data-testid="mvp-loading">Carregando sua área…</div>;
+  if (checking) return <div className="mvp-loading" role="status" aria-live="polite" aria-busy="true" data-testid="mvp-loading">Carregando sua área…</div>;
   if (!user) return <Navigate to={`/entrar?next=${location.pathname}`} replace />;
   if (user.role !== role) return <Navigate to={HOME_BY_ROLE[user.role] || "/"} replace />;
   return children;
