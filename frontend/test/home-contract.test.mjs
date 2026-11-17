@@ -566,7 +566,7 @@ test("interactive notification surfaces import their React hooks", async () => {
   assert.match(command, /import \{ useEffect, useMemo, useState \} from "react"/);
   assert.match(command, /aria-modal="true"/);
   assert.match(command, /aria-label="Buscar páginas e profissionais"/);
-  assert.match(bell, /import \{ useEffect, useRef, useState \} from "react"/);
+  assert.match(bell, /import \{ useEffect, useId, useRef, useState \} from "react"/);
   assert.match(bell, /role="dialog"/);
 });
 

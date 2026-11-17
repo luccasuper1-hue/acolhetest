@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { Bell, CalendarDays, Check, Sparkles } from "lucide-react";
 
 const DEMO_NOTIFICATIONS = [
@@ -10,6 +10,8 @@ const DEMO_NOTIFICATIONS = [
 export const NotificationBell = () => {
   const [open, setOpen] = useState(false);
   const [read, setRead] = useState(false);
+  const panelId = `notifications-panel-${useId().replace(/:/g, "")}`;
+  const titleId = `${panelId}-title`;
   const ref = useRef(null);
   const buttonRef = useRef(null);
   const panelRef = useRef(null);
@@ -29,14 +31,14 @@ export const NotificationBell = () => {
 
   return (
     <div className="notif" ref={ref}>
-      <button ref={buttonRef} type="button" className="notif-button" onClick={() => setOpen(!open)} aria-label={read ? "Notificações" : "Notificações, há itens não lidos"} aria-expanded={open} aria-controls="notifications-panel" data-testid="notifications-button">
+      <button ref={buttonRef} type="button" className="notif-button" onClick={() => setOpen(!open)} aria-label={read ? "Notificações" : "Notificações, há itens não lidos"} aria-expanded={open} aria-controls={panelId} data-testid="notifications-button">
         <Bell size={17}/>
         {!read && <i className="notif-dot" aria-hidden="true"/>}
       </button>
       {open && (
-        <div ref={panelRef} id="notifications-panel" className="notif-panel" role="dialog" aria-modal="false" aria-labelledby="notifications-title" tabIndex="-1" data-testid="notifications-panel">
+        <div ref={panelRef} id={panelId} className="notif-panel" role="dialog" aria-modal="false" aria-labelledby={titleId} tabIndex="-1" data-testid="notifications-panel">
           <div className="notif-head">
-            <span id="notifications-title" className="notif-title">Notificações</span>
+            <span id={titleId} className="notif-title">Notificações</span>
             <span className="demo-label">DEMO</span>
           </div>
           <span className="sr-only" role="status" aria-live="polite">{read ? "Todas as notificações estão lidas." : "Há notificações não lidas."}</span>
