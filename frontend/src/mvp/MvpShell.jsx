@@ -14,6 +14,19 @@ const ROLE_LABEL = {
   admin: "Administração",
 };
 
+let overlayScrollLocks = 0;
+let overlayPreviousOverflow = "";
+const lockOverlayScroll = () => {
+  if (typeof document === "undefined") return () => {};
+  if (overlayScrollLocks === 0) overlayPreviousOverflow = document.body.style.overflow;
+  overlayScrollLocks += 1;
+  document.body.style.overflow = "hidden";
+  return () => {
+    overlayScrollLocks = Math.max(0, overlayScrollLocks - 1);
+    if (overlayScrollLocks === 0) document.body.style.overflow = overlayPreviousOverflow;
+  };
+};
+
 export const MvpShell = ({ title, kicker, lead, flow = [], flowStep = 0, children, testid, collapsePassword = false, hideIdentity = false, conversations = [], onOpenConversation, renderConversation, loading = false, error = "", onRetry, onRefresh, dashboardNotifications, dashboardNotificationUnreadCount, onNotificationsChange }) => {
   const { user, institution, signOut } = useMvpAuth();
   const navigate = useNavigate();
@@ -52,9 +65,7 @@ export const MvpShell = ({ title, kicker, lead, flow = [], flowStep = 0, childre
   useEffect(() => { if (notificationsOpen) notificationCloseRef.current?.focus(); }, [notificationsOpen]);
   useEffect(() => {
     if (!notificationsOpen || typeof document === "undefined") return undefined;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = previousOverflow; };
+    return lockOverlayScroll();
   }, [notificationsOpen]);
   useEffect(() => {
     if (!notificationsOpen) return undefined;
@@ -388,9 +399,7 @@ function ConversationLauncher({ conversations, unreadCount, onOpenConversation, 
   useEffect(() => { if (open) conversationCloseRef.current?.focus(); }, [open]);
   useEffect(() => {
     if (!open || typeof document === "undefined") return undefined;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = previousOverflow; };
+    return lockOverlayScroll();
   }, [open]);
   useEffect(() => {
     if (!open) return undefined;
