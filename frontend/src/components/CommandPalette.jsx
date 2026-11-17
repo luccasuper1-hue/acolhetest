@@ -60,7 +60,7 @@ export const CommandPalette = () => {
         </div>
         <div className="command-list">
           {results.map(item => (
-            <button key={item.to + item.label} onClick={() => go(item.to)} data-testid={`command-result-${item.to}`}>
+            <button type="button" key={item.to + item.label} onClick={() => go(item.to)} data-testid={`command-result-${item.to}`}>
               <span className="command-group">{item.group}</span>
               <span className="command-label">{item.label}</span>
               <ArrowRight size={15}/>

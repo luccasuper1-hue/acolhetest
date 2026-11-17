@@ -42,7 +42,7 @@ export const Onboarding = ({ onFinish, onExplore }) => {
       <div className="onboarding-card" key={index}>
         <div className="onboarding-top">
           <span className="onboarding-badge"><ShieldCheck size={13}/> Piloto institucional</span>
-          <button className="onboarding-skip" onClick={onFinish} data-testid="onboarding-skip">Pular por enquanto</button>
+          <button type="button" className="onboarding-skip" onClick={onFinish} data-testid="onboarding-skip">Pular por enquanto</button>
         </div>
 
         <div className="onboarding-body">
@@ -62,13 +62,13 @@ export const Onboarding = ({ onFinish, onExplore }) => {
         <div className="onboarding-foot">
           <div className="onboarding-dots" aria-hidden="true">{STEPS.map((s, i) => <i key={s.title} className={i <= index ? "on" : ""}/>)}</div>
           <div className="onboarding-actions">
-            {index > 0 && <button className="button quiet" onClick={() => setIndex(index - 1)} data-testid="onboarding-back">Voltar</button>}
+            {index > 0 && <button type="button" className="button quiet" onClick={() => setIndex(index - 1)} data-testid="onboarding-back">Voltar</button>}
             {last
               ? <>
-                  <button className="button secondary" onClick={onExplore} data-testid="onboarding-explore">Conhecer o Acolhe</button>
-                  <button className="button primary" onClick={onFinish} data-testid="onboarding-start">Começar <ArrowRight size={16}/></button>
+                  <button type="button" className="button secondary" onClick={onExplore} data-testid="onboarding-explore">Conhecer o Acolhe</button>
+                  <button type="button" className="button primary" onClick={onFinish} data-testid="onboarding-start">Começar <ArrowRight size={16}/></button>
                 </>
-              : <button className="button primary" onClick={() => setIndex(index + 1)} data-testid="onboarding-next">Continuar <ArrowRight size={16}/></button>}
+              : <button type="button" className="button primary" onClick={() => setIndex(index + 1)} data-testid="onboarding-next">Continuar <ArrowRight size={16}/></button>}
           </div>
         </div>
       </div>

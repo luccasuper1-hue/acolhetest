@@ -8,6 +8,7 @@ export const ThemeToggle = () => {
   return (
     <div className="theme-toggle">
       <button
+        type="button"
         className="theme-toggle-button"
         onClick={() => setMode(isDark ? "light" : "dark")}
         aria-label={isDark ? "Ativar modo claro" : "Ativar modo escuro"}

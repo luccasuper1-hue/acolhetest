@@ -505,3 +505,14 @@ test("institution impact reports support a baseline and safe export", () => {
   assert.match(frontendInstitution, /window\.setTimeout\(\(\) => URL\.revokeObjectURL/);
   assert.match(shell, /aria-live=\{ariaLive\}/);
 });
+
+test("standalone controls declare button type", async () => {
+  const notificationBell = await readFile(resolve(root, "src/components/NotificationBell.jsx"), "utf8");
+  const themeToggle = await readFile(resolve(root, "src/components/ThemeToggle.jsx"), "utf8");
+  const onboarding = await readFile(resolve(root, "src/components/Onboarding.jsx"), "utf8");
+  const palette = await readFile(resolve(root, "src/components/CommandPalette.jsx"), "utf8");
+  assert.doesNotMatch(notificationBell, /<button className=/);
+  assert.match(themeToggle, /<button\s+type="button"/);
+  assert.doesNotMatch(onboarding, /<button className=/);
+  assert.match(palette, /<button type="button"/);
+});

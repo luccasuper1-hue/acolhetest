@@ -23,7 +23,7 @@ export const NotificationBell = () => {
 
   return (
     <div className="notif" ref={ref}>
-      <button className="notif-button" onClick={() => setOpen(!open)} aria-label="Notificações" aria-expanded={open} data-testid="notifications-button">
+      <button type="button" className="notif-button" onClick={() => setOpen(!open)} aria-label="Notificações" aria-expanded={open} data-testid="notifications-button">
         <Bell size={17}/>
         {!read && <i className="notif-dot" aria-hidden="true"/>}
       </button>
@@ -39,7 +39,7 @@ export const NotificationBell = () => {
               <div><p>{text}</p><span>{time}</span></div>
             </div>
           ))}
-          <button className="notif-clear" onClick={() => setRead(true)} data-testid="notifications-mark-read">
+          <button type="button" className="notif-clear" onClick={() => setRead(true)} data-testid="notifications-mark-read">
             {read ? "Tudo lido" : "Marcar como lidas"}
           </button>
         </div>

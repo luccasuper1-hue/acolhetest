@@ -267,7 +267,7 @@ export const MvpShell = ({ title, kicker, lead, flow = [], flowStep = 0, childre
             </div>}
           </div>}
           <ThemeToggle />
-            <button className="button quiet small" onClick={exit} data-testid="mvp-logout-button">
+            <button type="button" className="button quiet small" onClick={exit} data-testid="mvp-logout-button">
               <LogOut size={15} /> Sair
             </button>
           </div>
