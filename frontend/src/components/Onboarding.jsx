@@ -44,6 +44,7 @@ export const Onboarding = ({ onFinish, onExplore }) => {
     const first = dialog.querySelector("button:not([disabled])");
     first?.focus();
     const handleKeyDown = event => {
+      if (event.key === "Escape") { event.preventDefault(); onFinish(); return; }
       if (event.key !== "Tab") return;
       const items = [...dialog.querySelectorAll("button:not([disabled])")];
       if (!items.length) return;
@@ -54,7 +55,7 @@ export const Onboarding = ({ onFinish, onExplore }) => {
     };
     dialog.addEventListener("keydown", handleKeyDown);
     return () => dialog.removeEventListener("keydown", handleKeyDown);
-  }, [index]);
+  }, [index, onFinish]);
   return createPortal(
     <div ref={dialogRef} className="onboarding" role="dialog" aria-modal="true" aria-label="Apresentação do Acolhe" data-testid="onboarding-overlay">
       <div className="onboarding-card" key={index}>
