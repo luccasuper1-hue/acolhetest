@@ -58,7 +58,7 @@ export default function RegisterPage() {
               <span>Li e aceito o uso dos meus dados para criar minha conta, organizar minha solicitação e avaliar o piloto Acolhe, conforme os <Link to="/termos/estudante">termos do estudante</Link> e a <Link to="/privacidade">política de privacidade</Link> (versão pilot-v1).</span>
             </label>
           </div>
-          {error && <div className="mvp-error" data-testid="register-error">
+          {error && <div className="mvp-error" role="alert" aria-live="assertive" data-testid="register-error">
             <div>{error}</div>
             {error.toLowerCase().includes("já possui conta") && (
               <Link to={`/recuperar-senha?email=${encodeURIComponent(form.email)}`} className="mvp-inline-action" data-testid="register-recover-link">

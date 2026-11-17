@@ -53,7 +53,7 @@ export default function LoginPage() {
             <input type="password" required value={password} onChange={e => setPassword(e.target.value)}
               data-testid="login-password-input" autoComplete="current-password" />
           </label>
-          {error && <div className="mvp-error" data-testid="login-error">{error}</div>}
+          {error && <div className="mvp-error" role="alert" aria-live="assertive" data-testid="login-error">{error}</div>}
           <button type="submit" className="button primary full" disabled={busy} data-testid="login-submit-button">
             {busy ? "Entrando…" : "Entrar"} <ArrowRight size={16} />
           </button>

@@ -535,6 +535,15 @@ test("standalone legacy buttons get safe non-submit semantics", async () => {
   assert.match(appSource, /if \(!button\.form\) button\.type = "button"/);
 });
 
+test("authentication errors are announced to assistive technology", async () => {
+  const files = ["src/mvp/LoginPage.jsx", "src/mvp/RegisterPage.jsx", "src/mvp/InvitePage.jsx", "src/mvp/PasswordPages.jsx"];
+  for (const file of files) {
+    const source = await readFile(resolve(root, file), "utf8");
+    assert.match(source, /className="mvp-error"[^>]*role="alert"/);
+    assert.match(source, /aria-live="assertive"/);
+  }
+});
+
 test("student and professional action controls declare button type", async () => {
   const studentSource = await readFile(resolve(root, "src/mvp/StudentArea.jsx"), "utf8");
   const professionalSource = await readFile(resolve(root, "src/mvp/ProfessionalArea.jsx"), "utf8");

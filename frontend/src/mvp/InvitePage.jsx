@@ -51,7 +51,7 @@ export default function InvitePage() {
             <label>Confirmar senha
               <input type="password" required minLength={8} value={confirm} onChange={e => setConfirm(e.target.value)} data-testid="invite-confirm-input" />
             </label>
-            {error && <div className="mvp-error" data-testid="invite-error">{error}</div>}
+            {error && <div className="mvp-error" role="alert" aria-live="assertive" data-testid="invite-error">{error}</div>}
             <button type="submit" className="button primary full" disabled={busy} data-testid="invite-submit-button">
               {busy ? "Ativando…" : "Ativar minha conta"} <ArrowRight size={16} />
             </button>
