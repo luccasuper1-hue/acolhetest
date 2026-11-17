@@ -658,6 +658,17 @@ test("dashboard refreshes ignore stale responses across protected roles", async 
   }
 });
 
+test("notification refreshes ignore stale pages and cancel older pagination", async () => {
+  const shell = await readFile(resolve(root, "src/mvp/MvpShell.jsx"), "utf8");
+  assert.match(shell, /const notificationRequestRef = useRef\(0\)/);
+  assert.match(shell, /const notificationMoreRequestRef = useRef\(0\)/);
+  assert.match(shell, /const requestId = \+\+notificationRequestRef\.current/);
+  assert.match(shell, /if \(requestId !== notificationRequestRef\.current\) return false/);
+  assert.match(shell, /const requestId = \+\+notificationMoreRequestRef\.current/);
+  assert.match(shell, /if \(requestId !== notificationMoreRequestRef\.current\) return;/);
+  assert.match(shell, /\+\+notificationMoreRequestRef\.current;[\s\S]*setNotificationPage\(current => current\.loading/);
+});
+
 test("all dashboard loaders import the ref hook used for request ordering", async () => {
   const files = ["src/mvp/StudentArea.jsx", "src/mvp/ProfessionalArea.jsx", "src/mvp/InstitutionArea.jsx", "src/mvp/AdminArea.jsx"];
   for (const file of files) {

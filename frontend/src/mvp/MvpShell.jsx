@@ -40,6 +40,8 @@ export const MvpShell = ({ title, kicker, lead, flow = [], flowStep = 0, childre
   const realtimeFallbackAt = useRef(0);
   const dashboardNotificationPageLoaded = useRef(false);
   const notificationBeforeRef = useRef(null);
+  const notificationRequestRef = useRef(0);
+  const notificationMoreRequestRef = useRef(0);
   const rolePath = user?.role === "student" ? "students" : user?.role === "professional" ? "professionals" : user?.role === "institution" ? "institutions" : "admin";
   const notificationPath = user?.role === "admin" ? "/admin/notifications" : `/${rolePath}/me/notifications`;
   const dashboardNotificationsReady = Array.isArray(dashboardNotifications);
@@ -57,9 +59,13 @@ export const MvpShell = ({ title, kicker, lead, flow = [], flowStep = 0, childre
   }, [notificationsOpen]);
   const loadNotifications = useCallback(async () => {
     if (!user?.role) return;
+    const requestId = ++notificationRequestRef.current;
+    ++notificationMoreRequestRef.current;
+    setNotificationPage(current => current.loading ? { ...current, loading: false } : current);
     setNotificationsLoading(true);
     try {
       const { data } = await api.get(notificationPath);
+      if (requestId !== notificationRequestRef.current) return false;
       const page = Array.isArray(data) ? { items: data, has_more: false, next_before: null } : data;
       // Keep an optimistic read state while the individual read requests are
       // in flight. This prevents a polling/visibility refresh from restoring
@@ -88,7 +94,7 @@ export const MvpShell = ({ title, kicker, lead, flow = [], flowStep = 0, childre
       setUnreadCount(serverUnreadCount === null ? null : Math.max(0, serverUnreadCount - pendingReadIds.current.size));
       setNotificationError("");
       return true;
-    } catch { setNotificationPage(current => ({ ...current, loading: false })); setNotificationsLoading(false); setNotificationError("Não foi possível atualizar as notificações agora."); return false; }
+    } catch { if (requestId !== notificationRequestRef.current) return false; setNotificationPage(current => ({ ...current, loading: false })); setNotificationsLoading(false); setNotificationError("Não foi possível atualizar as notificações agora."); return false; }
   }, [notificationPath, onNotificationsChange, user?.role]);
   useEffect(() => {
     if (!dashboardNotificationsReady) return;
@@ -108,9 +114,11 @@ export const MvpShell = ({ title, kicker, lead, flow = [], flowStep = 0, childre
   }, [dashboardNotificationsReady, loading]);
   const loadMoreNotifications = async () => {
     if (!notificationPage.hasMore || notificationPage.loading || !notificationPage.before) return;
+    const requestId = ++notificationMoreRequestRef.current;
     setNotificationPage(current => ({ ...current, loading: true }));
     try {
       const { data } = await api.get(`${notificationPath}?before=${encodeURIComponent(notificationPage.before)}`);
+      if (requestId !== notificationMoreRequestRef.current) return;
       const page = Array.isArray(data) ? { items: data, has_more: false, next_before: null } : data;
       const next = (page?.items || []).filter(item => !isInstitutionLegacyNotification(item)).map(item => pendingReadIds.current.has(item.id) ? { ...item, read: true } : item);
       const current = notificationsRef.current;
@@ -125,6 +133,7 @@ export const MvpShell = ({ title, kicker, lead, flow = [], flowStep = 0, childre
       // same read behavior used by the first page and keep the badge honest.
       await markNotificationsRead(next);
     } catch {
+      if (requestId !== notificationMoreRequestRef.current) return;
       setNotificationPage(current => ({ ...current, loading: false }));
       setNotificationError("Não foi possível carregar mais notificações agora.");
     }
