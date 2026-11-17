@@ -69,7 +69,15 @@ export function useMvpAuth() {
 export function RequireRole({ role, children }) {
   const { user, checking } = useMvpAuth();
   const location = useLocation();
-  if (checking) return <div className="mvp-loading" role="status" aria-live="polite" aria-busy="true" data-testid="mvp-loading">Carregando sua área…</div>;
+  const [showLoading, setShowLoading] = useState(false);
+  useEffect(() => {
+    if (!checking) { setShowLoading(false); return undefined; }
+    const timer = window.setTimeout(() => setShowLoading(true), 180);
+    return () => window.clearTimeout(timer);
+  }, [checking]);
+  if (checking) return showLoading
+    ? <div className="mvp-loading" role="status" aria-live="polite" aria-busy="true" data-testid="mvp-loading">Carregando sua área…</div>
+    : <div className="mvp-loading mvp-loading-deferred" aria-hidden="true" />;
   if (!user) return <Navigate to={`/entrar?next=${location.pathname}`} replace />;
   if (user.role !== role) return <Navigate to={HOME_BY_ROLE[user.role] || "/"} replace />;
   return children;
