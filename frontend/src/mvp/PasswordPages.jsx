@@ -42,7 +42,7 @@ export function ForgotPasswordPage() {
   };
 
   return (
-    <div className="mvp-auth">
+    <main id="main-content" className="mvp-auth">
       <section className="mvp-auth-card" data-testid="forgot-card">
         <BrandMark size={30} />
         <div className="section-kicker" style={{ marginTop: 14 }}>Acesso ao piloto</div>
@@ -65,7 +65,7 @@ export function ForgotPasswordPage() {
         )}
         <div className="mvp-auth-foot"><Link to="/entrar" data-testid="forgot-to-login">Voltar para o login</Link></div>
       </section>
-    </div>
+    </main>
   );
 }
 
@@ -95,7 +95,7 @@ export function ResetPasswordPage() {
   };
 
   return (
-    <div className="mvp-auth">
+    <main id="main-content" className="mvp-auth">
       <section className="mvp-auth-card" data-testid="reset-card">
         <BrandMark size={30} />
         <div className="section-kicker" style={{ marginTop: 14 }}>Acesso ao piloto</div>
@@ -117,6 +117,6 @@ export function ResetPasswordPage() {
           </form>
         )}
       </section>
-    </div>
+    </main>
   );
 }

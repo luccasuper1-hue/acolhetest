@@ -28,7 +28,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="mvp-auth">
+    <main id="main-content" className="mvp-auth">
       <section className="mvp-auth-card" data-testid="mvp-register-card">
         <BrandMark size={30} />
         <div className="section-kicker" style={{ marginTop: 14 }}>Estudante · piloto</div>
@@ -75,6 +75,6 @@ export default function RegisterPage() {
           <Link to="/" className="back-link" data-testid="register-back-home"><ChevronLeft size={15} /> Voltar para a Home</Link>
         </div>
       </section>
-    </div>
+    </main>
   );
 }

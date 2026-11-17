@@ -32,7 +32,7 @@ export default function InvitePage() {
   };
 
   return (
-    <div className="mvp-auth">
+    <main id="main-content" className="mvp-auth">
       <section className="mvp-auth-card" data-testid="invite-card">
         <BrandMark size={30} />
         <div className="section-kicker" style={{ marginTop: 14 }}>Convite · piloto</div>
@@ -59,6 +59,6 @@ export default function InvitePage() {
         )}
         <div className="mvp-auth-foot"><Link to="/entrar" data-testid="invite-to-login">Já ativei minha conta</Link></div>
       </section>
-    </div>
+    </main>
   );
 }

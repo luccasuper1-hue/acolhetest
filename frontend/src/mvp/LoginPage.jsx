@@ -37,7 +37,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="mvp-auth">
+    <main id="main-content" className="mvp-auth">
       <section className="mvp-auth-card" data-testid="mvp-login-card">
         <BrandMark size={30} />
         <div className="section-kicker" style={{ marginTop: 14 }}>{profile ? `Acesso para ${profile.label}` : "Acesso ao piloto"}</div>
@@ -64,6 +64,6 @@ export default function LoginPage() {
           <Link to="/" className="back-link" data-testid="login-back-home"><ChevronLeft size={15} /> Voltar para a Home</Link>
         </div>
       </section>
-    </div>
+    </main>
   );
 }
