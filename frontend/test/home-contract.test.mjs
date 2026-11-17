@@ -603,6 +603,8 @@ test("public assets receive a compatible content security policy", async () => {
   assert.match(worker, /connect-src 'self' wss:/);
   assert.match(worker, /frame-ancestors 'none'/);
   assert.match(worker, /env\.ASSETS\.fetch\(request\)/);
+  const wrangler = await readFile(resolve(root, "../cloudflare-worker/wrangler.jsonc"), "utf8");
+  assert.match(wrangler, /"run_worker_first": true/);
 });
 
 test("overlay panels move focus to their close actions", async () => {
