@@ -1,5 +1,5 @@
 export { MongoGateway } from "./db";
-import { apiRoute } from "./routes";
+import { apiRoute, expirePendingRequests } from "./routes";
 import { currentUser, db, fail } from "./core";
 
 export interface Env {
@@ -143,5 +143,10 @@ export default {
       console.error("Unhandled API error", error);
       return withCors(Response.json({ detail: "Erro interno do serviço" }, { status: 500 }), allowedOrigin(request, env));
     }
+  },
+  async scheduled(_controller: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
+    // Keep the 48-hour SLA clock independent from dashboard visits. The
+    // request-triggered sweep remains as a fast consistency fallback.
+    ctx.waitUntil(expirePendingRequests(db(env), env));
   },
 } satisfies ExportedHandler<Env>;

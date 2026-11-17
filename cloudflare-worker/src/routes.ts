@@ -68,15 +68,17 @@ const addDays = (value: string, days: number) => {
   return date.toISOString().slice(0, 10);
 };
 
-async function expirePendingRequests(store: ReturnType<typeof db>, env: Env, institutionId?: string) {
+export async function expirePendingRequests(store: ReturnType<typeof db>, env: Env, institutionId?: string) {
   const filter: Doc = { status: "pending", created_at: { $lt: hoursAgo(48) } };
   if (institutionId) filter.institution_id = institutionId;
   const stale = await store.findMany("requests", filter, { limit: 200 });
   const professionalUserIds = new Set<string>();
+  const refreshedInstitutions = new Set<string>();
   let expiredCount = 0;
   for (const record of stale) {
     if (await store.update("requests", { id: record.id, status: "pending" }, { $set: { status: "expired", expired_at: now() } })) {
       expiredCount += 1;
+      if (record.institution_id) refreshedInstitutions.add(String(record.institution_id));
       await store.update("availability", { id: record.availability_id, status: "reserved" }, { $set: { status: "open" } });
       const studentUserId = String((await store.findOne("students", { id: record.student_id }, { user_id: 1 }))?.user_id || "");
       if (studentUserId) await notifyUser(env, studentUserId, "request_expired", "Solicitação expirada", "O horário voltou a ficar disponível porque não houve confirmação em até 48 horas.", { request_id: record.id });
@@ -104,13 +106,15 @@ async function expirePendingRequests(store: ReturnType<typeof db>, env: Env, ins
       const professionalUserId = String((await store.findOne("professionals", { id: record.professional_id }, { user_id: 1 }))?.user_id || "");
       if (professionalUserId) await notifyUser(env, professionalUserId, "appointment_request_expired", "Pedido expirado", "Um pedido direto expirou após 48 horas sem resposta.", { appointment_request_id: record.id });
       if (record.institution_id) { await refreshPanels(env, store, String(record.institution_id), "institution"); await refreshPanels(env, store, String(record.institution_id), "admin"); }
+      if (record.institution_id) refreshedInstitutions.add(String(record.institution_id));
     }
   }
   if (professionalUserIds.size) await broadcastRealtime(env, { userIds: [...professionalUserIds], event: { type: "data_changed", scope: "professional" } });
-  if (expiredCount && institutionId) {
-    await refreshPanels(env, store, institutionId, "institution");
-    await refreshPanels(env, store, institutionId, "admin");
-  }
+  if (expiredCount && institutionId) refreshedInstitutions.add(institutionId);
+  await Promise.all([...refreshedInstitutions].map(async (id) => {
+    await refreshPanels(env, store, id, "institution");
+    await refreshPanels(env, store, id, "admin");
+  }));
 }
 
 async function sessionReminderNotifications(store: ReturnType<typeof db>, env: Env, sessions: Doc[], userId: string) {
