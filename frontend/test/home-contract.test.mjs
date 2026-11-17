@@ -572,6 +572,7 @@ test("MVP overlays keep keyboard focus contained", async () => {
   assert.match(shell, /aria-modal="false"/);
   assert.match(shell, /document\.body\.style\.overflow = "hidden"/);
   assert.match(shell, /document\.body\.style\.overflow = previousOverflow/);
+  assert.ok((shell.match(/document\.body\.style\.overflow = "hidden"/g) || []).length >= 2);
 });
 
 test("command palette restores focus after closing", async () => {

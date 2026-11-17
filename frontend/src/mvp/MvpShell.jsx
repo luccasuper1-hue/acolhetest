@@ -387,6 +387,12 @@ function ConversationLauncher({ conversations, unreadCount, onOpenConversation, 
   }, [open]);
   useEffect(() => { if (open) conversationCloseRef.current?.focus(); }, [open]);
   useEffect(() => {
+    if (!open || typeof document === "undefined") return undefined;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = previousOverflow; };
+  }, [open]);
+  useEffect(() => {
     if (!open) return undefined;
     const panel = launcherRef.current?.querySelector(".mvp-conversation-panel");
     if (!panel) return undefined;
