@@ -250,6 +250,8 @@ html[data-theme="dark"] .admin-filter-bar button.active { color: var(--ink); }
 .institution-check-item input { width: 17px; height: 17px; accent-color: var(--purple); }
 .institution-operations-grid { margin-top: 18px; }
 .institution-fallback-card .mvp-row-actions { max-width: 520px; }
+.impact-report-actions { display: grid; gap: 10px; margin-top: 14px; }
+.impact-report-table { display: grid; gap: 4px; }
 @media (max-width: 720px) {
   .institution-fallback-card .mvp-row-actions { width: 100%; max-width: none; justify-content: flex-start; }
   .institution-fallback-card .mvp-row-actions .button { flex: 1 1 100%; justify-content: center; }

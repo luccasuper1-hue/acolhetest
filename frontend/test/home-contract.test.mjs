@@ -488,3 +488,12 @@ test("institution operations expose capacity, manual fallback and onboarding", (
   assert.match(frontendInstitution, /inst-onboarding-card/);
   assert.match(frontendInstitution, /offer_other_professional/);
 });
+
+test("institution impact reports support a baseline and safe export", () => {
+  assert.match(routes, /impact_baseline/);
+  assert.match(routes, /impact_baseline_captured/);
+  assert.match(routes, /buildImpactReport/);
+  assert.match(frontendInstitution, /inst-capture-baseline/);
+  assert.match(frontendInstitution, /inst-export-impact/);
+  assert.match(frontendInstitution, /relatorio-impacto-acolhe\.csv/);
+});

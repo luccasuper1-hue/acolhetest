@@ -9,6 +9,7 @@ export default function InstitutionArea() {
   const [professionals, setProfessionals] = useState([]);
   const [certificates, setCertificates] = useState([]);
   const [fallbackRequests, setFallbackRequests] = useState([]);
+  const [impactReport, setImpactReport] = useState(null);
   const [institution, setInstitution] = useState(null);
   const [invite, setInvite] = useState({ name: "", email: "", link_type: "institution", specialty: "" });
   const [inviteLink, setInviteLink] = useState(null);
@@ -22,7 +23,7 @@ export default function InstitutionArea() {
   const load = useCallback(async () => {
     try {
       const { data } = await api.get("/institutions/me/dashboard");
-      setMetrics(data.metrics); setProfessionals(data.professionals || []); setCertificates(data.certificates || []); setFallbackRequests(data.fallback_requests || []); setInstitution(data.institution);
+      setMetrics(data.metrics); setImpactReport(data.impact_report || null); setProfessionals(data.professionals || []); setCertificates(data.certificates || []); setFallbackRequests(data.fallback_requests || []); setInstitution(data.institution);
       setProfile({ name: data.institution?.name || "", contact_email: data.institution?.contact_email || "", support_note: data.institution?.support_note || "" });
       setLoadError("");
     } catch (error) {
@@ -79,6 +80,17 @@ export default function InstitutionArea() {
     try { await api.post(`/institutions/me/requests/${encodeURIComponent(requestId)}/fallback`, { action }); toast.success("Próximo passo registrado."); await load(); }
     catch (err) { toast.error(apiError(err)); }
     finally { setFallbackBusy(null); }
+  };
+  const captureBaseline = async () => {
+    try { const { data } = await api.post("/institutions/me/impact/baseline", {}); setImpactReport(data); toast.success("Linha de base registrada."); await load(); }
+    catch (err) { toast.error(apiError(err)); }
+  };
+  const exportImpactReport = () => {
+    if (!impactReport?.metrics?.length) return;
+    const rows = [["Indicador", "Linha de base", "Atual", "Variação"], ...impactReport.metrics.map(item => [item.label, item.baseline ?? "—", item.current ?? "—", item.delta == null ? "—" : item.delta])];
+    const csv = rows.map(row => row.map(value => `"${String(value).replaceAll('"', '""')}"`).join(",")).join("\n");
+    const url = URL.createObjectURL(new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" }));
+    const link = document.createElement("a"); link.href = url; link.download = "relatorio-impacto-acolhe.csv"; link.click(); URL.revokeObjectURL(url);
   };
 
   const linkedProfessionals = metrics?.professionals_linked || 0;
@@ -168,6 +180,9 @@ export default function InstitutionArea() {
         <div className="mvp-row"><div className="mvp-row-main"><strong>Período atual</strong><span>{metrics?.metrics_period_label || "Desde o início do piloto"}</span></div><span className="mvp-tag">{metrics?.requests_total || 0} pedidos</span></div>
         <div className="mvp-row"><div className="mvp-row-main"><strong>Linha de base</strong><span>{metrics?.baseline_available ? "Disponível para comparação" : "Ainda não registrada"}</span></div><span className="mvp-tag wait">{metrics?.baseline_available ? "PRONTA" : "PENDENTE"}</span></div>
         <p className="mvp-note">As métricas de velocidade e comparecimento só aparecem com pelo menos {metrics?.minimum_sample_size ?? 5} casos. O período e a amostra devem acompanhar qualquer comparação antes/depois. As 48 horas são uma meta operacional do piloto, não uma garantia clínica, de disponibilidade ou de resultado terapêutico.</p>
+        <div className="impact-report-actions">
+          {!impactReport?.baseline_available ? <><p className="mvp-note">Registre uma linha de base antes de iniciar o uso ampliado para medir a evolução do piloto.</p><button className="button primary small" type="button" onClick={captureBaseline} data-testid="inst-capture-baseline">Registrar linha de base</button></> : <><div className="mvp-row"><div className="mvp-row-main"><strong>Comparação antes/depois</strong><span>Linha de base registrada em {formatDate(impactReport.captured_at)} · {impactReport.period_label}</span></div><span className="mvp-tag ok">ATIVA</span></div><div className="impact-report-table">{impactReport.metrics.map(item => <div className="mvp-row" key={item.key}><div className="mvp-row-main"><strong>{item.label}</strong><span>Antes: {item.baseline ?? "—"} · Agora: {item.current ?? "—"}</span></div><span className={`mvp-tag ${item.delta == null ? "wait" : item.delta > 0 ? "ok" : item.delta < 0 ? "off" : ""}`}>{item.delta == null ? "—" : `${item.delta > 0 ? "+" : ""}${item.delta}`}</span></div>)}</div><button className="button secondary small" type="button" onClick={exportImpactReport} data-testid="inst-export-impact">Exportar CSV</button></>}
+        </div>
       </MvpCard>
 
       <div className="mvp-grid institution-operations-grid">
