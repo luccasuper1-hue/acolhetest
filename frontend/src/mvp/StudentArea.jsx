@@ -17,6 +17,7 @@ export default function StudentArea() {
   const [meetingMode, setMeetingMode] = useState("online");
   const [appointmentProfessional, setAppointmentProfessional] = useState("");
   const [busy, setBusy] = useState(false);
+  const actionBusyRef = useRef(false);
   const [feedback, setFeedback] = useState({});
   const [rescheduleFor, setRescheduleFor] = useState(null);
   const [chatSession, setChatSession] = useState(null);
@@ -59,23 +60,30 @@ export default function StudentArea() {
   useEffect(() => { load().catch(e => toast.error(apiError(e))); }, [load]);
   const cancel = async id => {
     if (typeof window !== "undefined" && !window.confirm("Cancelar esta conversa? O horário voltará a ficar disponível.")) return;
+    if (actionBusyRef.current) return;
+    actionBusyRef.current = true;
     try {
       await api.post(`/students/me/requests/${id}/cancel`);
       toast("Conversa cancelada. O horário voltou a ficar disponível.");
       await load();
     } catch (e) { toast.error(apiError(e)); }
+    finally { actionBusyRef.current = false; }
   };
 
   const reschedule = async (id, availabilityId) => {
     if (!availabilityId) return;
+    if (actionBusyRef.current) return;
+    actionBusyRef.current = true;
     const selected = professionals.flatMap(professional => professional.slots).find(item => item.id === availabilityId);
     const mode = selected?.mode === "presencial" ? "presencial" : "online";
     try { await api.post(`/students/me/requests/${id}/reschedule`, { availability_id: availabilityId, meeting_mode: mode }); toast.success("Novo horário enviado para confirmação."); setRescheduleFor(null); await load(); }
     catch (e) { toast.error(apiError(e)); await load(); }
+    finally { actionBusyRef.current = false; }
   };
 
   const requestDirectAppointment = async () => {
-    if (!appointmentProfessional) return;
+    if (!appointmentProfessional || actionBusyRef.current) return;
+    actionBusyRef.current = true;
     setBusy(true);
     try {
       await api.post("/students/me/appointment-requests", { professional_id: appointmentProfessional, meeting_mode: meetingMode, reason_code: reason, note: note || null });
@@ -83,27 +91,35 @@ export default function StudentArea() {
       setAppointmentProfessional(""); setNote("");
       await load();
     } catch (e) { toast.error(apiError(e)); }
-    finally { setBusy(false); }
+    finally { actionBusyRef.current = false; setBusy(false); }
   };
 
   const confirmAppointmentProposal = async id => {
+    if (actionBusyRef.current) return;
+    actionBusyRef.current = true;
     try { await api.post(`/students/me/appointment-requests/${id}/confirm`); toast.success("Horário confirmado."); await load(); }
     catch (e) { toast.error(apiError(e)); await load(); }
+    finally { actionBusyRef.current = false; }
   };
   const cancelAppointmentRequest = async id => {
     if (typeof window !== "undefined" && !window.confirm("Cancelar este pedido de atendimento?")) return;
+    if (actionBusyRef.current) return;
+    actionBusyRef.current = true;
     try { await api.post(`/students/me/appointment-requests/${id}/cancel`); toast("Pedido cancelado."); await load(); }
     catch (e) { toast.error(apiError(e)); }
+    finally { actionBusyRef.current = false; }
   };
 
   const sendFeedback = async sessionId => {
     const entry = feedback[sessionId] || {};
-    if (!entry.score) return;
+    if (!entry.score || actionBusyRef.current) return;
+    actionBusyRef.current = true;
     try {
       await api.post(`/students/me/sessions/${sessionId}/feedback`, { score: entry.score, comment: entry.comment || null });
       toast.success("Obrigado pelo retorno.");
       await load();
     } catch (e) { toast.error(apiError(e)); }
+    finally { actionBusyRef.current = false; }
   };
 
   const openChat = async sessionId => {

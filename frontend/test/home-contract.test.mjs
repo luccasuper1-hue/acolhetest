@@ -567,6 +567,14 @@ test("professional mutations guard against duplicate submissions", async () => {
   assert.match(professional, /disabled=\{actionBusy\}/);
 });
 
+test("student mutations guard against duplicate submissions", async () => {
+  const student = await readFile(resolve(root, "src/mvp/StudentArea.jsx"), "utf8");
+  assert.match(student, /const actionBusyRef = useRef\(false\)/);
+  assert.match(student, /if \(!appointmentProfessional \|\| actionBusyRef\.current\) return/);
+  assert.ok((student.match(/if \(actionBusyRef\.current\) return/g) || []).length >= 4);
+  assert.ok((student.match(/actionBusyRef\.current = false/g) || []).length >= 5);
+});
+
 test("overlay panels move focus to their close actions", async () => {
   const shell = await readFile(resolve(root, "src/mvp/MvpShell.jsx"), "utf8");
   assert.match(shell, /notificationCloseRef\.current\?\.focus\(\)/);
