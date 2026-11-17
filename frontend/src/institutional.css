@@ -334,6 +334,7 @@ html[data-theme="dark"] .plan-card.featured { border-color: rgba(191, 164, 242, 
 }
 .lead-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .lead-form label { display: grid; gap: 7px; font-size: 11px; letter-spacing: .9px; text-transform: uppercase; font-weight: 700; color: var(--faint); }
+.lead-form .field-hint { font-size: 11px; letter-spacing: 0; text-transform: none; font-weight: 400; color: var(--faint); }
 .lead-form input, .lead-form textarea, .lead-form select {
   width: 100%; font: inherit; font-size: 14px; color: var(--ink);
   background: var(--surface-2); border: 1.5px solid var(--line);

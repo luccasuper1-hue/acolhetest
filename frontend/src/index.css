@@ -4,9 +4,9 @@
 
 :root {
   --ink:#332b45;
-  --muted:#766d84;
+  --muted:#6f667d;
   --lavender:#eee9fb;
-  --purple:#7b4fc2;
+  --purple:#7650c8;
   --deep:#52358d;
   --mint:#d9f2e9;
   --mint-accent:#62ddb0;
@@ -37,12 +37,16 @@
   --surface-3:#f3effa;
   --glass:rgba(255,255,255,.72);
   --brand:#7650c8;
-  --brand-strong:#895fda;
+  --brand-strong:#875bd6;
   --on-brand:#ffffff;
-  --mint-ink:#4c967f;
-  --peach-ink:#ce8069;
-  --blue-ink:#6095ae;
-  --faint:#9b91a4;
+  --mint-ink:#347763;
+  --success:#347763;
+  --success-soft:#d9f2e9;
+  --warning:#a5613f;
+  --danger:#b5453b;
+  --peach-ink:#8f4a3a;
+  --blue-ink:#3b6d87;
+  --faint:#70647e;
 }
 
 /* ---------- Modo noturno: ameixa profunda, lilás pastel, mint discreto ---------- */
@@ -70,7 +74,11 @@ html[data-theme="dark"] {
   --brand:#875bd6;
   --brand-strong:#9b70ea;
   --on-brand:#ffffff;
-  --mint-ink:#8fdcc0;
+  --mint-ink:#9ee1c8;
+  --success:#9ee1c8;
+  --success-soft:rgba(126,214,185,.16);
+  --warning:#f0b193;
+  --danger:#f2bcc4;
   --peach-ink:#f0b193;
   --blue-ink:#93c8e2;
   --faint:#9c90b0;
@@ -81,7 +89,7 @@ html[data-theme="dark"] {
    provoca repaints caros (especialmente em cards com backdrop-filter). */
 html.theme-anim, html.theme-anim *, html.theme-anim *::before, html.theme-anim *::after {
   transition-property: background-color, border-color, color !important;
-  transition-duration: 180ms !important;
+  transition-duration: 420ms !important;
   transition-timing-function: var(--ease) !important;
 }
 

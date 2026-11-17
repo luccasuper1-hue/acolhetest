@@ -20,7 +20,7 @@ const STEPS = [
   {
     kicker: "No seu ritmo",
     title: "Você decide o próximo passo.",
-    text: "Encontre um profissional, escolha um horário e veja as opções disponíveis.",
+    text: "Escolha um profissional, envie um pedido e acompanhe a proposta de horário.",
     visual: "flow",
   },
   {
@@ -41,7 +41,7 @@ export const Onboarding = ({ onFinish, onExplore }) => {
     <div className="onboarding" role="dialog" aria-modal="true" aria-label="Apresentação do Acolhe" data-testid="onboarding-overlay">
       <div className="onboarding-card" key={index}>
         <div className="onboarding-top">
-          <span className="onboarding-badge"><ShieldCheck size={13}/> Protótipo educacional</span>
+          <span className="onboarding-badge"><ShieldCheck size={13}/> Piloto institucional</span>
           <button className="onboarding-skip" onClick={onFinish} data-testid="onboarding-skip">Pular por enquanto</button>
         </div>
 

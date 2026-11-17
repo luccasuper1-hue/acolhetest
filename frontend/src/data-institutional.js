@@ -1,5 +1,5 @@
 /* ============================================================
-   Dados demonstrativos da camada institucional.
+   Dados de referências da camada institucional.
    Todos fictícios e rotulados como DEMO na interface — nenhum
    número aqui representa resultado real da Acolhe.
    ============================================================ */
@@ -10,7 +10,7 @@ export const audiences = [
     tag: "Usuário",
     role: "Quem usa e se beneficia",
     title: "O estudante continua no centro",
-    text: "Informa um motivo geral e encontra um horário disponível na instituição.",
+    text: "Informa um motivo geral, escolhe um profissional e envia um pedido.",
     to: "/para-estudantes",
     cta: "Ver a experiência do estudante",
   },
@@ -19,7 +19,7 @@ export const audiences = [
     tag: "Ecossistema",
     role: "Quem oferece apoio",
     title: "O profissional com espaço próprio",
-    text: "Recebe solicitações, organiza sua disponibilidade e registra encaminhamentos.",
+    text: "Recebe pedidos, combina horários e registra encaminhamentos.",
     to: "/profissionais",
     cta: "Ver a área do profissional",
   },
@@ -36,7 +36,7 @@ export const audiences = [
 
 export const b2b2cFlow = [
   { label: "Instituição", title: "Disponibiliza a estrutura", text: "Vincula profissionais e abre o acesso aos estudantes." },
-  { label: "Profissional", title: "Participa da estrutura", text: "Publica disponibilidade, atende e encaminha." },
+  { label: "Profissional", title: "Organiza os encontros", text: "Recebe pedidos, combina horários, atende e encaminha." },
   { label: "Estudante", title: "Acessa o apoio", text: "Solicita conversa e encontra o próximo passo." },
   { label: "Acolhe", title: "Organiza o fluxo", text: "Agenda, solicitações, encaminhamentos e indicadores." },
 ];
@@ -49,9 +49,9 @@ export const noReplaceCases = [
 
 export const mvpToday = [
   "Instituição cria o ambiente e vincula profissionais",
-  "Profissional define disponibilidade",
-  "Estudante solicita apoio e escolhe um horário",
-  "Horário é reservado e a solicitação é confirmada",
+  "Estudante envia um pedido de apoio",
+  "Profissional propõe uma data e horário",
+  "Estudante confirma o encontro combinado",
   "Conversa acontece em sala externa (provisório do piloto)",
   "Profissional conclui e registra encaminhamento",
   "Estudante envia feedback",
@@ -68,16 +68,16 @@ export const futureVision = [
 ];
 
 export const institutionCapabilities = [
-  { icon: "layout", title: "Painel administrativo", text: "Uma visão geral da operação da Acolhe dentro da instituição." },
+  { icon: "layout", title: "Visão institucional", text: "Uma visão geral dos pedidos, encontros e encaminhamentos da instituição." },
   { icon: "users", title: "Usuários institucionais", text: "Gestão de acessos de equipe e vínculos institucionais." },
   { icon: "badge", title: "Profissionais vinculados", text: "Organização dos profissionais que atendem a instituição." },
   { icon: "activity", title: "Acompanhamento de utilização", text: "Quanto a plataforma está sendo usada ao longo do tempo." },
-  { icon: "route", title: "Gestão de encaminhamentos", text: "Visão administrativa dos encaminhamentos, sem conteúdo privado." },
+  { icon: "route", title: "Acompanhamento de encaminhamentos", text: "Visão operacional dos status e próximos passos, sem acesso ao conteúdo privado." },
   { icon: "chart", title: "Indicadores agregados", text: "Alcance, demanda por categoria e utilização — sempre agregados." },
 ];
 
 export const proCapabilities = [
-  { icon: "calendar", title: "Disponibilidade e horários", text: "Definição dos dias e janelas em que pode receber conversas." },
+  { icon: "calendar", title: "Pedidos e horários", text: "Recebimento de pedidos e combinação de datas para as conversas." },
   { icon: "inbox", title: "Solicitações sob sua responsabilidade", text: "Apenas o que pertence à sua atuação, nada além disso." },
   { icon: "history", title: "Conversas e encaminhamentos", text: "Marcação de conversas realizadas e registro operacional do próximo passo." },
 ];
@@ -184,14 +184,14 @@ export const howByAudience = [
     tag: "Estudante",
     title: "Para quem precisa de apoio",
     text: "Sem formulários longos, sem precisar explicar tudo de uma vez.",
-    steps: ["Você chega", "Informa um motivo geral", "Escolhe um horário disponível", "Acompanha a solicitação e o encaminhamento"],
+    steps: ["Você chega", "Informa um motivo geral", "Envia um pedido ao profissional", "Acompanha a proposta e o encaminhamento"],
   },
   {
     id: "profissional",
     tag: "Profissional",
     title: "Para quem oferece apoio",
     text: "Um ambiente que respeita a natureza do trabalho profissional.",
-    steps: ["Recebe solicitações", "Organiza sua disponibilidade", "Realiza seu trabalho", "Faz encaminhamentos quando necessário"],
+    steps: ["Recebe pedidos", "Combina uma data e horário", "Realiza seu trabalho", "Faz encaminhamentos quando necessário"],
   },
   {
     id: "instituicao",
@@ -205,10 +205,10 @@ export const howByAudience = [
 export const studentCan = [
   { title: "Acessar a Acolhe pela sua instituição", text: "O acesso é disponibilizado pela escola ou rede de ensino." },
   { title: "Dizer como está se sentindo", text: "Com as palavras que você tiver — não precisa ser exato." },
-  { title: "Escolher um horário disponível", text: "Quando houver um profissional vinculado à sua instituição." },
+  { title: "Escolher um profissional", text: "Envie um pedido para um profissional vinculado à sua instituição." },
   { title: "Ver recursos de apoio", text: "Conteúdos educativos curtos sobre o que aparece na vida escolar." },
   { title: "Descobrir os caminhos disponíveis", text: "O que existe para você agora, de forma clara." },
-  { title: "Solicitar ou agendar atendimento", text: "Quando isso fizer sentido e estiver disponível." },
+  { title: "Enviar um pedido de conversa", text: "O profissional combina a data e o horário com você." },
   { title: "Registrar um encaminhamento", text: "O profissional pode registrar o próximo passo operacional após a conversa." },
   { title: "Acompanhar o que foi combinado", text: "Ver o status da solicitação e os registros disponíveis para você." },
 ];
@@ -256,14 +256,14 @@ export const dashKpis = [
   { icon: "message", value: "362", label: "Solicitações de apoio", trend: "média de 52 por mês" },
   { icon: "check", value: "148", label: "Atendimentos realizados", trend: "conversas concluídas" },
   { icon: "route", value: "37", label: "Encaminhamentos", trend: "para serviço adequado" },
-  { icon: "badge", value: "9", label: "Profissionais vinculados", trend: "rede demonstrativa" },
+  { icon: "badge", value: "9", label: "Profissionais vinculados", trend: "rede do piloto" },
   { icon: "chart", value: "47%", label: "Taxa de utilização", trend: "do acesso contratado" },
-  { icon: "heart", value: "4,6/5", label: "Satisfação com a experiência", trend: "pesquisa demonstrativa" },
+  { icon: "heart", value: "4,6/5", label: "Satisfação com a experiência", trend: "pesquisa do piloto" },
 ];
 
 export const dashOperations = [
   { title: "Solicitações aguardando profissional", detail: "Fila administrativa — sem conteúdo das conversas", status: "3 abertas", tone: "op-open" },
   { title: "Encaminhamentos concluídos no mês", detail: "Somente contagem agregada", status: "12 concluídos", tone: "op-done" },
-  { title: "Profissionais com agenda publicada", detail: "Disponibilidade informada pelos próprios profissionais", status: "7 de 9", tone: "" },
+  { title: "Profissionais recebendo pedidos", detail: "Pedidos organizados pelos próprios profissionais", status: "7 de 9", tone: "" },
   { title: "Convites de acesso pendentes", detail: "Gestão de usuários institucionais", status: "24 pendentes", tone: "op-open" },
 ];

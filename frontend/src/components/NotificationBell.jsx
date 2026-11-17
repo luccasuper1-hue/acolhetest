@@ -4,7 +4,7 @@ import { Bell, CalendarDays, Check, Sparkles } from "lucide-react";
 const DEMO_NOTIFICATIONS = [
   { id: 1, Icon: Check, text: "Seu horário foi confirmado.", time: "Agora mesmo" },
   { id: 2, Icon: CalendarDays, text: "Sua conversa acontece amanhã, às 10:30.", time: "Ontem" },
-  { id: 3, Icon: Sparkles, text: "Um novo horário ficou disponível com Marina Alves.", time: "2 dias" },
+  { id: 3, Icon: Sparkles, text: "Você recebeu uma proposta de horário de Marina Alves.", time: "2 dias" },
 ];
 
 export const NotificationBell = () => {

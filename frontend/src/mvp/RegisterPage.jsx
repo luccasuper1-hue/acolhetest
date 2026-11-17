@@ -18,7 +18,7 @@ export default function RegisterPage() {
     e.preventDefault();
     setBusy(true); setError("");
     try {
-      await signUp({ ...form, institution_code: form.institution_code.toUpperCase().trim(), consent });
+      await signUp({ ...form, institution_code: form.institution_code.toUpperCase().trim(), consent, consent_role: "student", consent_version: "pilot-v1" });
       navigate("/aluno", { replace: true });
     } catch (err) {
       setError(apiError(err));
@@ -55,7 +55,7 @@ export default function RegisterPage() {
             </p>
             <label className="mvp-check">
               <input type="checkbox" checked={consent} onChange={e => setConsent(e.target.checked)} data-testid="register-consent-checkbox" />
-              <span>Li e aceito o uso dos meus dados para criar minha conta, organizar minha solicitação e avaliar o piloto Acolhe, conforme as informações desta tela.</span>
+              <span>Li e aceito o uso dos meus dados para criar minha conta, organizar minha solicitação e avaliar o piloto Acolhe, conforme os <Link to="/termos/estudante">termos do estudante</Link> e a <Link to="/privacidade">política de privacidade</Link> (versão pilot-v1).</span>
             </label>
           </div>
           {error && <div className="mvp-error" data-testid="register-error">

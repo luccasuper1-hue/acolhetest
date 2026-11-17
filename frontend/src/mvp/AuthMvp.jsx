@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
-import { api, apiError, clearToken, saveToken } from "./api";
+import { api, apiError, clearToken } from "./api";
 
 const MvpAuthContext = createContext(null);
 
@@ -31,17 +31,17 @@ export function MvpAuthProvider({ children }) {
 
   const signIn = useCallback(async (email, password) => {
     const { data } = await api.post("/auth/login", { email, password });
-    saveToken(data.access_token);
-    await refresh();
+    setAccount({ user: data.user, institution: data.institution || null });
+    setChecking(false);
     return data.user;
-  }, [refresh]);
+  }, []);
 
   const signUp = useCallback(async payload => {
     const { data } = await api.post("/auth/register", payload);
-    saveToken(data.access_token);
-    await refresh();
+    setAccount({ user: data.user, institution: data.institution || null });
+    setChecking(false);
     return data.user;
-  }, [refresh]);
+  }, []);
 
   const signOut = useCallback(async () => {
     try { await api.post("/auth/logout"); } catch (e) { /* sessão local já será limpa */ }

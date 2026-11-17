@@ -70,7 +70,7 @@ export const InstitutionStrip = ({ compact = false }) => (
         </Link>
         {!compact && (
           <Link to="/instituicoes/painel" className="button quiet" data-testid="strip-dashboard-button">
-            Ver painel demonstrativo
+            Ver painel institucional
           </Link>
         )}
       </div>
@@ -162,11 +162,11 @@ export const CapabilitiesSection = ({ variant }) => {
   const items = isInstitution ? institutionCapabilities : proCapabilities;
   return (
     <section className="section" data-testid={`capabilities-${variant}`}>
-      <div className="section-kicker">{isInstitution ? "Painel administrativo" : "Painel profissional"}</div>
-      <h2>{isInstitution ? <>O que a instituição poderia <em>gerenciar.</em></> : <>O que o profissional poderia <em>organizar.</em></>}</h2>
+      <div className="section-kicker">{isInstitution ? "Visão institucional" : "Painel profissional"}</div>
+      <h2>{isInstitution ? <>O que a instituição pode <em>acompanhar.</em></> : <>O que o profissional poderia <em>organizar.</em></>}</h2>
       <p className="section-intro">
         {isInstitution
-          ? "Uma visão administrativa da operação — nunca do conteúdo privado de quem buscou apoio."
+          ? "Uma visão operacional do fluxo — nunca do conteúdo privado de quem buscou apoio."
           : "Ferramentas de organização do trabalho, sem transformar a Acolhe em sistema clínico."}
       </p>
       <div className="capability-grid">
@@ -196,7 +196,7 @@ export const ProPanelPreview = () => (
     <div className="pro-preview">
       <div className="pro-preview-top">
         <strong style={{ fontSize: 15 }}>Área do profissional</strong>
-        <span className="demo-label">DEMONSTRATIVO</span>
+        <span className="demo-label">PILOTO</span>
       </div>
       <div className="pro-preview-grid">
         <div className="pro-preview-tile">
@@ -206,8 +206,8 @@ export const ProPanelPreview = () => (
         </div>
         <div className="pro-preview-tile">
           <CalendarDays size={18}/>
-          <strong>Disponibilidade</strong>
-          <span>Você publica os horários em que pode receber conversas.</span>
+          <strong>Organização do encontro</strong>
+          <span>Você recebe pedidos, propõe horários e confirma as conversas que pode acompanhar.</span>
         </div>
         <div className="pro-preview-tile">
           <Route size={18}/>
@@ -433,14 +433,14 @@ export const ValidationSection = () => (
           <div className="section-kicker">Estágio atual</div>
           <h2>Estamos construindo, testando e <em>validando.</em></h2>
           <p className="section-intro" style={{ marginBottom: 0 }}>
-            A Acolhe é um protótipo em validação. Não há operação comercial, contratos, instituições
+            A Acolhe é um piloto em validação. Não há operação comercial, contratos, instituições
             parceiras, profissionais cadastrados ou resultados medidos. Preferimos dizer isso com clareza.
           </p>
         </div>
         <div className="validation-steps">
           {[
-            "Protótipo navegável da experiência do estudante",
-            "Proposta institucional e painel demonstrativo",
+            "Jornada do estudante",
+            "Proposta institucional e painel operacional",
             "Conversas de validação com escolas e profissionais",
             "Definição de modelo comercial e requisitos legais",
             "Piloto acompanhado, com consentimento e escopo claros",
@@ -455,7 +455,7 @@ export const ValidationSection = () => (
       <p className="inst-note" style={{ marginTop: 30 }}>
         <ClipboardList size={15}/>
         Tudo que aparece como número, gráfico, profissional, horário ou valor nesta plataforma é
-        demonstrativo e está identificado como DEMO ou protótipo.
+        de referência e está identificado como tal.
       </p>
     </div>
   </section>

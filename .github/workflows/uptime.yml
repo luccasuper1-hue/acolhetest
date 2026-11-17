@@ -8,12 +8,15 @@ on:
 jobs:
   check:
     runs-on: ubuntu-latest
+    env:
+      ACOLHE_BASE_URL: ${{ vars.ACOLHE_BASE_URL }}
     steps:
       - name: Check home and health endpoint
         shell: bash
         run: |
           set -euo pipefail
-          base="https://acolhetest.luccasuper1.workers.dev"
+          base="${ACOLHE_BASE_URL:-https://acolhetest.luccasuper1.workers.dev}"
+          base="${base%/}"
           curl --fail --silent --show-error --location --max-time 20 "$base/" >/dev/null
           health="$(curl --fail --silent --show-error --location --max-time 20 "$base/api/health")"
           echo "$health" | grep -q '"ok":true'

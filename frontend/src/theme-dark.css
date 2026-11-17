@@ -20,6 +20,7 @@ html[data-theme="dark"] .button.primary { background: var(--brand); color: #fff;
 html[data-theme="dark"] .button.primary:hover { background: var(--brand-strong); box-shadow: 0 20px 42px -18px rgba(140,108,204,.75); }
 html[data-theme="dark"] .button.secondary { background: var(--glass); border-color: rgba(191,164,242,.28); color: var(--deep); }
 html[data-theme="dark"] .button.secondary:hover { background: rgba(255,255,255,.09); border-color: rgba(191,164,242,.5); }
+html[data-theme="dark"] .button.secondary:disabled { background: rgba(255,255,255,.055); border-color: rgba(238,230,255,.20); color: var(--faint); opacity: .62; box-shadow: none; }
 html[data-theme="dark"] .button.light { background: var(--brand); color: #fff; box-shadow: 0 14px 32px -16px rgba(0,0,0,.6); }
 html[data-theme="dark"] .icon-button { color: var(--muted); }
 html[data-theme="dark"] .icon-button:hover { color: var(--deep); background: var(--lavender); }
@@ -57,7 +58,7 @@ html[data-theme="dark"] .mvp-role-options .demo-option .role-icon {
   box-shadow: inset 0 0 0 1px rgba(191,164,242,.18);
 }
 html[data-theme="dark"] .mvp-role-options .demo-option .role-icon.role-student {
-  background: rgba(126,214,185,.15);
+  background: rgba(126,214,185,.13);
   color: #9ee1c8;
   box-shadow: inset 0 0 0 1px rgba(126,214,185,.18);
 }
@@ -89,7 +90,7 @@ html[data-theme="dark"] .steps-band { background: #1b2226; }
 html[data-theme="dark"] .steps-grid, html[data-theme="dark"] .step { border-color: rgba(126,214,185,.18); }
 html[data-theme="dark"] .step-number { color: var(--mint-ink); background: rgba(126,214,185,.12); }
 html[data-theme="dark"] .step p { color: #9fb5ab; }
-html[data-theme="dark"] .step > svg { color: #7ec7ae; }
+html[data-theme="dark"] .step > svg { color: var(--mint-ink); }
 html[data-theme="dark"] .quote-panel { background: linear-gradient(155deg,#241c33,#2b2140); border: 1px solid rgba(255,255,255,.06); }
 html[data-theme="dark"] .business-band, html[data-theme="dark"] .compare-band { background: #1d1628; }
 html[data-theme="dark"] .cta-band { background: linear-gradient(135deg,#271d3a,#332552); color: #fff; }
@@ -316,3 +317,17 @@ html[data-theme="dark"] .chart-bars span { background: linear-gradient(180deg, #
 html[data-theme="dark"] .acolhe-toast { background: rgba(38,29,53,.98) !important; border-color: rgba(255,255,255,.1) !important; color: var(--ink) !important; }
 html[data-theme="dark"] .skip-link { background: var(--brand-strong); }
 html[data-theme="dark"] .time.disabled:hover { background: rgba(255,255,255,.045); border-color: var(--line); }
+
+/* Fechamento da paleta semântica: componentes legados deixam de carregar
+   verdes, roxos e superfícies claros próprios quando o tema é escuro. */
+html[data-theme="dark"] .demo-label,
+html[data-theme="dark"] .status-chip { color: var(--mint-ink); background: var(--success-soft); border-color: transparent; }
+html[data-theme="dark"] .role-icon.role-student,
+html[data-theme="dark"] .category-card.mint .category-icon,
+html[data-theme="dark"] .topic-dot.mint { color: var(--mint-ink); background: var(--mint); }
+html[data-theme="dark"] .mvp-label { color: var(--mint-ink); background: var(--success-soft); }
+html[data-theme="dark"] .mvp-error,
+html[data-theme="dark"] .login-error { color: var(--danger); }
+html[data-theme="dark"] .mvp-tag.ok { color: var(--mint-ink); background: var(--success-soft); }
+html[data-theme="dark"] .mvp-slot-dot { background: var(--mint-ink); }
+html[data-theme="dark"] .mvp-tag.wait { color: var(--warning); }

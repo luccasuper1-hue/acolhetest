@@ -98,10 +98,22 @@ frontend/node_modules/.cache/default-development/0.pack
 
 # Local Codex and Emergent working artifacts
 .emergent/
+.edge-shot/
+.browser-profile/
+.playwright/
+.auth/
 .gitconfig
 memory/
 test_reports/
 test_result.md
+
+# Local test/runtime artifacts (never package or share)
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+*.pyc
+*.pyo
 frontend/node_modules/.cache/default-development/6.pack
 
 # Superseded local build tooling; Vite is the supported frontend build.

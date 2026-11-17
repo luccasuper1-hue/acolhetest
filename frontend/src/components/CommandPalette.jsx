@@ -12,7 +12,7 @@ const PAGES = [
   ["Recursos e conteúdo", "/recursos"],
   ["Central de ajuda", "/ajuda"],
   ["Privacidade", "/privacidade"],
-  ["Termos do protótipo", "/termos"],
+  ["Termos de uso do Acolhe", "/termos"],
   ["Preciso de ajuda agora", "/preciso-ajuda"],
 ];
 
@@ -33,7 +33,7 @@ export const CommandPalette = () => {
   const results = useMemo(() => {
     const items = [
       ...PAGES.map(([label, to]) => ({ label, to, group: "Navegar" })),
-      ...professionals.map(p => ({ label: `${p.name} · perfil demonstrativo`, to: `/app/profissional/${p.id}`, group: "Profissionais" })),
+      ...professionals.map(p => ({ label: `${p.name} · perfil de referência`, to: `/app/profissional/${p.id}`, group: "Profissionais" })),
     ];
     const q = query.trim().toLowerCase();
     return (q ? items.filter(i => i.label.toLowerCase().includes(q)) : items).slice(0, 7);
@@ -68,7 +68,7 @@ export const CommandPalette = () => {
           ))}
           {!results.length && <p className="command-empty">Nada encontrado. Tente “agenda”, “ajuda” ou um nome.</p>}
         </div>
-        <div className="command-foot"><CornerDownLeft size={13}/> Enter abre o primeiro resultado · busca demonstrativa</div>
+        <div className="command-foot"><CornerDownLeft size={13}/> Enter abre o primeiro resultado · busca no catálogo</div>
       </div>
     </div>
   );

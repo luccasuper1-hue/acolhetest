@@ -1,5 +1,6 @@
 export { MongoGateway } from "./db";
 import { apiRoute } from "./routes";
+import { currentUser, db, fail } from "./core";
 
 export interface Env {
   /** Secrets are configured only at publication time; never commit their values. */
@@ -36,6 +37,7 @@ function withCors(response: Response, origin?: string): Response {
   headers.set("x-frame-options", "DENY");
   headers.set("referrer-policy", "strict-origin-when-cross-origin");
   headers.set("permissions-policy", "camera=(), microphone=(), geolocation=()");
+  headers.set("strict-transport-security", "max-age=31536000; includeSubDomains");
   if (origin) {
     headers.set("access-control-allow-origin", origin);
     headers.set("access-control-allow-credentials", "true");
@@ -79,11 +81,44 @@ function csrfFailure(request: Request, env: Env) {
   if (!contentType.toLowerCase().includes("application/json")) return new Response(JSON.stringify({ detail: "Content-Type inválido" }), { status: 415, headers: { "content-type": "application/json; charset=utf-8" } });
 }
 
+async function realtimeUpgrade(request: Request, env: Env, url: URL): Promise<Response> {
+  const user = await currentUser(request, env);
+  if (user instanceof Response) return user;
+  const sessionId = url.searchParams.get("session_id")?.trim();
+  if (sessionId) {
+    const session = await db(env).findOne("sessions", { id: sessionId }, { student_id: 1, professional_id: 1, status: 1 });
+    if (!session || session.status !== "scheduled") return fail("Conversa não encontrada", 404);
+    const collection = user.role === "student" ? "students" : user.role === "professional" ? "professionals" : "";
+    if (!collection) return fail("Perfil sem acesso ao chat", 403);
+    const profile = await db(env).findOne(collection, { user_id: user.id }, { id: 1 });
+    const allowed = user.role === "student" ? profile?.id === session.student_id : profile?.id === session.professional_id;
+    if (!allowed) return fail("Você não participa desta conversa", 403);
+  }
+  const stub = env.MONGO_GATEWAY.get(env.MONGO_GATEWAY.idFromName("acolhe-mongodb"));
+  const realtimeHeaders: Record<string, string> = {
+    upgrade: "websocket",
+    "x-realtime-user": String(user.id),
+    "x-realtime-role": String(user.role),
+  };
+  if (sessionId) realtimeHeaders["x-realtime-session"] = sessionId;
+  return stub.fetch("https://realtime.internal/realtime/socket", {
+    headers: realtimeHeaders,
+    signal: AbortSignal.timeout(5_000),
+  });
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     if (request.method === "OPTIONS") return corsPreflight(request, env);
     const url = new URL(request.url);
+    if (url.pathname === "/api/health" && request.method === "GET") {
+      return withCors(Response.json({ ok: true, service: "acolhe", environment: env.APP_ENV || "production", checked_at: new Date().toISOString() }), allowedOrigin(request, env));
+    }
     if (!url.pathname.startsWith("/api")) return new Response("Not found", { status: 404 });
+    if (url.pathname === "/api/realtime" && request.headers.get("upgrade")?.toLowerCase() === "websocket") {
+      try { return await realtimeUpgrade(request, env, url); }
+      catch (error) { console.error("Realtime upgrade failed", error); return withCors(fail("Não foi possível abrir o canal em tempo real", 503), allowedOrigin(request, env)); }
+    }
     const csrfError = csrfFailure(request, env); if (csrfError) return withCors(csrfError, allowedOrigin(request, env));
     try {
       return withCors(await apiRoute(request, env, url.pathname), allowedOrigin(request, env));

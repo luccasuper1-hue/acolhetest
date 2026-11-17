@@ -85,7 +85,7 @@ export async function renderJourneyCard(rows) {
   ctx.save();
   ctx.font = "700 18px 'DM Sans', sans-serif";
   if ("letterSpacing" in ctx) ctx.letterSpacing = "2px";
-  const tag = "RESUMO DEMONSTRATIVO";
+  const tag = "RESUMO DO PILOTO";
   const tagWidth = ctx.measureText(tag).width + 44;
   roundRect(ctx, W - 128 - tagWidth, 146, tagWidth, 44, 22);
   ctx.fillStyle = "#f4f1fa";
@@ -131,7 +131,7 @@ export async function renderJourneyCard(rows) {
   ctx.fill();
   ctx.font = "400 22px 'DM Sans', sans-serif";
   ctx.fillStyle = "#766d84";
-  ctx.fillText("Protótipo educacional · sem atendimento real.", left + 34, H - 216);
+  ctx.fillText("Piloto institucional · atendimento conforme a equipe vinculada.", left + 34, H - 216);
   ctx.fillText("Este resumo não é um documento clínico.", left + 34, H - 186);
   ctx.restore();
 

@@ -1,6 +1,6 @@
 # API do Acolhe no Cloudflare Workers
 
-Esta pasta é uma migração **local e isolada** da API FastAPI. Ela não é publicada, não tem acesso às credenciais de produção e não altera o repositório remoto.
+Esta pasta contém o Worker oficial de produção do Acolhe. Ela entrega o frontend e atende `/api/*` no mesmo domínio, usando Durable Object + MongoDB Atlas. A API FastAPI em `backend/` permanece apenas como legado/local e não faz parte do deploy oficial.
 
 ## Arquitetura alvo
 
@@ -17,20 +17,20 @@ Um único Worker entrega os arquivos estáticos do React e atende as chamadas em
 
 O Worker usa um Durable Object como ponto de integração com o MongoDB, evitando criar uma conexão nova a cada chamada. Isso segue a recomendação do Cloudflare para Atlas.
 
-## Estado da migração
+## Estado da implementação
 
 - [x] Separar uma cópia local para o trabalho.
 - [x] Mapear as rotas do FastAPI.
 - [x] Criar Worker, JWT, cookies seguros, lock de login, CORS e roteamento de `/api/*`.
 - [x] Migrar regras de aluno, profissional, instituição, administração e métricas.
 - [x] Alterar o frontend desta cópia para usar `/api` no mesmo domínio, sem URL externa.
-- [ ] Testar contra um banco Atlas de desenvolvimento, sem reutilizar produção.
+- [ ] Testar restauração contra um banco Atlas separado, sem reutilizar produção.
 - [x] Publicar no Cloudflare e validar o envio de recuperação via Gmail API.
 
 ## Build único
 
 No diretório `frontend`, instale as dependências e execute `npm run build`. Isso produz `frontend/build`.
-No diretório desta pasta, `npm run verify` valida o Worker e seu pacote de assets, sem publicar. O comando `npm run deploy` primeiro gera o frontend e só então faz a publicação — ele existe apenas para uma futura revisão manual, não deve ser rodado nesta cópia.
+No diretório desta pasta, `npm run verify` valida o Worker e seu pacote de assets, sem publicar. O comando `npm run deploy` primeiro gera o frontend e então publica a versão oficial no Cloudflare; execute-o somente após os testes e a revisão operacional.
 
 Antes de qualquer teste contra um Atlas de desenvolvimento novo, execute `npm run indexes` nesta pasta com `MONGO_URL` e `DB_NAME` temporariamente definidos no seu terminal. Ele mantém os mesmos índices únicos que o seed Python criava; não execute esse comando contra produção sem revisar o banco.
 

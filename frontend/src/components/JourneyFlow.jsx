@@ -3,10 +3,10 @@ import { Check } from "lucide-react";
 const STEPS = [
   { n: "01", label: "Como você está?", note: "Um ponto de partida, sem diagnóstico." },
   { n: "02", label: "Sobre o que conversar?", note: "Escolha o assunto mais presente hoje." },
-  { n: "03", label: "Encontre um profissional", note: "Perfis e disponibilidade demonstrativos." },
-  { n: "04", label: "Escolha quando conversar", note: "Dia, horário e duração." },
+  { n: "03", label: "Encontre um profissional", note: "Perfis e disponibilidade de referências." },
+  { n: "04", label: "Acompanhe a proposta", note: "O profissional combina dia e horário com você." },
   { n: "05", label: "Confirme", note: "Revisão simples antes de seguir." },
-  { n: "06", label: "Converse", note: "Uma sala virtual demonstrativa." },
+  { n: "06", label: "Converse", note: "Uma sala virtual conforme o formato combinado." },
 ];
 
 export const JourneyFlow = ({ compact = false, progress = null }) => (

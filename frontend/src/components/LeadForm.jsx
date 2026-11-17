@@ -11,16 +11,17 @@ import { api, apiError } from "../mvp/api";
 const FIELDS = {
   institution: [
     { name: "nome", label: "Seu nome", placeholder: "Como podemos te chamar", half: true, required: true },
-    { name: "cargo", label: "Cargo", placeholder: "Ex.: coordenação, direção", half: true },
+    { name: "cargo", label: "Cargo", placeholder: "Ex.: coordenação, direção", half: true, required: true },
     { name: "instituicao", label: "Instituição", placeholder: "Nome da escola, rede ou universidade", required: true },
     { name: "email", label: "E-mail", placeholder: "seu@instituicao.edu.br", type: "email", half: true, required: true },
     { name: "estudantes", label: "Número aproximado de estudantes", placeholder: "Ex.: 400", half: true },
-    { name: "mensagem", label: "Mensagem", placeholder: "Conte o que você gostaria de resolver na sua instituição.", area: true },
+    { name: "senha", label: "Senha do gestor", placeholder: "Defina uma senha para o acesso", type: "password", half: true, required: true },
+    { name: "mensagem", label: "Mensagem", placeholder: "Conte o que você gostaria de resolver na sua instituição.", area: true, required: true, minLength: 10 },
   ],
   professional: [
     { name: "nome", label: "Seu nome", placeholder: "Nome completo", half: true, required: true },
     { name: "profissao", label: "Profissão", placeholder: "Ex.: Psicologia", half: true, required: true },
-    { name: "registro", label: "Registro profissional", placeholder: "Informação demonstrativa", half: true },
+    { name: "registro", label: "Registro profissional", placeholder: "Informação do registro profissional", half: true },
     { name: "email", label: "E-mail", placeholder: "seu@email.com", type: "email", half: true, required: true },
     { name: "area", label: "Área de atuação", placeholder: "Ex.: adolescentes, ansiedade, rotina", half: true },
     { name: "regiao", label: "Cidade / região", placeholder: "Ex.: Curitiba — PR", half: true },
@@ -33,21 +34,21 @@ const COPY = {
     testid: "institution-lead",
     kicker: "Contato institucional",
     title: "Quero levar a Acolhe para minha instituição",
-    intro: "Deixe seus dados e o que você gostaria de resolver. Uma conversa inicial ajuda a entender se a Acolhe faz sentido para a sua realidade — e o que ainda falta construir.",
+    intro: "Deixe seus dados e o que você gostaria de resolver. O pedido fica pendente para revisão da administração; só depois da aprovação a instituição e o acesso do gestor são criados.",
     submit: "Enviar interesse institucional",
     success: "Recebemos seu interesse. A operação do Acolhe entrará em contato pelo e-mail informado.",
     toast: "Interesse institucional enviado.",
-    note: "Seus dados serão usados apenas para responder a este contato institucional.",
+    note: "A senha fica protegida e só ativa o acesso se o interesse for aprovado pela administração.",
   },
   professional: {
     testid: "professional-lead",
-    kicker: "Interesse na rede",
-    title: "Quero participar da rede Acolhe",
-    intro: "No fluxo principal, profissionais entram por convite de uma instituição. Use este formulário apenas para demonstrar interesse em participar de uma futura rede Acolhe; ele não cria conta, vínculo ou aprovação.",
-    submit: "Enviar interesse",
-    success: "Recebemos seu interesse. A operação do Acolhe entrará em contato pelo e-mail informado.",
+    kicker: "Lista de interesse · futura rede",
+    title: "Quero saber quando a rede abrir",
+    intro: "Neste momento, o Acolhe não está cadastrando profissionais diretamente. No piloto, profissionais entram somente por convite de uma instituição. Deixe seu contato para ser avisado quando a futura rede Acolhe estiver aberta.",
+    submit: "Entrar na lista de interesse",
+    success: "Seu interesse foi registrado. A operação do Acolhe avisará pelo e-mail informado quando a rede estiver aberta.",
     toast: "Interesse profissional registrado.",
-    note: "Seus dados serão usados apenas para responder a este contato. Para acessar o piloto, aguarde um convite da sua instituição.",
+    note: "Este formulário não cria conta, vínculo, aprovação nem acesso ao piloto. Para participar agora, aguarde um convite da sua instituição.",
   },
 };
 
@@ -79,9 +80,10 @@ const renderField = (f, values, set, testid) => (
           value={values[f.name] || ""}
           onChange={e => set(f.name, e.target.value)}
           placeholder={f.placeholder}
-          autoComplete="off"
+          autoComplete={f.type === "password" ? "new-password" : "off"}
           data-testid={`${testid}-${f.name}`}
         />}
+    {f.minLength && <small className="field-hint">Mínimo de {f.minLength} caracteres.</small>}
   </label>
 );
 
@@ -99,6 +101,11 @@ export const LeadForm = ({ variant = "institution", anchorId }) => {
     const missing = fields.filter(f => f.required && !String(values[f.name] || "").trim());
     if (missing.length) {
       setError(`Preencha: ${missing.map(f => f.label.toLowerCase()).join(", ")}.`);
+      return;
+    }
+    const tooShort = fields.find(f => f.minLength && String(values[f.name] || "").trim().length < f.minLength);
+    if (tooShort) {
+      setError(`${tooShort.label} precisa ter pelo menos ${tooShort.minLength} caracteres.`);
       return;
     }
     setError("");

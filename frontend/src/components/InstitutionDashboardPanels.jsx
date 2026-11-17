@@ -15,7 +15,7 @@ const ICONS = {
 const palette = dark => ({
   brand: dark ? "#bfa4f2" : "#7254ad",
   brandSoft: dark ? "#8e6fd4" : "#a98fdd",
-  mint: dark ? "#7ed6b9" : "#4c967f",
+  mint: dark ? "#9ee1c8" : "#3f8e76",
   grid: dark ? "rgba(238,230,255,.12)" : "#e4deea",
   axis: dark ? "#b0a3c2" : "#9b91a4",
 });
@@ -102,7 +102,7 @@ export const InstitutionDashboardPanels = () => {
                 </AreaChart>
               </ResponsiveContainer>
             </div>
-            <p className="inst-note"><BarChart3 size={14}/>Série demonstrativa criada para ilustrar o painel. Não representa uso real.</p>
+            <p className="inst-note"><BarChart3 size={14}/>Série agregada do piloto; sem conteúdo individual.</p>
           </article>
 
           <article className="inst-card dash-card" data-testid="dash-demand">
