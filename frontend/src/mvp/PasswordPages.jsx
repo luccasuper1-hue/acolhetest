@@ -51,7 +51,7 @@ export function ForgotPasswordPage() {
         <form className="mvp-form" onSubmit={submit}>
           <label>E-mail<input type="email" required value={email} onChange={e => setEmail(e.target.value)} data-testid="forgot-email-input" /></label>
           {error && <div className="mvp-error" data-testid="forgot-error">{error}</div>}
-          <button className="button primary full" disabled={submitting} data-testid="forgot-submit-button">{submitting ? "Enviando..." : "Enviar instruções"} {!submitting && <ArrowRight size={16} />}</button>
+          <button type="submit" className="button primary full" disabled={submitting} data-testid="forgot-submit-button">{submitting ? "Enviando..." : "Enviar instruções"} {!submitting && <ArrowRight size={16} />}</button>
         </form>
         <p className="mvp-delivery-note">Se não encontrar a mensagem, confira também a pasta de spam, lixo eletrônico ou promoções.</p>
         {result && (
@@ -113,7 +113,7 @@ export function ResetPasswordPage() {
               <input type="password" required minLength={8} value={password} onChange={e => setPassword(e.target.value)} data-testid="reset-password-input" />
             </label>
             {error && <div className="mvp-error" data-testid="reset-error">{error}</div>}
-            <button className="button primary full" data-testid="reset-submit-button">Salvar senha <ArrowRight size={16} /></button>
+            <button type="submit" className="button primary full" data-testid="reset-submit-button">Salvar senha <ArrowRight size={16} /></button>
           </form>
         )}
       </section>

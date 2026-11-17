@@ -382,7 +382,7 @@ function PasswordChangeCard({ collapsed = false }) {
     <label>Senha atual<input type="password" required minLength={8} value={formState.current_password} onChange={e => setForm({ ...formState, current_password: e.target.value })} autoComplete="current-password" data-testid="change-current-password-input" /></label>
     <label>Nova senha<input type="password" required minLength={8} value={formState.new_password} onChange={e => setForm({ ...formState, new_password: e.target.value })} autoComplete="new-password" data-testid="change-new-password-input" /></label>
     <label>Confirmar nova senha<input type="password" required minLength={8} value={formState.confirm} onChange={e => setForm({ ...formState, confirm: e.target.value })} autoComplete="new-password" data-testid="change-confirm-password-input" /></label>
-    <button className="button secondary" disabled={saving} data-testid="change-password-button">{saving ? "Salvando…" : "Trocar senha"}</button>
+    <button type="submit" className="button secondary" disabled={saving} data-testid="change-password-button">{saving ? "Salvando…" : "Trocar senha"}</button>
   </form>;
   if (collapsed) return <details className="mvp-security-details" data-testid="password-change-card">
     <summary>Conta e segurança <span>Trocar senha</span></summary>

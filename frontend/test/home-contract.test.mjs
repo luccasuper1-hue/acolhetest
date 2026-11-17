@@ -538,3 +538,11 @@ test("student and professional action controls declare button type", async () =>
   assert.match(studentSource, /<button type="button" aria-label="Enviar mensagem"/);
   assert.match(professionalSource, /<button type="button" aria-label="Enviar mensagem"/);
 });
+
+test("form actions declare submit semantics explicitly", async () => {
+  const sources = await Promise.all([
+    "src/mvp/MvpShell.jsx", "src/mvp/RegisterPage.jsx", "src/mvp/PasswordPages.jsx",
+    "src/mvp/InvitePage.jsx", "src/mvp/LoginPage.jsx", "src/mvp/InstitutionArea.jsx", "src/mvp/AdminArea.jsx",
+  ].map(file => readFile(resolve(root, file), "utf8")));
+  for (const source of sources) assert.match(source, /type="submit"/);
+});

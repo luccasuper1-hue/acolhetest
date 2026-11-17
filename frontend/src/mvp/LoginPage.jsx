@@ -54,7 +54,7 @@ export default function LoginPage() {
               data-testid="login-password-input" autoComplete="current-password" />
           </label>
           {error && <div className="mvp-error" data-testid="login-error">{error}</div>}
-          <button className="button primary full" disabled={busy} data-testid="login-submit-button">
+          <button type="submit" className="button primary full" disabled={busy} data-testid="login-submit-button">
             {busy ? "Entrando…" : "Entrar"} <ArrowRight size={16} />
           </button>
         </form>

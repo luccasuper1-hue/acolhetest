@@ -184,7 +184,7 @@ export default function AdminArea() {
           <label>Gestor (nome)<input autoComplete="off" value={form.admin_name} onChange={e => setForm({ ...form, admin_name: e.target.value })} data-testid="admin-inst-manager-input" /></label>
           <label>Gestor (e-mail)<input type="email" autoComplete="off" value={form.admin_email} onChange={e => setForm({ ...form, admin_email: e.target.value })} data-testid="admin-inst-manager-email-input" /></label>
           <label>Gestor (senha)<input type="password" autoComplete="new-password" minLength={8} value={form.admin_password} onChange={e => setForm({ ...form, admin_password: e.target.value })} data-testid="admin-inst-manager-password-input" /></label>
-          <button className="button primary" disabled={busyAction === "create-institution"} data-testid="admin-create-institution-button">{busyAction === "create-institution" ? "Criando…" : "Criar"} <Building2 size={15} /></button>
+          <button type="submit" className="button primary" disabled={busyAction === "create-institution"} data-testid="admin-create-institution-button">{busyAction === "create-institution" ? "Criando…" : "Criar"} <Building2 size={15} /></button>
         </form>
       </details>
 

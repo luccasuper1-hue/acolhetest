@@ -202,7 +202,7 @@ export default function InstitutionArea() {
       </div>
 
       {fallbackRequests.length > 0 && <MvpCard title="Pedidos que precisam de um próximo passo" subtitle="A instituição decide manualmente como apoiar; nada é redistribuído sem consentimento." testid="inst-fallback-card" className="institution-fallback-card">
-        {fallbackRequests.map(item => <div className="mvp-row" key={item.id} data-testid={`inst-fallback-${item.id}`}><div className="mvp-row-main"><strong>Pedido sem resposta no prazo</strong><span>Criado em {formatDate(item.created_at)} · {item.kind === "direct" ? "pedido direto" : "horário publicado"}</span><small className="mvp-next-step">Defina um contato, uma alternativa ou a fila de apoio.</small></div><div className="mvp-row-actions"><button className="button small quiet" disabled={fallbackBusy} onClick={() => reviewFallback(item.id, "contact_student")}>Contatar estudante</button><button className="button small secondary" disabled={fallbackBusy} onClick={() => reviewFallback(item.id, "offer_other_professional")}>Oferecer alternativa</button><button className="button small secondary" disabled={fallbackBusy} onClick={() => reviewFallback(item.id, "queue_support")}>Fila de apoio</button></div></div>)}
+        {fallbackRequests.map(item => <div className="mvp-row" key={item.id} data-testid={`inst-fallback-${item.id}`}><div className="mvp-row-main"><strong>Pedido sem resposta no prazo</strong><span>Criado em {formatDate(item.created_at)} · {item.kind === "direct" ? "pedido direto" : "horário publicado"}</span><small className="mvp-next-step">Defina um contato, uma alternativa ou a fila de apoio.</small></div><div className="mvp-row-actions"><button type="button" className="button small quiet" disabled={fallbackBusy} onClick={() => reviewFallback(item.id, "contact_student")}>Contatar estudante</button><button type="button" className="button small secondary" disabled={fallbackBusy} onClick={() => reviewFallback(item.id, "offer_other_professional")}>Oferecer alternativa</button><button type="button" className="button small secondary" disabled={fallbackBusy} onClick={() => reviewFallback(item.id, "queue_support")}>Fila de apoio</button></div></div>)}
       </MvpCard>}
 
       <div className="mvp-grid">
@@ -274,7 +274,7 @@ export default function InstitutionArea() {
           <label>Nome<input maxLength={160} autoComplete="organization" value={profile.name} onChange={e => setProfile({ ...profile, name: e.target.value })} data-testid="inst-name-input" /></label>
           <label>E-mail de contato<input type="email" maxLength={160} autoComplete="email" value={profile.contact_email} onChange={e => setProfile({ ...profile, contact_email: e.target.value })} data-testid="inst-email-input" /></label>
           <label>Observação de apoio<input maxLength={400} value={profile.support_note} onChange={e => setProfile({ ...profile, support_note: e.target.value })} data-testid="inst-note-input" /></label>
-          <button className="button secondary" disabled={profileBusy} aria-busy={profileBusy} data-testid="inst-save-button">{profileBusy ? "Salvando…" : "Salvar"}</button>
+          <button type="submit" className="button secondary" disabled={profileBusy} aria-busy={profileBusy} data-testid="inst-save-button">{profileBusy ? "Salvando…" : "Salvar"}</button>
         </form>
       </details>
     </MvpShell>

@@ -66,7 +66,7 @@ export default function RegisterPage() {
               </Link>
             )}
           </div>}
-          <button className="button primary full" disabled={busy || !consent} data-testid="register-submit-button">
+          <button type="submit" className="button primary full" disabled={busy || !consent} data-testid="register-submit-button">
             {busy ? "Criando…" : "Criar conta"} <ArrowRight size={16} />
           </button>
         </form>
