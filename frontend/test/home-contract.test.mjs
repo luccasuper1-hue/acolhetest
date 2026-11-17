@@ -531,6 +531,8 @@ test("route changes reset the page scroll position", async () => {
   assert.match(appSource, /main\.focus\(\{ preventScroll: true \}\)/);
   assert.match(appSource, /focusIsDocumentBody/);
   assert.match(appSource, /focusIsDetached = Boolean\(active && !active\.isConnected\)/);
+  assert.match(appSource, /focusIsEditing = Boolean\(active\?\.matches\?\./);
+  assert.match(appSource, /active\?\.tagName === "A" \|\| active\?\.tagName === "BUTTON"/);
   assert.match(appSource, /\}, \[location\.pathname, location\.search\]\);/);
 });
 

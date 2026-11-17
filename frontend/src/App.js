@@ -437,7 +437,8 @@ function AppRoutes() {
     const active = document.activeElement;
     const focusIsDocumentBody = !active || active === document.body || active === document.documentElement;
     const focusIsDetached = Boolean(active && !active.isConnected);
-    if (main && (focusIsDocumentBody || focusIsDetached)) {
+    const focusIsEditing = Boolean(active?.matches?.("input, textarea, select, [contenteditable='true']"));
+    if (main && !focusIsEditing && (focusIsDocumentBody || focusIsDetached || active?.tagName === "A" || active?.tagName === "BUTTON")) {
       main.tabIndex = -1;
       main.focus({ preventScroll: true });
     }
