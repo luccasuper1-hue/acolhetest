@@ -62,6 +62,8 @@
 .certificate-validation-details strong { color: var(--ink); font-size: 18px; }
 .certificate-validation-code { display: block; margin-top: 18px; color: var(--brand); font-size: 11px; }
 html[data-theme="dark"] .certificate-validation-page { background: var(--paper); }
+html[data-theme="dark"] .certificate-validation-kicker,
+html[data-theme="dark"] .certificate-validation-code { color: #c8b2f4; }
 @media (max-width: 640px) {
   .professional-certificate-ready,
   .professional-certificate-progress { align-items: flex-start; flex-direction: column; }
