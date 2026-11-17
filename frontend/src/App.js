@@ -100,7 +100,7 @@ function CornerLogo() {
       <Link to="/ajuda" onClick={close} data-testid="corner-quick-help"><span>Ajuda</span><ArrowRight size={15}/></Link>
       <Link className="corner-quick-urgent" to="/preciso-ajuda" onClick={close} data-testid="corner-quick-urgent"><span>Preciso de ajuda agora</span><ArrowRight size={15}/></Link>
     </div>}
-    <button ref={triggerRef} type="button" className="corner-logo" onClick={() => setOpen(value => !value)} aria-label={open ? "Fechar acesso rápido" : "Abrir acesso rápido"} aria-expanded={open} aria-controls="corner-quick-panel" aria-haspopup="dialog" data-testid="corner-brand-button"><span className="corner-logo-glow" aria-hidden="true"/><span className="corner-logo-float" aria-hidden="true"><span className="corner-logo-body"><span className="corner-logo-mark"><BrandMark size={30}/></span></span></span><span className="corner-logo-tooltip">Acesso rápido</span></button>
+    <button ref={triggerRef} type="button" className="corner-logo" onClick={() => setOpen(value => !value)} aria-label={open ? "Fechar acesso rápido" : "Abrir acesso rápido"} aria-expanded={open} aria-controls={open ? "corner-quick-panel" : undefined} aria-haspopup="dialog" data-testid="corner-brand-button"><span className="corner-logo-glow" aria-hidden="true"/><span className="corner-logo-float" aria-hidden="true"><span className="corner-logo-body"><span className="corner-logo-mark"><BrandMark size={30}/></span></span></span><span className="corner-logo-tooltip">Acesso rápido</span></button>
   </div>;
 }
 function Header() {
