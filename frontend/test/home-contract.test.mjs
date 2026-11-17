@@ -561,6 +561,14 @@ test("overlay panels restore focus to their launch controls", async () => {
   assert.match(shell, /ref=\{conversationTriggerRef\}/);
 });
 
+test("MVP overlays keep keyboard focus contained", async () => {
+  const shell = await readFile(resolve(root, "src/mvp/MvpShell.jsx"), "utf8");
+  assert.match(shell, /notificationRef\.current\?\.querySelector\("\.mvp-notification-panel"\)/);
+  assert.match(shell, /launcherRef\.current\?\.querySelector\("\.mvp-conversation-panel"\)/);
+  assert.match(shell, /event\.key !== "Tab"/);
+  assert.match(shell, /aria-modal="false"/);
+});
+
 test("interactive notification surfaces import their React hooks", async () => {
   const command = await readFile(resolve(root, "src/components/CommandPalette.jsx"), "utf8");
   const bell = await readFile(resolve(root, "src/components/NotificationBell.jsx"), "utf8");
