@@ -124,8 +124,12 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     if (request.method === "OPTIONS") return corsPreflight(request, env);
     const url = new URL(request.url);
-    if (url.pathname === "/api/health" && request.method === "GET") {
-      return withCors(Response.json({ ok: true, service: "acolhe", environment: env.APP_ENV || "production", checked_at: new Date().toISOString() }), allowedOrigin(request, env));
+    if (url.pathname === "/api/health" && ["GET", "HEAD"].includes(request.method)) {
+      const health = { ok: true, service: "acolhe", environment: env.APP_ENV || "production", checked_at: new Date().toISOString() };
+      const response = request.method === "HEAD"
+        ? new Response(null, { status: 200, headers: { "content-type": "application/json; charset=utf-8" } })
+        : Response.json(health);
+      return withCors(response, allowedOrigin(request, env));
     }
     if (!url.pathname.startsWith("/api")) return withAssetSecurity(await env.ASSETS.fetch(request), url.pathname);
     if (url.pathname === "/api/realtime" && request.headers.get("upgrade")?.toLowerCase() === "websocket") {
