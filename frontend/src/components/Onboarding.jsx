@@ -37,8 +37,10 @@ export const Onboarding = ({ onFinish, onExplore }) => {
   const [index, setIndex] = useState(0);
   const dialogRef = useRef(null);
   const returnFocusRef = useRef(typeof document !== "undefined" ? document.activeElement : null);
+  const onFinishRef = useRef(onFinish);
   const step = STEPS[index];
   const last = index === STEPS.length - 1;
+  useEffect(() => { onFinishRef.current = onFinish; }, [onFinish]);
   useEffect(() => () => returnFocusRef.current?.focus?.({ preventScroll: true }), []);
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -46,7 +48,7 @@ export const Onboarding = ({ onFinish, onExplore }) => {
     const first = dialog.querySelector("button:not([disabled])");
     first?.focus();
     const handleKeyDown = event => {
-      if (event.key === "Escape") { event.preventDefault(); onFinish(); return; }
+      if (event.key === "Escape") { event.preventDefault(); onFinishRef.current?.(); return; }
       if (event.key !== "Tab") return;
       const items = [...dialog.querySelectorAll("button:not([disabled])")];
       if (!items.length) return;
@@ -57,7 +59,7 @@ export const Onboarding = ({ onFinish, onExplore }) => {
     };
     dialog.addEventListener("keydown", handleKeyDown);
     return () => dialog.removeEventListener("keydown", handleKeyDown);
-  }, [index, onFinish]);
+  }, [index]);
   return createPortal(
     <div ref={dialogRef} className="onboarding" role="dialog" aria-modal="true" aria-labelledby="onboarding-title" aria-describedby="onboarding-description" data-testid="onboarding-overlay">
       <div className="onboarding-card" key={index}>
