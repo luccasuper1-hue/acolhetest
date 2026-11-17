@@ -22,7 +22,7 @@ Ambiente: `acolhetest.luccasuper1.workers.dev`
 - Propostas individuais não dependem mais de uma disponibilidade geral publicada.
 - A interface impede novo pedido enquanto o estudante possui atendimento ativo.
 
-## Melhorias encontradas
+## Histórico da auditoria e estado atual
 
 ### Histórico da auditoria inicial
 
@@ -65,17 +65,14 @@ Os quatro pontos acima pertencem à auditoria inicial e foram corrigidos no flux
 
 Não executei 100 mutações reais em produção (criar/cancelar/encerrar encontros), porque isso alteraria dados reais dos dois painéis abertos. As 100 repetições automatizadas cobriram o contrato frontend; os estados atuais foram inspecionados nos painéis reais e os caminhos de backend foram auditados no código.
 
-## Próxima ordem recomendada
+## Próximos acompanhamentos
 
-1. Corrigir link de sala para encontros diretos.
-2. Bloquear conclusão/ausência antes do horário.
-3. Ajustar mensagens de situação e título do estudante.
-4. Adicionar atualização imediata entre painéis.
+Os itens de código listados na auditoria inicial estão corrigidos no estado atual. O acompanhamento restante é operacional: executar os cenários ponta a ponta em staging com contas de teste e registrar evidências sem dados pessoais.
 
 ## Status desta rodada
 
-As nove melhorias foram implementadas e publicadas na versão `bcf13d6f-9ac8-4029-898f-62c44e43c439`.
+Esta auditoria inicial foi superada pelas revalidações posteriores. O estado publicado atual é o Worker `3ccc7118-9954-407f-b7ca-a4b5b0ed524d`, com 108 testes frontend aprovados.
 
 ## Revalidação posterior
 
-Em 17/11/2026, a suíte atual passou com 105 testes e o Worker foi publicado na versão `b7967cd7-fd6d-4c19-9954-670aa3c4dc45`. Esta revalidação também confirmou o bloqueio de rolagem compartilhado e idempotente nos overlays; os itens externos de staging continuam pendentes conforme a seção de limitações.
+Em 17/11/2026, a revalidação atual passou com 108 testes e o Worker foi publicado na versão `3ccc7118-9954-407f-b7ca-a4b5b0ed524d`. Ela também confirmou o bloqueio de rolagem compartilhado e idempotente nos overlays; os itens externos de staging continuam pendentes conforme a seção de limitações.
