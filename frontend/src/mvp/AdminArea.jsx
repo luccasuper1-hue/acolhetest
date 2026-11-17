@@ -229,7 +229,7 @@ export default function AdminArea() {
       </MvpCard>
 
       <div className="mvp-grid">
-        <MvpCard title="Instituições" subtitle="Arquivar remove da lista ativa sem apagar o histórico." testid="admin-institutions-card" className="admin-secondary-card">
+        <MvpCard title="Instituições" subtitle="Arquivar remove da lista ativa sem apagar o histórico." testid="admin-institutions-card" className="admin-secondary-card admin-institutions-secondary">
           {!institutions.length && <MvpEmpty>Nenhuma instituição ativa no momento.</MvpEmpty>}
           {institutions.map(i => (
             <div className="mvp-row" key={i.id} data-testid={`admin-institution-${i.id}`}>
@@ -256,7 +256,7 @@ export default function AdminArea() {
           ))}
         </details>}
 
-        <MvpCard title="Pedidos e conversas (agregado)" subtitle="Acompanhe pedidos, horários e status sem motivo detalhado nem conteúdo de conversa." testid="admin-requests-card" className="admin-secondary-card">
+        <MvpCard title="Pedidos e conversas (agregado)" subtitle="Acompanhe pedidos, horários e status sem motivo detalhado nem conteúdo de conversa." testid="admin-requests-card" className="admin-secondary-card admin-requests-secondary">
           {!requests.length && <MvpEmpty>Sem solicitações ainda. Os primeiros pedidos aparecerão aqui de forma agregada.</MvpEmpty>}
           {requests.slice(0, 20).map(r => (
             <div className="mvp-row" key={r.id} data-testid={`admin-request-${r.id}`}>

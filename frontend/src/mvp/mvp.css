@@ -846,6 +846,10 @@ html[data-theme="dark"] .availability-interest-inline span { color: var(--muted)
   .mvp-shell[data-testid="admin-area"] .mvp-workspace-content > .admin-leads-card { order: 5; }
   .mvp-shell[data-testid="admin-area"] .mvp-workspace-content > .mvp-grid { order: 6; }
   .mvp-shell[data-testid="admin-area"] .mvp-workspace-content > .admin-users-card { order: 7; }
+  .mvp-shell[data-testid="admin-area"] .mvp-workspace-content > .mvp-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+  .mvp-shell[data-testid="admin-area"] .mvp-workspace-content > .mvp-grid > .admin-institutions-secondary { grid-column: 1; grid-row: 1; }
+  .mvp-shell[data-testid="admin-area"] .mvp-workspace-content > .mvp-grid > .admin-requests-secondary { grid-column: 2; grid-row: 1; }
+  .mvp-shell[data-testid="admin-area"] .mvp-workspace-content > .mvp-grid > .admin-archived-details { grid-column: 1 / -1; grid-row: 2; }
 }
 
 /* Conteúdo real: a mesma gramática do estado de carregamento, com superfícies
