@@ -333,7 +333,7 @@ export const MvpShell = ({ title, kicker, lead, flow = [], flowStep = 0, childre
         <PasswordChangeCard collapsed={collapsePassword} />
         {(user?.role === "student" || user?.role === "professional") && <ConversationLauncher conversations={conversations} unreadCount={unreadConversationCount} onOpenConversation={openConversation} renderConversation={renderConversation} />}
         <p className="mvp-foot-note">
-          <ShieldCheck size={15} /> MVP do piloto Acolhe · a instituição nunca acessa o conteúdo das conversas.
+          <ShieldCheck size={15} /> Piloto Acolhe · a instituição nunca acessa o conteúdo das conversas.
           Revisão jurídica/LGPD necessária antes de uso com dados reais.
         </p>
       </main>

@@ -320,13 +320,13 @@ export const MvpVsFuture = () => (
     <div className="section-kicker">Hoje e depois</div>
     <h2>O que funciona <em>hoje</em> e o que é <em>visão futura.</em></h2>
     <p className="section-intro">
-      Separamos as duas coisas de propósito: o site mostra o que o Acolhe está construindo, o MVP mostra o que
+      Separamos as duas coisas de propósito: o site mostra o que o Acolhe está construindo, enquanto o piloto mostra o que
       já é possível testar em um piloto pequeno.
     </p>
     <div className="how-audiences">
       <article className="inst-card how-column" data-testid="mvp-today-column">
         <header>
-          <span className="inst-tag">MVP · em uso no piloto</span>
+          <span className="inst-tag">Piloto · em uso</span>
           <h3>Como funciona hoje</h3>
         </header>
         <ol className="how-steps">{mvpToday.map(s => <li key={s}>{s}</li>)}</ol>
