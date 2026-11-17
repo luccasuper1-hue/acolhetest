@@ -7,6 +7,7 @@ Este documento é um runbook executável. Ele não substitui a configuração do
 - Healthcheck: `GET /api/health`.
 - Homecheck: `GET /` deve retornar HTTP 200.
 - Logs de erro do Worker ficam no Cloudflare Workers Logs; procure por `Unhandled API error`, `Realtime upgrade failed` e `Mongo`.
+- Assets públicos são servidos com HSTS, `X-Frame-Options: DENY`, `Referrer-Policy` restritiva, `Permissions-Policy` mínima e CSP. Se esses cabeçalhos desaparecerem, tratar como regressão de segurança antes de publicar.
 - `.github/workflows/uptime.yml` verifica home e healthcheck a cada 15 minutos. Configure a variável de repositório `ACOLHE_BASE_URL` antes de apontar o monitoramento para outro ambiente; sem ela, o workflow usa o domínio de teste atual. Configure notificações do repositório para receber falhas.
 - Para WebSocket, validar abertura de `/api/realtime?session_id=...` com uma conta de piloto e confirmar que o fallback não perde mensagens.
 
