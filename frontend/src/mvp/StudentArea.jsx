@@ -293,7 +293,7 @@ export default function StudentArea() {
                 </div>
                 <div className="mvp-feedback-scale-labels" aria-hidden="true"><span>Muito ruim</span><span>Excelente</span></div>
                 <div className="mvp-form" style={{ marginTop: 10 }}>
-                  <textarea maxLength={400} placeholder="Quer comentar algo? (opcional)" value={feedback[r.session.id]?.comment || ""}
+                  <textarea aria-label="Comentário opcional sobre a experiência" maxLength={400} placeholder="Quer comentar algo? (opcional)" value={feedback[r.session.id]?.comment || ""}
                     onChange={e => setFeedback(f => ({ ...f, [r.session.id]: { ...f[r.session.id], comment: e.target.value } }))}
                     data-testid={`feedback-comment-${r.session.id}`} />
                   <small className="mvp-feedback-counter">{(feedback[r.session.id]?.comment || "").length}/400</small>
