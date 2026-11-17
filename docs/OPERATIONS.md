@@ -27,6 +27,13 @@ Para gerar um pacote compartilhável, use `ops/package-release.ps1 -OutputPath <
 4. Validar login, vínculo, pedido, confirmação, chat e certificado.
 5. Só então planejar a troca de conexão e comunicar a instituição.
 
+## Exclusão de conta
+
+- A exclusão pelo titular e a exclusão administrativa usam uma única transação do MongoDB Atlas. Dados operacionais, conta e evento de auditoria são confirmados juntos; se qualquer etapa falhar, a transação é revertida e a solicitação pode ser repetida.
+- Um erro HTTP na exclusão exige verificar os logs do Worker e tentar novamente. Não informe ao usuário que a conta foi removida antes de receber a resposta de sucesso.
+- Certificados emitidos permanecem disponíveis para validação; eventos anteriores são desassociados da conta. Backups seguem seu próprio ciclo de retenção.
+- Antes de ampliar o volume, confirme que o Atlas usado aceita transações e execute o teste de falha parcial (`npm test` em `cloudflare-worker`). Monitore falhas de transação e o tempo da exclusão nos logs; uma operação que exceda o limite de transação precisa de uma rotina de limpeza retomável.
+
 ## Custos e limites
 
 Monitorar mensalmente requests do Worker, Durable Object, MongoDB, armazenamento/egress, e-mails e artefatos de backup. Configurar alertas de orçamento no Cloudflare/MongoDB antes de ampliar o volume.

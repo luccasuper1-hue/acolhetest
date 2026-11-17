@@ -141,6 +141,62 @@ export class MongoGateway extends DurableObject<Env> {
     return result.deletedCount;
   }
 
+  /** Commit account and dependent-record removal as one Atlas transaction. */
+  async deleteAccount(userId: string, initiatedBy: { kind: "self" | "admin"; adminId?: string }): Promise<{ id: string; role: string; institution_id?: string } | null> {
+    const database = await this.db();
+    const session = this.client.startSession();
+    try {
+      return await session.withTransaction(async () => {
+        const users = database.collection<RecordDoc>("users");
+        const user = await users.findOne({ id: userId }, { session });
+        if (!user || user.role === "admin") return null;
+        const profileCollection = user.role === "student" ? "students" : user.role === "professional" ? "professionals" : null;
+        const profile = profileCollection
+          ? await database.collection<RecordDoc>(profileCollection).findOne({ user_id: userId }, { session })
+          : null;
+        if (profile) {
+          const profileField = user.role === "student" ? "student_id" : "professional_id";
+          const sessionRows = await database.collection<RecordDoc>("sessions")
+            .find({ [profileField]: profile.id }, { projection: { id: 1 }, session }).toArray();
+          const sessionIds = sessionRows.map(row => row.id);
+          if (sessionIds.length) {
+            const filter = { session_id: { $in: sessionIds } };
+            await database.collection("referrals").deleteMany(filter, { session });
+            await database.collection("feedback").deleteMany(filter, { session });
+            await database.collection("session_messages").deleteMany(filter, { session });
+          }
+          if (user.role === "professional") {
+            await database.collection("availability").deleteMany({ professional_id: profile.id }, { session });
+          }
+          await database.collection("availability_interests").deleteMany({ [profileField]: profile.id }, { session });
+          await database.collection("appointment_requests").deleteMany({ [profileField]: profile.id }, { session });
+          await database.collection("requests").deleteMany({ [profileField]: profile.id }, { session });
+          await database.collection("sessions").deleteMany({ [profileField]: profile.id }, { session });
+          await database.collection(profileCollection!).deleteOne({ id: profile.id }, { session });
+        }
+        await database.collection("notifications").deleteMany({ recipient_user_id: userId }, { session });
+        await database.collection("password_reset_tokens").deleteMany({ user_id: userId }, { session });
+        if (user.email) await database.collection("login_attempts").deleteMany({ identifier: user.email }, { session });
+        // Operational audit events remain, but can no longer identify the deleted account.
+        const events = database.collection("events");
+        await events.updateMany({ user_id: userId }, { $set: { user_id: null } }, { session });
+        await users.deleteOne({ id: userId }, { session });
+        await events.insertOne({
+          id: crypto.randomUUID(),
+          type: initiatedBy.kind === "self" ? "user_deleted_self" : "user_deleted",
+          user_id: initiatedBy.kind === "admin" ? initiatedBy.adminId : "system",
+          role: initiatedBy.kind === "self" ? user.role : "admin",
+          institution_id: user.institution_id,
+          meta: { role: user.role, ...(initiatedBy.kind === "admin" ? { target: userId } : {}) },
+          created_at: new Date().toISOString(),
+        }, { session });
+        return { id: String(user.id), role: String(user.role), institution_id: user.institution_id ? String(user.institution_id) : undefined };
+      }, { readConcern: { level: "snapshot" }, writeConcern: { w: "majority" } });
+    } finally {
+      await session.endSession();
+    }
+  }
+
   async count(collection: string, filter: Filter<RecordDoc> = {}): Promise<number> {
     return (await this.collection(collection)).countDocuments(filter);
   }
@@ -156,7 +212,7 @@ export class MongoGateway extends DurableObject<Env> {
   }
 }
 
-export type Mongo = Pick<MongoGateway, "findOne" | "findMany" | "insert" | "update" | "updateMany" | "remove" | "count" | "distinct" | "findOneAndUpdate">;
+export type Mongo = Pick<MongoGateway, "findOne" | "findMany" | "insert" | "update" | "updateMany" | "remove" | "deleteAccount" | "count" | "distinct" | "findOneAndUpdate">;
 
 export function gateway(env: Env): Mongo {
   return env.MONGO_GATEWAY.get(env.MONGO_GATEWAY.idFromName("acolhe-mongodb")) as unknown as Mongo;

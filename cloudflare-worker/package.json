@@ -7,6 +7,7 @@
     "dev": "wrangler dev",
     "build:frontend": "npm --prefix ../frontend ci && npm --prefix ../frontend run build",
     "check": "tsc --noEmit",
+    "test": "node --test",
     "indexes": "node scripts/create-indexes.mjs",
     "verify": "npm run check && wrangler deploy --dry-run",
     "deploy": "npm run build:frontend && wrangler deploy"

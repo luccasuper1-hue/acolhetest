@@ -851,5 +851,9 @@ test("account privacy controls are shared by user panels but excluded from admin
   assert.match(shell, /api\.delete\("\/auth\/account"/);
   assert.match(routes, /pathname === "\/api\/auth\/account" && request\.method === "DELETE"/);
   assert.match(routes, /user\.role === "admin"/);
-  assert.match(routes, /deleteSelfAccount\(store, user\)/);
+  assert.match(routes, /store\.deleteAccount\(user\.id, \{ kind: "self" \}\)/);
+  assert.match(routes, /store\.deleteAccount\(target\.id, \{ kind: "admin", adminId: admin\.id \}\)/);
+  assert.match(workerDb, /session\.withTransaction\(async \(\) =>/);
+  assert.match(workerDb, /deleteMany\(filter, \{ session \}\)/);
+  assert.match(workerDb, /session\.endSession\(\)/);
 });

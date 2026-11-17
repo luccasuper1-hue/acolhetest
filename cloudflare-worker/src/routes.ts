@@ -12,57 +12,6 @@ const MAX_LOGIN_ATTEMPTS = 5;
 const LOCK_MINUTES = 15;
 const RESPONSE_WINDOW_MS = 48 * 60 * 60 * 1000;
 
-async function deleteSelfAccount(store: ReturnType<typeof db>, user: Doc) {
-  // Delete the account's operational records first. This mirrors the admin
-  // deletion path and also removes private chat/notification data that is not
-  // part of the institution's aggregate reporting.
-  const profileRecord = user.role === "student"
-    ? await store.findOne("students", { user_id: user.id })
-    : user.role === "professional"
-      ? await store.findOne("professionals", { user_id: user.id })
-      : null;
-  const profileId = profileRecord?.id;
-  const sessionFilter = user.role === "student" && profileId
-    ? { student_id: profileId }
-    : user.role === "professional" && profileId
-      ? { professional_id: profileId }
-      : null;
-  const sessions = sessionFilter ? await store.findMany("sessions", sessionFilter, { projection: { id: 1 } }) : [];
-  for (const session of sessions) {
-    await Promise.all([
-      store.remove("referrals", { session_id: session.id }, true),
-      store.remove("feedback", { session_id: session.id }, true),
-      store.remove("session_messages", { session_id: session.id }, true),
-    ]);
-  }
-  if (user.role === "professional" && profileId) {
-    await Promise.all([
-      store.remove("availability", { professional_id: profileId }, true),
-      store.remove("availability_interests", { professional_id: profileId }, true),
-      store.remove("appointment_requests", { professional_id: profileId }, true),
-      store.remove("requests", { professional_id: profileId }, true),
-      store.remove("sessions", { professional_id: profileId }, true),
-      store.remove("professionals", { id: profileId }, true),
-    ]);
-  }
-  if (user.role === "student" && profileId) {
-    await Promise.all([
-      store.remove("availability_interests", { student_id: profileId }, true),
-      store.remove("appointment_requests", { student_id: profileId }, true),
-      store.remove("requests", { student_id: profileId }, true),
-      store.remove("sessions", { student_id: profileId }, true),
-      store.remove("students", { id: profileId }, true),
-    ]);
-  }
-  // Institution managers keep the institution's aggregate/operational records
-  // intact; only their personal access account is removed.
-  await Promise.all([
-    store.remove("notifications", { recipient_user_id: user.id }, true),
-    store.remove("password_reset_tokens", { user_id: user.id }, true),
-    store.remove("users", { id: user.id }, true),
-  ]);
-}
-
 const pathParameter = (pathname: string, prefix: string, suffix = "") => pathname.startsWith(prefix) && pathname.endsWith(suffix) ? decodeURIComponent(pathname.slice(prefix.length, suffix ? -suffix.length : undefined)) : undefined;
 const isoAfter = (hoursOrDays: number, kind: "hours" | "days") => new Date(Date.now() + hoursOrDays * (kind === "hours" ? 3_600_000 : 86_400_000)).toISOString();
 const minutesFromNow = (minutes: number) => new Date(Date.now() + minutes * 60_000).toISOString();
@@ -463,9 +412,8 @@ async function authRoutes(request: Request, env: Env, pathname: string): Promise
     if (!validPassword(payload?.current_password)) return fail("Informe sua senha atual", 422);
     const stored = await store.findOne("users", { id: user.id });
     if (!stored || !(await verifyPassword(String(payload?.current_password), String(stored.password_hash)))) return fail("Senha atual incorreta", 401);
-    const institutionId = user.institution_id;
-    await deleteSelfAccount(store, user);
-    await logEvent(env, "user_deleted_self", { ...user, id: "system" }, institutionId, { role: user.role });
+    const deleted = await store.deleteAccount(user.id, { kind: "self" });
+    if (!deleted) return fail("Conta não encontrada", 404);
     return json({ ok: true, deleted: true }, 200, clearCookie());
   }
   if (pathname === "/api/auth/change-password" && request.method === "POST") {
@@ -1200,28 +1148,9 @@ async function adminRoutes(request: Request, env: Env, pathname: string): Promis
     const target = await store.findOne("users", { id: deleteUserId });
     if (!target) return fail("Usuário não encontrado", 404);
     if (target.role === "admin") return fail("Não é possível excluir um administrador", 403);
-    const professional = target.role === "professional" ? await store.findOne("professionals", { user_id: target.id }) : null;
-    const student = target.role === "student" ? await store.findOne("students", { user_id: target.id }) : null;
-    const sessionFilter = professional ? { professional_id: professional.id } : student ? { student_id: student.id } : null;
-    const sessions = sessionFilter ? await store.findMany("sessions", sessionFilter, { projection: { id: 1 } }) : [];
-    for (const session of sessions) {
-      await store.remove("referrals", { session_id: session.id }, true);
-      await store.remove("feedback", { session_id: session.id }, true);
-    }
-    if (professional) {
-      await store.remove("availability", { professional_id: professional.id }, true);
-      await store.remove("requests", { professional_id: professional.id }, true);
-      await store.remove("sessions", { professional_id: professional.id }, true);
-      await store.remove("professionals", { id: professional.id }, true);
-    }
-    if (student) {
-      await store.remove("requests", { student_id: student.id }, true);
-      await store.remove("sessions", { student_id: student.id }, true);
-      await store.remove("students", { id: student.id }, true);
-    }
-    await store.remove("users", { id: target.id }, true);
-    await logEvent(env, "user_deleted", admin, target.institution_id, { target: target.id, role: target.role });
-    return json({ id: target.id, deleted: true });
+    const deleted = await store.deleteAccount(target.id, { kind: "admin", adminId: admin.id });
+    if (!deleted) return fail("Usuário não encontrado", 404);
+    return json({ id: deleted.id, deleted: true });
   }
   const targetId = pathParameter(pathname, "/api/admin/users/", "/toggle-active");
   if (targetId && request.method === "POST") { const target = await store.findOne("users", { id: targetId }); if (!target) return fail("Usuário não encontrado", 404); if (target.role === "admin") return fail("Não é possível desativar um administrador", 403); const active = target.active === false; await store.update("users", { id: targetId }, { $set: { active } }); if (target.email) await sendNotificationEmail(env, String(target.email), active ? "Acesso reativado" : "Acesso desativado", active ? "Seu acesso ao Acolhe foi reativado." : "Seu acesso ao Acolhe foi desativado pela administração."); if (target.institution_id) await notifyInstitutionManagers(env, store, String(target.institution_id), "user_access_toggled", active ? "Acesso reativado" : "Acesso desativado", `O acesso de ${target.name} foi ${active ? "reativado" : "desativado"}.`, { target_id: targetId }); await refreshPanels(env, store, String(target.institution_id || ""), "admin"); await logEvent(env, "user_access_toggled", admin, target.institution_id, { target: targetId, active }); return json({ id: targetId, active }); }
