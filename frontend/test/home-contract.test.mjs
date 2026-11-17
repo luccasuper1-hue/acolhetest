@@ -500,4 +500,8 @@ test("institution impact reports support a baseline and safe export", () => {
   assert.match(routes, /population/);
   assert.match(frontendInstitution, /Variação observada/);
   assert.match(frontendInstitution, /sem identificadores/);
+  assert.match(frontendInstitution, /baselineBusy/);
+  assert.match(frontendInstitution, /População observada/);
+  assert.match(frontendInstitution, /window\.setTimeout\(\(\) => URL\.revokeObjectURL/);
+  assert.match(shell, /aria-live=\{ariaLive\}/);
 });

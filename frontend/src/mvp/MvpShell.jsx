@@ -392,8 +392,8 @@ function PasswordChangeCard({ collapsed = false }) {
   return <MvpCard title="Segurança da conta" subtitle="Troque a senha padrão ou atual a qualquer momento." testid="password-change-card">{form}</MvpCard>;
 }
 
-export const MvpCard = ({ title, subtitle, action, children, testid, className = "", id }) => (
-  <section id={id} className={`mvp-card ${className}`.trim()} data-testid={testid}>
+export const MvpCard = ({ title, subtitle, action, children, testid, className = "", id, ariaLive }) => (
+  <section id={id} className={`mvp-card ${className}`.trim()} data-testid={testid} aria-live={ariaLive}>
     <div className="mvp-card-head">
       <div><h2>{title}</h2>{subtitle && <p>{subtitle}</p>}</div>
       {action}

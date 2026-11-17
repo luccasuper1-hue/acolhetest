@@ -19,6 +19,7 @@ export default function InstitutionArea() {
   const [loadError, setLoadError] = useState("");
   const [profileBusy, setProfileBusy] = useState(false);
   const [fallbackBusy, setFallbackBusy] = useState(null);
+  const [baselineBusy, setBaselineBusy] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -82,15 +83,18 @@ export default function InstitutionArea() {
     finally { setFallbackBusy(null); }
   };
   const captureBaseline = async () => {
+    if (baselineBusy) return;
+    setBaselineBusy(true);
     try { const { data } = await api.post("/institutions/me/impact/baseline", {}); setImpactReport(data); toast.success("Linha de base registrada."); await load(); }
     catch (err) { toast.error(apiError(err)); }
+    finally { setBaselineBusy(false); }
   };
   const exportImpactReport = () => {
     if (!impactReport?.metrics?.length) return;
     const rows = [["Relatório de impacto Acolhe"], ["Período", `${impactReport.period_start || "—"} a ${impactReport.period_end || "—"}`], ["Aviso", "Dados agregados; sem identificadores; variação observada, sem prova de causalidade."], [], ["Indicador", "Linha de base", "Atual", "Variação observada"], ...impactReport.metrics.map(item => [item.label, item.baseline ?? "—", item.current ?? "—", item.delta == null ? "—" : item.delta])];
     const csv = rows.map(row => row.map(value => `"${String(value).replaceAll('"', '""')}"`).join(",")).join("\n");
     const url = URL.createObjectURL(new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" }));
-    const link = document.createElement("a"); link.href = url; link.download = "relatorio-impacto-acolhe.csv"; link.click(); URL.revokeObjectURL(url);
+    const link = document.createElement("a"); link.href = url; link.download = "relatorio-impacto-acolhe.csv"; link.click(); window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
   const linkedProfessionals = metrics?.professionals_linked || 0;
@@ -176,12 +180,12 @@ export default function InstitutionArea() {
         </div>
       </details>
 
-      <MvpCard title="Relatório do piloto" subtitle="Leitura operacional, sem avaliação clínica ou ranking de profissionais." testid="inst-impact-report-card">
+      <MvpCard title="Relatório do piloto" subtitle="Leitura operacional, sem avaliação clínica ou ranking de profissionais." testid="inst-impact-report-card" aria-live="polite">
         <div className="mvp-row"><div className="mvp-row-main"><strong>Período atual</strong><span>{metrics?.metrics_period_label || "Desde o início do piloto"}</span></div><span className="mvp-tag">{metrics?.requests_total || 0} pedidos</span></div>
         <div className="mvp-row"><div className="mvp-row-main"><strong>Linha de base</strong><span>{metrics?.baseline_available ? "Disponível para comparação" : "Ainda não registrada"}</span></div><span className="mvp-tag wait">{metrics?.baseline_available ? "PRONTA" : "PENDENTE"}</span></div>
         <p className="mvp-note">As métricas de velocidade e comparecimento só aparecem com pelo menos {metrics?.minimum_sample_size ?? 5} casos. O período e a população são registrados em cada comparação. As 48 horas são uma meta operacional do piloto, não uma garantia clínica, de disponibilidade ou de resultado terapêutico.</p>
         <div className="impact-report-actions">
-            {!impactReport?.baseline_available ? <><p className="mvp-note">Registre uma linha de base antes de iniciar o uso ampliado para medir a evolução do piloto.</p><button className="button primary small" type="button" onClick={captureBaseline} data-testid="inst-capture-baseline">Registrar linha de base</button></> : <><div className="mvp-row"><div className="mvp-row-main"><strong>Variação observada</strong><span>{impactReport.period_start} a {impactReport.period_end} · base registrada em {formatDate(impactReport.captured_at)}</span></div><span className="mvp-tag ok">ATIVA</span></div><p className="mvp-note">{impactReport.interpretation}</p><div className="impact-report-table">{impactReport.metrics.map(item => <div className="mvp-row" key={item.key}><div className="mvp-row-main"><strong>{item.label}</strong><span>Antes: {item.baseline ?? "—"} · Agora: {item.current ?? "—"}</span></div><span className={`mvp-tag ${item.delta == null ? "wait" : item.delta > 0 ? "ok" : item.delta < 0 ? "off" : ""}`}>{item.delta == null ? "—" : `${item.delta > 0 ? "+" : ""}${item.delta}`}</span></div>)}</div><button className="button secondary small" type="button" onClick={exportImpactReport} data-testid="inst-export-impact">Exportar CSV agregado</button></>}
+            {!impactReport?.baseline_available ? <><p className="mvp-note">Registre uma linha de base antes de iniciar o uso ampliado para medir a evolução do piloto.</p><button className="button primary small" type="button" onClick={captureBaseline} disabled={baselineBusy} aria-busy={baselineBusy} data-testid="inst-capture-baseline">{baselineBusy ? "Registrando…" : "Registrar linha de base"}</button></> : <><div className="mvp-row"><div className="mvp-row-main"><strong>Variação observada</strong><span>{impactReport.period_start} a {impactReport.period_end} · base registrada em {formatDate(impactReport.captured_at)}</span></div><span className="mvp-tag ok">ATIVA</span></div><p className="mvp-note">{impactReport.interpretation}</p><div className="mvp-row"><div className="mvp-row-main"><strong>População observada</strong><span>Antes: {impactReport.population?.baseline?.requests ?? "—"} pedidos · Agora: {impactReport.population?.current?.requests ?? "—"} pedidos</span></div><span className="mvp-tag">Agregado</span></div><div className="impact-report-table">{impactReport.metrics.map(item => <div className="mvp-row" key={item.key}><div className="mvp-row-main"><strong>{item.label}</strong><span>Antes: {item.baseline ?? "—"} · Agora: {item.current ?? "—"}</span></div><span className={`mvp-tag ${item.delta == null ? "wait" : item.delta > 0 ? "ok" : item.delta < 0 ? "off" : ""}`}>{item.delta == null ? "—" : `${item.delta > 0 ? "+" : ""}${item.delta}`}</span></div>)}</div><button className="button secondary small" type="button" onClick={exportImpactReport} aria-label="Exportar relatório de impacto agregado em CSV" data-testid="inst-export-impact">Exportar CSV agregado</button></>}
         </div>
       </MvpCard>
 
