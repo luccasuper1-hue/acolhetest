@@ -60,7 +60,7 @@ export const InstitutionDashboardPanels = () => {
             return (
               <article className="inst-card dash-kpi" key={kpi.label} data-testid={`dash-kpi-${kpi.icon}`}>
                 <div className="dash-kpi-top">
-                  <span className="demo-label">DEMO</span>
+                  <span className="demo-label">REFERÊNCIA</span>
                   <Cmp size={17}/>
                 </div>
                 <strong>{kpi.value}</strong>
