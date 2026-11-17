@@ -51,6 +51,12 @@ export const MvpShell = ({ title, kicker, lead, flow = [], flowStep = 0, childre
   useEffect(() => { notificationsOpenRef.current = notificationsOpen; }, [notificationsOpen]);
   useEffect(() => { if (notificationsOpen) notificationCloseRef.current?.focus(); }, [notificationsOpen]);
   useEffect(() => {
+    if (!notificationsOpen || typeof document === "undefined") return undefined;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = previousOverflow; };
+  }, [notificationsOpen]);
+  useEffect(() => {
     if (!notificationsOpen) return undefined;
     const panel = notificationRef.current?.querySelector(".mvp-notification-panel");
     if (!panel) return undefined;

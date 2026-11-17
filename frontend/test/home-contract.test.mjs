@@ -570,6 +570,8 @@ test("MVP overlays keep keyboard focus contained", async () => {
   assert.match(shell, /launcherRef\.current\?\.querySelector\("\.mvp-conversation-panel"\)/);
   assert.match(shell, /event\.key !== "Tab"/);
   assert.match(shell, /aria-modal="false"/);
+  assert.match(shell, /document\.body\.style\.overflow = "hidden"/);
+  assert.match(shell, /document\.body\.style\.overflow = previousOverflow/);
 });
 
 test("command palette restores focus after closing", async () => {
