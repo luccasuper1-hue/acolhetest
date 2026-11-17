@@ -779,9 +779,26 @@ html[data-theme="dark"] .availability-interest-inline span { color: var(--muted)
 }
 .mvp-shell[data-testid="professional-area"] .mvp-workspace-content > .professional-requests-card { order: 1; }
 .mvp-shell[data-testid="professional-area"] .mvp-workspace-content > .professional-sessions-card { order: 2; }
-.mvp-shell[data-testid="professional-area"] .mvp-workspace-content > .professional-completed-card { order: 3; }
-.mvp-shell[data-testid="professional-area"] .mvp-workspace-content > .compact-empty-card { order: 4; }
-.mvp-shell[data-testid="professional-area"] .mvp-workspace-content > .availability-card { order: 5; }
+.mvp-shell[data-testid="professional-area"] .mvp-workspace-content > .professional-certificate-card { order: 3; }
+.mvp-shell[data-testid="professional-area"] .mvp-workspace-content > .professional-completed-card { order: 4; }
+.mvp-shell[data-testid="professional-area"] .mvp-workspace-content > .compact-empty-card { order: 5; }
+.mvp-shell[data-testid="professional-area"] .mvp-workspace-content > .availability-card { order: 6; }
+
+@media (min-width: 1050px) {
+  .mvp-shell[data-testid="professional-area"] .mvp-main { padding-top: 34px; }
+  .mvp-shell[data-testid="professional-area"] .mvp-head { margin-bottom: 20px; }
+  .mvp-shell[data-testid="professional-area"] .mvp-workspace-content { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 0.38fr); align-items: start; gap: 18px 20px; }
+  .mvp-shell[data-testid="professional-area"] .mvp-workspace-content > .professional-requests-card,
+  .mvp-shell[data-testid="professional-area"] .mvp-workspace-content > .professional-sessions-card { grid-column: 1 / -1; }
+  .mvp-shell[data-testid="professional-area"] .mvp-workspace-content > .professional-certificate-card { grid-column: 2; padding: 20px 22px !important; }
+  .mvp-shell[data-testid="professional-area"] .mvp-workspace-content > .professional-completed-card { grid-column: 1; }
+  .mvp-shell[data-testid="professional-area"] .mvp-workspace-content > .compact-empty-card,
+  .mvp-shell[data-testid="professional-area"] .mvp-workspace-content > .availability-card { grid-column: 1 / -1; }
+  .professional-certificate-card .mvp-card-head { margin-bottom: 12px; }
+  .professional-certificate-ready, .professional-certificate-progress { align-items: flex-start; flex-direction: column; gap: 12px; }
+  .professional-certificate-ready .button, .professional-certificate-progress .button { width: 100%; justify-content: center; }
+  .professional-certificate-actions { justify-content: flex-start; }
+}
 
 /* Conteúdo real: a mesma gramática do estado de carregamento, com superfícies
    arejadas, lavanda quase branca e blocos fáceis de escanear. */
