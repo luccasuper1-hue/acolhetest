@@ -12,7 +12,7 @@
 .mvp-notification-badge { position: absolute; top: -3px; right: -3px; min-width: 18px; height: 18px; padding: 0 4px; display: grid; place-items: center; border: 2px solid var(--surface, #fff); border-radius: 999px; background: var(--brand, #7254ad); color: #fff; font-size: 10px; font-weight: 800; line-height: 1; }
 @keyframes mvpNotificationPulse { 0%, 100% { transform: scale(1); } 45% { transform: scale(1.1); } }
 .mvp-notification-button.has-unread .mvp-notification-badge { animation: mvpNotificationPulse .8s ease both; }
-.mvp-notification-panel { position: absolute; top: calc(100% + 10px); right: 0; z-index: 50; width: min(360px, calc(100vw - 32px)); max-height: min(70vh, 520px); overflow-y: auto; overscroll-behavior: contain; display: grid; gap: 8px; padding: 14px; border: 1px solid var(--line, #e7e1ee); border-radius: 16px; background: color-mix(in srgb, var(--surface, #fff) 96%, transparent); box-shadow: 0 12px 26px color-mix(in srgb, #130b20 9%, transparent); }
+.mvp-notification-panel { position: absolute; top: calc(100% + 10px); right: 0; z-index: 50; width: min(360px, calc(100vw - 32px)); max-height: min(70dvh, 520px); overflow-y: auto; overscroll-behavior: contain; display: grid; gap: 8px; padding: 14px; border: 1px solid var(--line, #e7e1ee); border-radius: 16px; background: color-mix(in srgb, var(--surface, #fff) 96%, transparent); box-shadow: 0 12px 26px color-mix(in srgb, #130b20 9%, transparent); }
 .mvp-notification-panel > strong { font-size: 13px; }
 .mvp-notification-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .mvp-notification-close { display: inline-grid; place-items: center; width: 40px; height: 40px; flex: 0 0 40px; border: 1px solid transparent; border-radius: 50%; background: transparent; color: var(--muted, #756b83); cursor: pointer; transition: border-color .18s ease, background-color .18s ease, color .18s ease; }
@@ -1176,9 +1176,10 @@ html[data-theme="dark"] .mvp-shell[data-testid="admin-area"] .mvp-empty { backgr
 .mvp-conversation-window {
   display: flex;
   flex-direction: column;
-  height: min(576px, calc(100vh - 112px));
+  height: min(576px, calc(100dvh - 112px));
   min-height: 0;
   max-height: calc(100dvh - 24px - env(safe-area-inset-bottom));
+  overscroll-behavior: contain;
 }
 .mvp-conversation-panel:has(.mvp-conversation-window) {
   width: min(360px, calc(100vw - 28px));
@@ -1194,7 +1195,8 @@ html[data-theme="dark"] .mvp-shell[data-testid="admin-area"] .mvp-empty { backgr
   overflow-y: auto;
 }
 @media (max-width: 640px) {
-  .mvp-conversation-window { height: min(470px, calc(100dvh - 132px)); }
+  body:has(.mvp-conversation-window) { overflow: hidden; }
+  .mvp-conversation-window { height: min(470px, calc(100dvh - 132px - env(safe-area-inset-top))); }
   .mvp-conversation-panel:has(.mvp-conversation-window) { width: min(360px, calc(100vw - 20px)); max-height: calc(100dvh - 24px - env(safe-area-inset-bottom)); }
   .mvp-conversation-panel-head { min-height: 62px; padding-block: 11px; }
   .mvp-conversation-window .mvp-floating-chat { padding: 12px; }

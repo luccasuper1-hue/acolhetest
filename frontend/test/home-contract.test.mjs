@@ -669,6 +669,14 @@ test("notification refreshes ignore stale pages and cancel older pagination", as
   assert.match(shell, /\+\+notificationMoreRequestRef\.current;[\s\S]*setNotificationPage\(current => current\.loading/);
 });
 
+test("expanded chat and notifications use the dynamic mobile viewport", async () => {
+  const css = await readFile(resolve(root, "src/mvp/mvp.css"), "utf8");
+  assert.match(css, /max-height: min\(70dvh, 520px\)/);
+  assert.match(css, /height: min\(576px, calc\(100dvh - 112px\)\)/);
+  assert.match(css, /body:has\(\.mvp-conversation-window\) \{ overflow: hidden; \}/);
+  assert.match(css, /overscroll-behavior: contain/);
+});
+
 test("all dashboard loaders import the ref hook used for request ordering", async () => {
   const files = ["src/mvp/StudentArea.jsx", "src/mvp/ProfessionalArea.jsx", "src/mvp/InstitutionArea.jsx", "src/mvp/AdminArea.jsx"];
   for (const file of files) {
