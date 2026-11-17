@@ -2039,7 +2039,16 @@ html[data-theme="dark"] .mvp-shell[data-testid="student-area"] .student-active-a
   .mvp-inline-form textarea { min-width: 0; max-width: 100%; }
   .mvp-notification-item-title,
   .mvp-notification-item small { overflow-wrap: anywhere; }
+  .mvp-notification-item { min-height: 54px; }
+  .mvp-notification-error { align-items: flex-start; flex-wrap: wrap; }
+  .mvp-notification-error button { margin-left: auto; min-height: 32px; }
   .mvp-conversation-panel { max-width: calc(100vw - 20px); }
+  .mvp-conversation-panel:has(.mvp-conversation-window) { box-sizing: border-box; }
+  .mvp-conversation-window { width: 100%; }
+  .mvp-conversation-window .mvp-conversation-panel-head { position: sticky; top: 0; z-index: 1; }
+  .mvp-conversation-window .mvp-chat-messages { touch-action: pan-y; -webkit-overflow-scrolling: touch; }
+  .mvp-conversation-window .mvp-chat-compose { flex: 0 0 auto; background: var(--surface); }
+  .mvp-conversation-window .mvp-chat-compose input { font-size: 16px; }
   .mvp-conversation-window .mvp-floating-chat-close { flex: 0 0 auto; min-height: 36px; padding-bottom: env(safe-area-inset-bottom, 0px); }
   .mvp-main { padding-bottom: calc(124px + env(safe-area-inset-bottom)); }
   .mvp-workspace-content > .mvp-card,
@@ -2077,11 +2086,14 @@ html[data-theme="dark"] .mvp-shell[data-testid="student-area"] .student-active-a
     right: max(12px, env(safe-area-inset-right));
     width: auto;
     max-width: none;
+    box-sizing: border-box;
     max-height: calc(100dvh - 84px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    padding-bottom: calc(14px + env(safe-area-inset-bottom));
     overflow-x: hidden;
     overflow-y: auto;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
   }
 }
 @media (max-width: 420px) {
