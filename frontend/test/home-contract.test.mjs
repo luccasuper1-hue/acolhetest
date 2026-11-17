@@ -575,6 +575,14 @@ test("student mutations guard against duplicate submissions", async () => {
   assert.ok((student.match(/actionBusyRef\.current = false/g) || []).length >= 5);
 });
 
+test("admin mutations guard against duplicate submissions", async () => {
+  const admin = await readFile(resolve(root, "src/mvp/AdminArea.jsx"), "utf8");
+  assert.match(admin, /const busyActionRef = useRef\(false\)/);
+  assert.match(admin, /if \(busyActionRef\.current\) return/);
+  assert.match(admin, /busyActionRef\.current = true/);
+  assert.match(admin, /busyActionRef\.current = false/);
+});
+
 test("overlay panels move focus to their close actions", async () => {
   const shell = await readFile(resolve(root, "src/mvp/MvpShell.jsx"), "utf8");
   assert.match(shell, /notificationCloseRef\.current\?\.focus\(\)/);

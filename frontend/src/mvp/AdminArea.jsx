@@ -21,6 +21,7 @@ export default function AdminArea() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [busyAction, setBusyAction] = useState("");
+  const busyActionRef = useRef(false);
   const loadRequestRef = useRef(0);
 
   const load = useCallback(async () => {
@@ -40,11 +41,12 @@ export default function AdminArea() {
   useEffect(() => { load().catch(e => toast.error(apiError(e))); }, [load]);
 
   const runAction = async (key, action, successMessage) => {
-    if (busyAction) return;
+    if (busyActionRef.current) return;
+    busyActionRef.current = true;
     setBusyAction(key);
     try { await action(); if (successMessage) toast.success(successMessage); await load(); }
     catch (e) { toast.error(apiError(e)); }
-    finally { setBusyAction(""); }
+    finally { busyActionRef.current = false; setBusyAction(""); }
   };
 
   const toggle = async id => {
