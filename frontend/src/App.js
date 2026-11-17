@@ -421,6 +421,15 @@ function AppRoutes() {
     // Each route is a new screen: start it at the beginning instead of
     // carrying the previous page's scroll position into the next view.
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    // Announce the new screen to keyboard and assistive-technology users.
+    // Do not steal focus from an input/button that initiated the navigation.
+    const main = document.querySelector("main");
+    const active = document.activeElement;
+    const focusIsDocumentBody = !active || active === document.body || active === document.documentElement;
+    if (main && focusIsDocumentBody) {
+      main.tabIndex = -1;
+      main.focus({ preventScroll: true });
+    }
   }, [location.pathname, location.search]);
 
   useEffect(() => {

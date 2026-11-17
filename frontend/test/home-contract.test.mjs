@@ -527,6 +527,9 @@ test("admin lead and certificate actions cannot submit unrelated forms", async (
 test("route changes reset the page scroll position", async () => {
   const appSource = await readFile(resolve(root, "src/App.js"), "utf8");
   assert.match(appSource, /useLayoutEffect\(\(\) => \{[\s\S]*?window\.scrollTo\(\{ top: 0, left: 0, behavior: "auto" \}\)/);
+  assert.match(appSource, /const main = document\.querySelector\("main"\)/);
+  assert.match(appSource, /main\.focus\(\{ preventScroll: true \}\)/);
+  assert.match(appSource, /focusIsDocumentBody/);
   assert.match(appSource, /\}, \[location\.pathname, location\.search\]\);/);
 });
 
