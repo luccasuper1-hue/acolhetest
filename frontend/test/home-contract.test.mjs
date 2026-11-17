@@ -615,3 +615,26 @@ test("form actions declare submit semantics explicitly", async () => {
   ].map(file => readFile(resolve(root, file), "utf8")));
   for (const source of sources) assert.match(source, /type="submit"/);
 });
+
+test("optional browser storage never blocks the main experience", async () => {
+  const app = await readFile(resolve(root, "src/App.js"), "utf8");
+  const theme = await readFile(resolve(root, "src/theme.js"), "utf8");
+  const api = await readFile(resolve(root, "src/mvp/api.js"), "utf8");
+  assert.match(app, /try \{ return !localStorage\.getItem\("acolhe-onboarding"\); \} catch \{ return false; \}/);
+  assert.match(app, /try \{ localStorage\.setItem\("acolhe-onboarding", "done"\); \} catch/);
+  assert.match(theme, /try \{ return localStorage\.getItem\(KEY\) \|\| "system"; \} catch \{ return "system"; \}/);
+  assert.match(theme, /try \{ localStorage\.setItem\(KEY, next\); \} catch/);
+  assert.match(api, /export const clearToken = \(\) => \{ try \{ localStorage\.removeItem/);
+});
+
+test("theme preference supports older browser media-query listeners", async () => {
+  const theme = await readFile(resolve(root, "src/theme.js"), "utf8");
+  assert.match(theme, /mq\.addEventListener\) .*mq\.addListener/);
+  assert.match(theme, /mq\.removeEventListener\) .*mq\.removeListener/);
+});
+
+test("transient MVP auth failures preserve the current session", async () => {
+  const auth = await readFile(resolve(root, "src/mvp/AuthMvp.jsx"), "utf8");
+  assert.match(auth, /if \(\[401, 403\]\.includes\(e\?\.response\?\.status\)\)/);
+  assert.doesNotMatch(auth, /catch \(e\) \{\s*setAccount\(null\);\s*clearToken\(\);/);
+});

@@ -20,8 +20,11 @@ export function MvpAuthProvider({ children }) {
       const { data } = await api.get("/auth/me");
       setAccount(data);
     } catch (e) {
-      setAccount(null);
-      clearToken();
+      // Falhas de rede não devem expulsar uma sessão válida.
+      if ([401, 403].includes(e?.response?.status)) {
+        setAccount(null);
+        clearToken();
+      }
     } finally {
       setChecking(false);
     }

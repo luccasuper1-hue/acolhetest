@@ -5,14 +5,14 @@ const ThemeContext = createContext(null);
 const prefersDark = () => typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches;
 
 export function ThemeProvider({ children }) {
-  const [mode, setMode] = useState(() => localStorage.getItem(KEY) || "system");
+  const [mode, setMode] = useState(() => { try { return localStorage.getItem(KEY) || "system"; } catch { return "system"; } });
   const [systemIsDark, setSystemIsDark] = useState(prefersDark);
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
     const onChange = e => setSystemIsDark(e.matches);
-    mq.addEventListener("change", onChange);
-    return () => mq.removeEventListener("change", onChange);
+    if (mq.addEventListener) mq.addEventListener("change", onChange); else mq.addListener?.(onChange);
+    return () => { if (mq.removeEventListener) mq.removeEventListener("change", onChange); else mq.removeListener?.(onChange); };
   }, []);
 
   const resolved = mode === "system" ? (systemIsDark ? "dark" : "light") : mode;
@@ -31,7 +31,7 @@ export function ThemeProvider({ children }) {
       const root = document.documentElement;
       root.classList.add("theme-anim");
       window.setTimeout(() => root.classList.remove("theme-anim"), 460);
-      localStorage.setItem(KEY, next);
+      try { localStorage.setItem(KEY, next); } catch { /* preferência segue em memória */ }
       setMode(next);
     },
   }), [mode, resolved]);

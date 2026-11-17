@@ -85,7 +85,7 @@ api.interceptors.request.use(config => {
 });
 
 export const saveToken = () => {};
-export const clearToken = () => localStorage.removeItem("acolhe-mvp-token");
+export const clearToken = () => { try { localStorage.removeItem("acolhe-mvp-token"); } catch { /* armazenamento indisponível */ } };
 
 export function apiError(error) {
   const detail = error?.response?.data?.detail;
