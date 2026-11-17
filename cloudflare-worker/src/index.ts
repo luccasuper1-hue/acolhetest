@@ -47,7 +47,7 @@ function withCors(response: Response, origin?: string): Response {
   return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
 }
 
-function withAssetSecurity(response: Response): Response {
+function withAssetSecurity(response: Response, pathname: string): Response {
   const headers = new Headers(response.headers);
   headers.set("x-content-type-options", "nosniff");
   headers.set("x-frame-options", "DENY");
@@ -55,6 +55,7 @@ function withAssetSecurity(response: Response): Response {
   headers.set("permissions-policy", "camera=(), microphone=(), geolocation=()");
   headers.set("strict-transport-security", "max-age=31536000; includeSubDomains");
   headers.set("content-security-policy", "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https://api.qrserver.com; connect-src 'self' wss:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'");
+  if (pathname.startsWith("/assets/")) headers.set("cache-control", "public, max-age=31536000, immutable");
   return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
 }
 
@@ -126,7 +127,7 @@ export default {
     if (url.pathname === "/api/health" && request.method === "GET") {
       return withCors(Response.json({ ok: true, service: "acolhe", environment: env.APP_ENV || "production", checked_at: new Date().toISOString() }), allowedOrigin(request, env));
     }
-    if (!url.pathname.startsWith("/api")) return withAssetSecurity(await env.ASSETS.fetch(request));
+    if (!url.pathname.startsWith("/api")) return withAssetSecurity(await env.ASSETS.fetch(request), url.pathname);
     if (url.pathname === "/api/realtime" && request.headers.get("upgrade")?.toLowerCase() === "websocket") {
       try { return await realtimeUpgrade(request, env, url); }
       catch (error) { console.error("Realtime upgrade failed", error); return withCors(fail("Não foi possível abrir o canal em tempo real", 503), allowedOrigin(request, env)); }
