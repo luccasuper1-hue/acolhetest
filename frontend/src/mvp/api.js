@@ -11,28 +11,39 @@ export function connectRealtime(sessionId, onEvent, onStatus, onReady) {
   let stopped = false;
   let retryTimer;
   let attempts = 0;
+  let generation = 0;
   const clearRetry = () => { if (retryTimer) { window.clearTimeout(retryTimer); retryTimer = undefined; } };
+  const scheduleRetry = () => {
+    if (stopped || document.visibilityState === "hidden" || retryTimer) return;
+    const delay = Math.min(1000 * (2 ** attempts), 30000);
+    attempts += 1;
+    retryTimer = window.setTimeout(() => { retryTimer = undefined; connect(); }, delay);
+  };
   const connect = () => {
     if (stopped || document.visibilityState === "hidden") return;
+    clearRetry();
+    const currentGeneration = ++generation;
     try {
-      socket = new WebSocket(websocketUrl);
-      socket.addEventListener("open", () => { attempts = 0; onStatus?.("open"); onReady?.({ send: payload => { if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify(payload)); } }); });
-      socket.addEventListener("message", event => {
+      const currentSocket = new WebSocket(websocketUrl);
+      socket = currentSocket;
+      currentSocket.addEventListener("open", () => { if (currentGeneration !== generation) return; attempts = 0; clearRetry(); onStatus?.("open"); onReady?.({ send: payload => { try { if (currentSocket.readyState === WebSocket.OPEN) currentSocket.send(JSON.stringify(payload)); } catch { /* conexão já encerrada */ } } }); });
+      currentSocket.addEventListener("message", event => {
+        if (currentGeneration !== generation) return;
         try { onEvent?.(JSON.parse(event.data)); } catch { /* ignora eventos inválidos */ }
       });
-      socket.addEventListener("close", () => {
+      currentSocket.addEventListener("close", () => {
+        if (currentGeneration !== generation) return;
         onStatus?.("closed");
         if (stopped) return;
         if (document.visibilityState === "hidden") return;
-        const delay = Math.min(1000 * (2 ** attempts), 30000);
-        attempts += 1;
-        retryTimer = window.setTimeout(connect, delay);
+        scheduleRetry();
       });
-      socket.addEventListener("error", () => onStatus?.("error"));
-    } catch { onStatus?.("error"); }
+      currentSocket.addEventListener("error", () => { if (currentGeneration === generation) onStatus?.("error"); });
+    } catch { onStatus?.("error"); scheduleRetry(); }
   };
   const resumeWhenVisible = () => {
-    if (stopped || document.visibilityState !== "visible") return;
+    if (stopped) return;
+    if (document.visibilityState === "hidden") { clearRetry(); if (socket && [WebSocket.OPEN, WebSocket.CONNECTING].includes(socket.readyState)) socket.close(); return; }
     clearRetry();
     if (!socket || socket.readyState === WebSocket.CLOSED) connect();
   };
@@ -40,9 +51,11 @@ export function connectRealtime(sessionId, onEvent, onStatus, onReady) {
   connect();
   return () => {
     stopped = true;
+    generation += 1;
     clearRetry();
     document.removeEventListener("visibilitychange", resumeWhenVisible);
-    socket?.close();
+    try { socket?.close(); } catch { /* conexão já encerrada */ }
+    socket = undefined;
   };
 }
 

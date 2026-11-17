@@ -633,6 +633,20 @@ test("theme preference supports older browser media-query listeners", async () =
   assert.match(theme, /mq\.removeEventListener\) .*mq\.removeListener/);
 });
 
+test("realtime connections close while hidden and resume safely", async () => {
+  const realtime = await readFile(resolve(root, "src/mvp/api.js"), "utf8");
+  assert.match(realtime, /document\.visibilityState === "hidden"\) \{ clearRetry\(\); if \(socket && \[WebSocket\.OPEN, WebSocket\.CONNECTING\]/);
+  assert.match(realtime, /generation \+= 1/);
+  assert.match(realtime, /if \(currentGeneration !== generation\) return/);
+});
+
+test("realtime retry timers are single-flight and sends tolerate closed sockets", async () => {
+  const realtime = await readFile(resolve(root, "src/mvp/api.js"), "utf8");
+  assert.match(realtime, /if \(stopped \|\| document\.visibilityState === "hidden" \|\| retryTimer\) return/);
+  assert.match(realtime, /try \{ if \(currentSocket\.readyState === WebSocket\.OPEN\) currentSocket\.send/);
+  assert.match(realtime, /retryTimer = window\.setTimeout\(\(\) => \{ retryTimer = undefined; connect\(\); \}, delay\)/);
+});
+
 test("transient MVP auth failures preserve the current session", async () => {
   const auth = await readFile(resolve(root, "src/mvp/AuthMvp.jsx"), "utf8");
   assert.match(auth, /if \(\[401, 403\]\.includes\(e\?\.response\?\.status\)\)/);
