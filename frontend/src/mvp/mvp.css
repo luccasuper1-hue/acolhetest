@@ -1,5 +1,5 @@
 .mvp-shell { min-height: 100vh; background: var(--paper); color: var(--ink); display: flex; flex-direction: column; }
-.mvp-topbar { position: sticky; top: 0; z-index: 40; display: flex; align-items: center; justify-content: space-between;
+.mvp-topbar { --mvp-topbar-height: 72px; position: sticky; top: 0; z-index: 40; display: flex; align-items: center; justify-content: space-between;
   gap: 12px; padding: 14px clamp(16px, 4vw, 46px); backdrop-filter: blur(18px);
   background: color-mix(in srgb, var(--surface, #fff) 78%, transparent); border-bottom: 1px solid var(--line, #e7e1ee); flex-wrap: wrap; }
 .mvp-brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 620; letter-spacing: -.4px; text-decoration: none; color: inherit; }
@@ -394,6 +394,9 @@ html[data-theme="dark"] .admin-filter-bar button.active { color: var(--ink); }
 .mvp-skeleton-card span:nth-child(2) { width: 52%; height: 18px; }
 .mvp-skeleton-card i { width: 78%; }
 .mvp-skeleton-card i:last-child { width: 58%; }
+.mvp-skeleton-primary > div { display: grid; width: 100%; gap: 12px; }
+.mvp-skeleton-primary > div i,
+.mvp-skeleton-primary > div i:last-child { width: 100%; }
 @keyframes mvpSkeletonPulse { 0%, 100% { opacity: .48; } 50% { opacity: 1; } }
 @keyframes mvpSkeletonShimmer { 0% { transform: translateX(-100%); } 58%, 100% { transform: translateX(100%); } }
 html[data-theme="dark"] .mvp-skeleton-card { background: color-mix(in srgb, var(--surface) 94%, transparent); border-color: rgba(238,230,255,.13); }
@@ -622,6 +625,7 @@ html[data-theme="dark"] .availability-times-field .mvp-slot:hover {
     var(--paper);
 }
 .mvp-topbar {
+  --mvp-topbar-height: 76px;
   min-height: 72px;
   background: color-mix(in srgb, var(--paper) 90%, transparent);
   box-shadow: 0 1px 0 color-mix(in srgb, var(--brand) 7%, transparent);
@@ -2061,7 +2065,7 @@ html[data-theme="dark"] .mvp-shell[data-testid="student-area"] .student-active-a
   .mvp-row-main,
   .mvp-row-actions,
   .mvp-inline-form { min-width: 0; }
-  .mvp-topbar { overflow: hidden; }
+  .mvp-topbar { --mvp-topbar-height: 72px; overflow: visible; }
   .mvp-brand { min-width: 0; max-width: 46vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .mvp-card-head h2,
   .mvp-row-main strong,
@@ -2117,13 +2121,14 @@ html[data-theme="dark"] .mvp-shell[data-testid="student-area"] .student-active-a
   .mvp-notification-panel,
   .mvp-notification-panel.is-expanded {
     position: fixed;
-    top: calc(64px + env(safe-area-inset-top));
+    top: calc(var(--mvp-topbar-height, 72px) + env(safe-area-inset-top));
     left: max(12px, env(safe-area-inset-left));
     right: max(12px, env(safe-area-inset-right));
     width: auto;
     max-width: none;
     box-sizing: border-box;
-    max-height: calc(100dvh - 84px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    max-height: calc(100dvh - var(--mvp-topbar-height, 72px) - 12px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    z-index: 1000;
     padding-bottom: calc(14px + env(safe-area-inset-bottom));
     overflow-x: hidden;
     overflow-y: auto;
