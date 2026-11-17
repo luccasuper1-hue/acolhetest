@@ -276,6 +276,7 @@ test("API responses enforce HTTPS with HSTS", () => {
   assert.match(workerIndex, /x-frame-options/);
   assert.match(workerIndex, /referrer-policy/);
   assert.match(workerIndex, /permissions-policy/);
+  assert.match(workerIndex, /headers\.set\("cache-control", "no-store"\)/);
 });
 
 test("archiving an institution invalidates existing user sessions", () => {
