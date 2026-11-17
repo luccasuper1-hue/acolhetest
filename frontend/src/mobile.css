@@ -484,10 +484,8 @@
 /* Camada final da home mobile: mantém uma única decisão para os pontos críticos. */
 @media (max-width: 600px) {
   .home-route .hero-lead {
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    overflow: hidden;
+    display: block;
+    overflow: visible;
   }
   .home-route .mark-scene,
   .home-route .blob-a,
