@@ -566,14 +566,15 @@ test("overlay panels restore focus to their launch controls", async () => {
 
 test("MVP overlays keep keyboard focus contained", async () => {
   const shell = await readFile(resolve(root, "src/mvp/MvpShell.jsx"), "utf8");
+  const lock = await readFile(resolve(root, "src/overlayScrollLock.js"), "utf8");
   assert.match(shell, /notificationRef\.current\?\.querySelector\("\.mvp-notification-panel"\)/);
   assert.match(shell, /launcherRef\.current\?\.querySelector\("\.mvp-conversation-panel"\)/);
   assert.match(shell, /event\.key !== "Tab"/);
   assert.match(shell, /aria-modal="false"/);
-  assert.match(shell, /const lockOverlayScroll = \(\) =>/);
-  assert.match(shell, /overlayScrollLocks === 0/);
-  assert.match(shell, /document\.body\.style\.overflow = "hidden"/);
-  assert.match(shell, /document\.body\.style\.overflow = overlayPreviousOverflow/);
+  assert.match(shell, /import \{ lockOverlayScroll \} from "\.\.\/overlayScrollLock"/);
+  assert.match(lock, /activeLocks === 0/);
+  assert.match(lock, /document\.body\.style\.overflow = "hidden"/);
+  assert.match(lock, /document\.body\.style\.overflow = previousOverflow/);
   assert.match(shell, /return lockOverlayScroll\(\)/g);
 });
 
@@ -593,10 +594,12 @@ test("corner quick access keeps keyboard focus inside its panel", async () => {
 
 test("mobile navigation locks background scroll while open", async () => {
   const app = await readFile(resolve(root, "src/App.js"), "utf8");
-  assert.match(app, /const lockPageOverlayScroll = \(\) =>/);
+  const lock = await readFile(resolve(root, "src/overlayScrollLock.js"), "utf8");
+  assert.match(app, /import \{ lockOverlayScroll \} from "\.\/overlayScrollLock"/);
   assert.match(app, /data-testid="mobile-menu-button"/);
-  assert.match(app, /return lockPageOverlayScroll\(\)/);
-  assert.match(app, /pageOverlayScrollLocks === 0/);
+  assert.match(app, /return lockOverlayScroll\(\)/);
+  assert.match(lock, /activeLocks === 0/);
+  assert.match(lock, /document\.body\.style\.overflow = "hidden"/);
 });
 
 test("interactive notification surfaces import their React hooks", async () => {

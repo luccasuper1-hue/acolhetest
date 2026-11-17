@@ -6,6 +6,7 @@ import { useMvpAuth } from "./AuthMvp";
 import { api, apiError, connectRealtime, formatNotificationTime } from "./api";
 import { toast } from "sonner";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { lockOverlayScroll } from "../overlayScrollLock";
 
 const ROLE_LABEL = {
   student: "Estudante",
@@ -14,18 +15,6 @@ const ROLE_LABEL = {
   admin: "Administração",
 };
 
-let overlayScrollLocks = 0;
-let overlayPreviousOverflow = "";
-const lockOverlayScroll = () => {
-  if (typeof document === "undefined") return () => {};
-  if (overlayScrollLocks === 0) overlayPreviousOverflow = document.body.style.overflow;
-  overlayScrollLocks += 1;
-  document.body.style.overflow = "hidden";
-  return () => {
-    overlayScrollLocks = Math.max(0, overlayScrollLocks - 1);
-    if (overlayScrollLocks === 0) document.body.style.overflow = overlayPreviousOverflow;
-  };
-};
 
 export const MvpShell = ({ title, kicker, lead, flow = [], flowStep = 0, children, testid, collapsePassword = false, hideIdentity = false, conversations = [], onOpenConversation, renderConversation, loading = false, error = "", onRetry, onRefresh, dashboardNotifications, dashboardNotificationUnreadCount, onNotificationsChange }) => {
   const { user, institution, signOut } = useMvpAuth();
