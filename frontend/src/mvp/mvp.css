@@ -1855,7 +1855,7 @@ html[data-theme="dark"] .mvp-conversation-status { color: #8bd9bd; }
 .mvp-conversation-window .mvp-chat-message { overflow-wrap: anywhere; word-break: break-word; }
 @media (max-width: 420px) {
   .mvp-conversation-panel:has(.mvp-conversation-window) { width: calc(100vw - 12px); max-width: calc(100vw - 12px); }
-  .mvp-conversation-window { height: min(620px, calc(100dvh - 96px - env(safe-area-inset-top))); }
+  .mvp-conversation-window { height: min(470px, calc(100dvh - 120px - env(safe-area-inset-top))); }
   .mvp-conversation-window .mvp-chat-message { max-width: 88%; font-size: 13px; }
   .mvp-conversation-window .mvp-chat-messages { min-height: 80px; }
   .mvp-conversation-window .mvp-chat-compose { padding-bottom: env(safe-area-inset-bottom, 0px); }
