@@ -1098,6 +1098,21 @@ html[data-theme="dark"] .mvp-shell[data-testid="admin-area"] .admin-operations-c
   .mvp-card[data-testid="password-change-card"] .mvp-inline-form button { width: 100%; justify-content: center; }
 }
 
+/* Lote mobile 04: alvos de toque confortáveis e consistentes nos overlays e
+   na navegação, especialmente em aparelhos pequenos. */
+@media (max-width: 640px) {
+  .mvp-notification-button { width: 44px; height: 44px; }
+  .mvp-notification-close { width: 44px; height: 44px; flex-basis: 44px; }
+  .mvp-notification-filters button { min-height: 40px; padding-inline: 11px; }
+  .mvp-notification-view-all { min-height: 44px; }
+  .mvp-conversation-item { min-height: 58px; padding-block: 14px; }
+  .mvp-conversation-back,
+  .mvp-conversation-close { width: 44px; height: 44px; }
+  .mvp-conversation-trigger { min-height: 48px; }
+  .mvp-topbar-right > .button { min-height: 44px; }
+  .admin-filter-bar button { min-height: 44px; }
+}
+
 /* Refinamento desta rodada: admin mais escaneável e estados vazios orientativos. */
 .mvp-shell[data-testid="admin-area"] .mvp-workspace-content { gap: 16px; }
 .mvp-shell[data-testid="admin-area"] .mvp-workspace-content > .mvp-card,
