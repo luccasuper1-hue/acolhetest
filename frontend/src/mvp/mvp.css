@@ -790,8 +790,11 @@ html[data-theme="dark"] .availability-interest-inline span { color: var(--muted)
   .mvp-shell[data-testid="professional-area"] .mvp-workspace-content { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 0.38fr); grid-auto-flow: row dense; align-items: start; gap: 18px 20px; }
   .mvp-shell[data-testid="professional-area"] .mvp-workspace-content > .professional-requests-card,
   .mvp-shell[data-testid="professional-area"] .mvp-workspace-content > .professional-sessions-card { grid-column: 1 / -1; }
-  .mvp-shell[data-testid="professional-area"] .mvp-workspace-content > .professional-certificate-card { grid-column: 2; padding: 20px 22px !important; }
-  .mvp-shell[data-testid="professional-area"] .mvp-workspace-content > .professional-completed-card { grid-column: 1; }
+  /* Keep the compact history from sitting beside a much taller certificate
+     card, which creates a distracting empty column on desktop. */
+  .mvp-shell[data-testid="professional-area"] .mvp-workspace-content > .professional-certificate-card,
+  .mvp-shell[data-testid="professional-area"] .mvp-workspace-content > .professional-completed-card { grid-column: 1 / -1; }
+  .mvp-shell[data-testid="professional-area"] .mvp-workspace-content > .professional-certificate-card { padding: 20px 22px !important; }
   .mvp-shell[data-testid="professional-area"] .mvp-workspace-content > .compact-empty-card,
   .mvp-shell[data-testid="professional-area"] .mvp-workspace-content > .availability-card { grid-column: 1 / -1; }
   .professional-certificate-card .mvp-card-head { margin-bottom: 12px; }
