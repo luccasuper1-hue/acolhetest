@@ -2,9 +2,9 @@
 
 Esta pasta contém o Worker oficial de produção do Acolhe. Ela entrega o frontend e atende `/api/*` no mesmo domínio, usando Durable Object + MongoDB Atlas. A API FastAPI em `backend/` permanece apenas como legado/local e não faz parte do deploy oficial.
 
-## Arquitetura alvo
+## Arquitetura oficial
 
-Um único Worker entrega os arquivos estáticos do React e atende as chamadas em `/api/*`. O banco continua sendo o MongoDB Atlas. As variáveis de produção serão configuradas apenas na etapa de publicação:
+Um único Worker entrega os arquivos estáticos do React e atende as chamadas em `/api/*`. O banco continua sendo o MongoDB Atlas. As variáveis de produção são configuradas como segredos no Cloudflare:
 
 - `MONGO_URL`
 - `DB_NAME`
@@ -36,7 +36,7 @@ Antes de qualquer teste contra um Atlas de desenvolvimento novo, execute `npm ru
 
 Para CI do Cloudflare, o repositório deve ter o diretório raiz na raiz do projeto e usar uma etapa que instale dependências de `frontend` e de `cloudflare-worker`, gere `frontend/build` e execute `wrangler deploy` a partir de `cloudflare-worker`. O diretório de assets é deliberadamente `../frontend/build`.
 
-## Variáveis da futura publicação
+## Variáveis de produção
 
 Crie-as como segredos no Cloudflare, sem gravá-las em código:
 
