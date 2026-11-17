@@ -3,6 +3,8 @@
 Data: 14/11/2026  
 Ambiente: `acolhetest.luccasuper1.workers.dev`
 
+Última revalidação operacional: 17/11/2026 · Worker `1fd5e23a-d9d1-4cfc-bbd2-9700c25ad1e4` · suíte frontend: 106 testes aprovados.
+
 ## Cobertura executada
 
 - 100 execuções repetidas do contrato frontend: 100 aprovadas, 0 falhas.
@@ -22,7 +24,7 @@ Ambiente: `acolhetest.luccasuper1.workers.dev`
 
 ## Melhorias encontradas
 
-### Alta prioridade
+### Histórico da auditoria inicial
 
 1. **Bloquear encerramento antecipado**  
    “Marcar como realizada” e “Registrar ausência” aparecem antes do início do encontro. O backend também aceita essas ações enquanto a sessão ainda está no futuro. Deve existir uma validação pelo horário do encontro.
@@ -37,6 +39,10 @@ Ambiente: `acolhetest.luccasuper1.workers.dev`
 
 4. **Título do estudante para encontro confirmado**  
    “Seu atendimento está em andamento” aparece mesmo quando o encontro ainda está agendado para o futuro. “Conversa confirmada” seria mais preciso até o horário começar.
+
+### Estado atual
+
+Os quatro pontos acima pertencem à auditoria inicial e foram corrigidos no fluxo atual. A revalidação mais recente cobre os contratos de encerramento, links de sala, mensagens de estado e atualização cruzada dos painéis.
 
 5. **Estado de horário durante a sessão**  
    O estudante vê o encontro confirmado, mas poderia ter uma indicação mais clara de “próximo passo”: abrir chat, acessar sala ou aguardar a data.
