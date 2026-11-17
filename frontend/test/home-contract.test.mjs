@@ -528,3 +528,13 @@ test("route changes reset the page scroll position", async () => {
   assert.match(appSource, /useLayoutEffect\(\(\) => \{[\s\S]*?window\.scrollTo\(\{ top: 0, left: 0, behavior: "auto" \}\)/);
   assert.match(appSource, /\}, \[location\.pathname, location\.search\]\);/);
 });
+
+test("student and professional action controls declare button type", async () => {
+  const studentSource = await readFile(resolve(root, "src/mvp/StudentArea.jsx"), "utf8");
+  const professionalSource = await readFile(resolve(root, "src/mvp/ProfessionalArea.jsx"), "utf8");
+  for (const source of [studentSource, professionalSource]) {
+    assert.doesNotMatch(source, /<button\s+className=/);
+  }
+  assert.match(studentSource, /<button type="button" aria-label="Enviar mensagem"/);
+  assert.match(professionalSource, /<button type="button" aria-label="Enviar mensagem"/);
+});
