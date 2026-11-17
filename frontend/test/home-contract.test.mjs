@@ -591,6 +591,11 @@ test("institution mutations guard against duplicate submissions", async () => {
   assert.ok((institution.match(/mutationBusyRef\.current = false/g) || []).length >= 5);
 });
 
+test("notification panel announces pagination loading", async () => {
+  const shell = await readFile(resolve(root, "src/mvp/MvpShell.jsx"), "utf8");
+  assert.match(shell, /aria-busy=\{notificationsLoading \|\| notificationPage\.loading\}/);
+});
+
 test("overlay panels move focus to their close actions", async () => {
   const shell = await readFile(resolve(root, "src/mvp/MvpShell.jsx"), "utf8");
   assert.match(shell, /notificationCloseRef\.current\?\.focus\(\)/);
