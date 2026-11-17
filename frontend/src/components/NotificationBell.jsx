@@ -58,7 +58,7 @@ export const NotificationBell = () => {
         <div ref={panelRef} id={panelId} className="notif-panel" role="dialog" aria-modal="false" aria-labelledby={titleId} tabIndex="-1" data-testid="notifications-panel">
           <div className="notif-head">
             <span id={titleId} className="notif-title">Notificações</span>
-            <span className="demo-label">DEMO</span>
+            <span className="demo-label">REFERÊNCIA</span>
           </div>
           <span className="sr-only" role="status" aria-live="polite">{read ? "Todas as notificações estão lidas." : "Há notificações não lidas."}</span>
           <div role="list" aria-label="Lista de notificações">
