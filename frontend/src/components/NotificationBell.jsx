@@ -50,7 +50,7 @@ export const NotificationBell = () => {
             </div>
           ))}
           </div>
-          <button type="button" className="notif-clear" onClick={() => setRead(true)} aria-live="polite" data-testid="notifications-mark-read">
+          <button type="button" className="notif-clear" onClick={() => setRead(true)} data-testid="notifications-mark-read">
             {read ? "Tudo lido" : "Marcar como lidas"}
           </button>
         </div>
