@@ -368,6 +368,7 @@ html[data-theme="dark"] .admin-filter-bar button.active { color: var(--ink); }
 .mvp-form button:disabled { opacity: .65; cursor: wait; }
 .mvp-loading { min-height: 100dvh; width: 100%; box-sizing: border-box; display: grid; place-items: center; align-content: center; gap: 14px; padding: 32px 20px; color: var(--ink, #302746); background: var(--paper, #fff); font-size: 15px; font-weight: 650; text-align: center; }
 .mvp-loading[data-testid="mvp-loading"] { color: var(--ink); background: var(--paper); }
+.mvp-loading-deferred::before { display: none; }
 .mvp-loading::before { content: ""; width: 34px; height: 34px; border: 3px solid color-mix(in srgb, var(--brand, #7254ad) 20%, transparent); border-top-color: var(--brand, #7254ad); border-radius: 50%; animation: mvpLoadingSpin 900ms linear infinite; }
 @keyframes mvpLoadingSpin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .mvp-loading::before { animation: none; } }
