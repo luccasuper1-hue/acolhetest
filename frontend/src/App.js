@@ -402,6 +402,15 @@ function AppRoutes() {
   }, [location.pathname, location.search]);
 
   useEffect(() => {
+    // Legacy/reference screens still contain a few standalone buttons. Keep
+    // them from inheriting the browser's submit default without touching
+    // buttons that intentionally belong to a form.
+    document.querySelectorAll("button:not([type])").forEach(button => {
+      if (!button.form) button.type = "button";
+    });
+  }, [location.pathname, location.search]);
+
+  useEffect(() => {
     if (!isHome) {
       hasLeftHome.current = true;
       setHomeReturn(false);

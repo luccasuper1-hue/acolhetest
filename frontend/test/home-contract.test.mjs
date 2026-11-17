@@ -529,6 +529,12 @@ test("route changes reset the page scroll position", async () => {
   assert.match(appSource, /\}, \[location\.pathname, location\.search\]\);/);
 });
 
+test("standalone legacy buttons get safe non-submit semantics", async () => {
+  const appSource = await readFile(resolve(root, "src/App.js"), "utf8");
+  assert.match(appSource, /querySelectorAll\("button:not\(\[type\]\)"\)/);
+  assert.match(appSource, /if \(!button\.form\) button\.type = "button"/);
+});
+
 test("student and professional action controls declare button type", async () => {
   const studentSource = await readFile(resolve(root, "src/mvp/StudentArea.jsx"), "utf8");
   const professionalSource = await readFile(resolve(root, "src/mvp/ProfessionalArea.jsx"), "utf8");
