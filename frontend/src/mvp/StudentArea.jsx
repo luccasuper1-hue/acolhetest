@@ -36,10 +36,13 @@ export default function StudentArea() {
   const chatMessagesRef = useRef(null);
   const chatSessionRef = useRef(null);
   const lastReadSentRef = useRef(null);
+  const loadRequestRef = useRef(0);
 
   const load = useCallback(async () => {
+    const requestId = ++loadRequestRef.current;
     try {
       const { data } = await api.get("/students/me/dashboard");
+      if (requestId !== loadRequestRef.current) return;
       setProfessionals(data.professionals || []);
       setRequests(data.requests || []);
       setAppointmentRequests(data.appointment_requests || []);
@@ -47,9 +50,10 @@ export default function StudentArea() {
       setNotificationUnreadCount(typeof data.notification_unread_count === "number" ? data.notification_unread_count : null);
       setLoadError("");
     } catch (error) {
+      if (requestId !== loadRequestRef.current) return;
       setLoadError(apiError(error));
       throw error;
-    } finally { setLoading(false); }
+    } finally { if (requestId === loadRequestRef.current) setLoading(false); }
   }, []);
 
   useEffect(() => { load().catch(e => toast.error(apiError(e))); }, [load]);

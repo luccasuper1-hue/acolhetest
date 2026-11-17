@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Copy, ExternalLink, UserPlus } from "lucide-react";
 import { MvpShell, MvpCard, MvpEmpty, MvpKpi } from "./MvpShell";
@@ -20,17 +20,21 @@ export default function InstitutionArea() {
   const [profileBusy, setProfileBusy] = useState(false);
   const [fallbackBusy, setFallbackBusy] = useState(null);
   const [baselineBusy, setBaselineBusy] = useState(false);
+  const loadRequestRef = useRef(0);
 
   const load = useCallback(async () => {
+    const requestId = ++loadRequestRef.current;
     try {
       const { data } = await api.get("/institutions/me/dashboard");
+      if (requestId !== loadRequestRef.current) return;
       setMetrics(data.metrics); setImpactReport(data.impact_report || null); setProfessionals(data.professionals || []); setCertificates(data.certificates || []); setFallbackRequests(data.fallback_requests || []); setInstitution(data.institution);
       setProfile({ name: data.institution?.name || "", contact_email: data.institution?.contact_email || "", support_note: data.institution?.support_note || "" });
       setLoadError("");
     } catch (error) {
+      if (requestId !== loadRequestRef.current) return;
       setLoadError(apiError(error));
       throw error;
-    } finally { setLoading(false); }
+    } finally { if (requestId === loadRequestRef.current) setLoading(false); }
   }, []);
 
   useEffect(() => { load().catch(e => toast.error(apiError(e))); }, [load]);

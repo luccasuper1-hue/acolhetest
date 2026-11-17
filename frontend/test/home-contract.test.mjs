@@ -647,6 +647,25 @@ test("realtime retry timers are single-flight and sends tolerate closed sockets"
   assert.match(realtime, /retryTimer = window\.setTimeout\(\(\) => \{ retryTimer = undefined; connect\(\); \}, delay\)/);
 });
 
+test("dashboard refreshes ignore stale responses across protected roles", async () => {
+  const files = ["src/mvp/StudentArea.jsx", "src/mvp/ProfessionalArea.jsx", "src/mvp/InstitutionArea.jsx", "src/mvp/AdminArea.jsx"];
+  for (const file of files) {
+    const source = await readFile(resolve(root, file), "utf8");
+    assert.match(source, /const loadRequestRef = useRef\(0\)/);
+    assert.match(source, /const requestId = \+\+loadRequestRef\.current/);
+    assert.match(source, /if \(requestId !== loadRequestRef\.current\) return/);
+    assert.match(source, /if \(requestId === loadRequestRef\.current\) setLoading\(false\)/);
+  }
+});
+
+test("all dashboard loaders import the ref hook used for request ordering", async () => {
+  const files = ["src/mvp/StudentArea.jsx", "src/mvp/ProfessionalArea.jsx", "src/mvp/InstitutionArea.jsx", "src/mvp/AdminArea.jsx"];
+  for (const file of files) {
+    const source = await readFile(resolve(root, file), "utf8");
+    assert.match(source, /useRef/);
+  }
+});
+
 test("transient MVP auth failures preserve the current session", async () => {
   const auth = await readFile(resolve(root, "src/mvp/AuthMvp.jsx"), "utf8");
   assert.match(auth, /if \(\[401, 403\]\.includes\(e\?\.response\?\.status\)\)/);

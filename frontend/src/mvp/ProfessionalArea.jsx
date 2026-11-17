@@ -49,10 +49,13 @@ export default function ProfessionalArea() {
   const chatSendRef = useRef(null);
   const chatSessionRef = useRef(null);
   const lastReadSentRef = useRef(null);
+  const loadRequestRef = useRef(0);
 
   const load = useCallback(async () => {
+    const requestId = ++loadRequestRef.current;
     try {
       const [{ data }, certificateResponse] = await Promise.all([api.get("/professionals/me/dashboard"), api.get("/professionals/me/certificate")]);
+      if (requestId !== loadRequestRef.current) return;
       setRequests(data.requests || []); setSessions(data.sessions || []); setAppointmentRequests(data.appointment_requests || []);
       setNotifications(data.notifications || []);
       setNotificationUnreadCount(typeof data.notification_unread_count === "number" ? data.notification_unread_count : null);
@@ -60,9 +63,10 @@ export default function ProfessionalArea() {
       setCertificateEligibility({ eligible: Boolean(certificateResponse.data?.eligible), completed_count: certificateResponse.data?.completed_count || 0, required_count: certificateResponse.data?.required_count || 5 });
       setLoadError("");
     } catch (error) {
+      if (requestId !== loadRequestRef.current) return;
       setLoadError(apiError(error));
       throw error;
-    } finally { setLoading(false); }
+    } finally { if (requestId === loadRequestRef.current) setLoading(false); }
   }, []);
 
   useEffect(() => { load().catch(e => toast.error(apiError(e))); }, [load]);

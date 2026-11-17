@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Archive, Ban, Building2, Check, Mail, RotateCcw, Trash2 } from "lucide-react";
 import { MvpShell, MvpCard, MvpEmpty, MvpKpi } from "./MvpShell";
@@ -21,16 +21,20 @@ export default function AdminArea() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [busyAction, setBusyAction] = useState("");
+  const loadRequestRef = useRef(0);
 
   const load = useCallback(async () => {
+    const requestId = ++loadRequestRef.current;
     try {
       const { data } = await api.get("/admin/dashboard");
+      if (requestId !== loadRequestRef.current) return;
       setUsers(data.users || []); setInstitutions(data.institutions || []); setArchivedInstitutions(data.archived_institutions || []); setRequests(data.requests || []); setLeads(data.leads || []); setCertificates(data.certificates || []); setMetrics(data.metrics || null);
       setLoadError("");
     } catch (error) {
+      if (requestId !== loadRequestRef.current) return;
       setLoadError(apiError(error));
       throw error;
-    } finally { setLoading(false); }
+    } finally { if (requestId === loadRequestRef.current) setLoading(false); }
   }, []);
 
   useEffect(() => { load().catch(e => toast.error(apiError(e))); }, [load]);
