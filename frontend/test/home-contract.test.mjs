@@ -569,6 +569,13 @@ test("MVP overlays keep keyboard focus contained", async () => {
   assert.match(shell, /aria-modal="false"/);
 });
 
+test("command palette restores focus after closing", async () => {
+  const command = await readFile(resolve(root, "src/components/CommandPalette.jsx"), "utf8");
+  assert.match(command, /returnFocusRef = useRef\(null\)/);
+  assert.match(command, /returnFocusRef\.current = document\.activeElement/);
+  assert.match(command, /returnFocusRef\.current\.focus\(\{ preventScroll: true \}\)/);
+});
+
 test("interactive notification surfaces import their React hooks", async () => {
   const command = await readFile(resolve(root, "src/components/CommandPalette.jsx"), "utf8");
   const bell = await readFile(resolve(root, "src/components/NotificationBell.jsx"), "utf8");
