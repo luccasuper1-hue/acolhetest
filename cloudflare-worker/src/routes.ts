@@ -110,7 +110,11 @@ export async function expirePendingRequests(store: ReturnType<typeof db>, env: E
     }
   }
   if (professionalUserIds.size) await broadcastRealtime(env, { userIds: [...professionalUserIds], event: { type: "data_changed", scope: "professional" } });
-  if (expiredCount && institutionId) refreshedInstitutions.add(institutionId);
+  if (expiredCount && institutionId) {
+    await refreshPanels(env, store, institutionId, "institution");
+    await refreshPanels(env, store, institutionId, "admin");
+    refreshedInstitutions.delete(institutionId);
+  }
   await Promise.all([...refreshedInstitutions].map(async (id) => {
     await refreshPanels(env, store, id, "institution");
     await refreshPanels(env, store, id, "admin");
