@@ -499,6 +499,8 @@
   .home-route .hero h1 { font-size: 34px; line-height: 1.04; letter-spacing: -1.7px; }
   .home-route .hero-lead { font-size: 14px; line-height: 1.42; }
   .home-route .hero-product { max-width: 330px; }
+  .home-route .role-copy small { white-space: normal; overflow: visible; text-overflow: clip; }
+  .mvp-conversation-copy strong, .mvp-conversation-copy small, .mvp-conversation-copy em { white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; }
 }
 
 /* Painéis flutuantes: margem segura e rolagem consistente em telefones. */
