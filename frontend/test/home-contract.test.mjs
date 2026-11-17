@@ -178,7 +178,8 @@ test("notification history and chat actions stay connected", () => {
   assert.match(shell, /mvp-notification-close/);
   assert.match(shell, /Notificações\{displayedUnreadCount > 0/);
   assert.match(shell, /Fechar notificações/);
-  assert.match(shell, /aria-controls="mvp-notification-items"/);
+  assert.match(shell, /role="group" aria-label="Filtrar notificações"/);
+  assert.match(shell, /aria-pressed=\{notificationFilter === value\}/);
   assert.match(shell, /role="tabpanel"/);
   assert.match(shell, /dashboardNotificationPageLoaded/);
   assert.match(shell, /notifications_changed/);
