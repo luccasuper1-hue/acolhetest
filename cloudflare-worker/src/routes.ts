@@ -11,6 +11,7 @@ const leadStatuses = ["pending", "approved", "contacted", "rejected", "archived"
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCK_MINUTES = 15;
 const RESPONSE_WINDOW_MS = 48 * 60 * 60 * 1000;
+const CHILD_AGE_LIMIT = 12;
 
 const pathParameter = (pathname: string, prefix: string, suffix = "") => pathname.startsWith(prefix) && pathname.endsWith(suffix) ? decodeURIComponent(pathname.slice(prefix.length, suffix ? -suffix.length : undefined)) : undefined;
 const isoAfter = (hoursOrDays: number, kind: "hours" | "days") => new Date(Date.now() + hoursOrDays * (kind === "hours" ? 3_600_000 : 86_400_000)).toISOString();
@@ -26,6 +27,13 @@ const validDateShape = (value: unknown) => {
   if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
   const parsed = new Date(`${value}T00:00:00Z`);
   return !Number.isNaN(parsed.valueOf()) && parsed.toISOString().slice(0, 10) === value;
+};
+const ageOnDate = (birthDate: string) => {
+  const birth = new Date(`${birthDate}T00:00:00Z`), today = new Date();
+  let age = today.getUTCFullYear() - birth.getUTCFullYear();
+  const birthdayPassed = today.getUTCMonth() > birth.getUTCMonth() || (today.getUTCMonth() === birth.getUTCMonth() && today.getUTCDate() >= birth.getUTCDate());
+  if (!birthdayPassed) age -= 1;
+  return age;
 };
 const escapeHtml = (value: unknown) => String(value ?? "").replace(/[&<>\"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character] || character);
 const validDate = (value: unknown) => {
@@ -84,6 +92,19 @@ async function expirePendingRequests(store: ReturnType<typeof db>, env: Env, ins
     if (!professional?.user_id) continue;
     const existing = await store.findOne("notifications", { recipient_user_id: professional.user_id, type: "request_expiring", "meta.request_id": record.id });
     if (!existing) await notifyUser(env, String(professional.user_id), "request_expiring", "Solicitação perto de expirar", "Uma solicitação está aguardando sua resposta há mais de 36 horas e expirará em breve.", { request_id: record.id });
+  }
+  // Direct requests use a separate collection but the same 48-hour contract.
+  const directFilter: Doc = { status: "pending", created_at: { $lt: hoursAgo(48) } };
+  if (institutionId) directFilter.institution_id = institutionId;
+  const staleDirect = await store.findMany("appointment_requests", directFilter, { limit: 200 });
+  for (const record of staleDirect) {
+    if (await store.update("appointment_requests", { id: record.id, status: "pending" }, { $set: { status: "expired", expired_at: now(), responded_at: now() } })) {
+      const studentUserId = String((await store.findOne("students", { id: record.student_id }, { user_id: 1 }))?.user_id || "");
+      if (studentUserId) await notifyUser(env, studentUserId, "appointment_request_expired", "Pedido expirado", "Não houve resposta em até 48 horas. Você pode escolher outro profissional ou pedir orientação à instituição.", { appointment_request_id: record.id });
+      const professionalUserId = String((await store.findOne("professionals", { id: record.professional_id }, { user_id: 1 }))?.user_id || "");
+      if (professionalUserId) await notifyUser(env, professionalUserId, "appointment_request_expired", "Pedido expirado", "Um pedido direto expirou após 48 horas sem resposta.", { appointment_request_id: record.id });
+      if (record.institution_id) { await refreshPanels(env, store, String(record.institution_id), "institution"); await refreshPanels(env, store, String(record.institution_id), "admin"); }
+    }
   }
   if (professionalUserIds.size) await broadcastRealtime(env, { userIds: [...professionalUserIds], event: { type: "data_changed", scope: "professional" } });
   if (expiredCount && institutionId) {
@@ -335,16 +356,20 @@ async function getInstitution(request: Request, env: Env) {
 async function register(request: Request, env: Env) {
   const payload = await requestBody(request); if (!payload) return fail("Corpo JSON inválido", 422);
   const name = string(payload.name), address = email(payload.email), password = payload.password, code = string(payload.institution_code).toUpperCase();
-  if (name.length < 2 || name.length > 90 || !address || !validPassword(password) || code.length < 3 || code.length > 40) return fail("Dados de cadastro inválidos", 422);
+  const birthDate = string(payload.birth_date), age = validDateShape(birthDate) ? ageOnDate(birthDate) : -1;
+  const guardianName = string(payload.guardian_name), guardianEmail = email(payload.guardian_email);
+  if (name.length < 2 || name.length > 90 || !address || !validPassword(password) || code.length < 3 || code.length > 40 || age < 0 || age > 120) return fail("Dados de cadastro inválidos", 422);
   if (payload.consent !== true) return fail("É necessário aceitar os termos de uso do piloto", 422);
   const consentVersion = string(payload.consent_version) || "pilot-v1";
   const consentRole = string(payload.consent_role) || "student";
   if (consentVersion !== "pilot-v1") return fail("A versão dos termos não é mais válida. Atualize a página e tente novamente.", 422);
   if (consentRole !== "student") return fail("O perfil do termo aceito não corresponde a este cadastro.", 422);
+  const isChild = age < CHILD_AGE_LIMIT;
+  if (isChild && (payload.guardian_consent !== true || guardianName.length < 2 || !guardianEmail || guardianEmail === address)) return fail("Crianças precisam de autorização de um responsável legal antes de acessar o Acolhe.", 422);
   const store = db(env), institution = await store.findOne("institutions", { code, active: { $ne: false } });
   if (!institution) return fail("Código de instituição não encontrado", 404);
   if (await store.findOne("users", { email: address }, { id: 1 })) return fail("Este e-mail já possui conta", 409);
-  const user = { id: id(), name, email: address, password_hash: await hashPassword(password as string), role: "student", institution_id: institution.id, active: true, session_version: 0, consent_role: consentRole, consent_version: consentVersion, consent_accepted_at: now(), created_at: now() };
+  const user = { id: id(), name, email: address, password_hash: await hashPassword(password as string), role: "student", institution_id: institution.id, active: !isChild, session_version: 0, consent_role: consentRole, consent_version: consentVersion, consent_accepted_at: now(), birth_date: birthDate, age_band: isChild ? "child" : age < 18 ? "adolescent" : "adult", guardian_name: isChild ? guardianName : null, guardian_email: isChild ? guardianEmail : null, guardian_consent_at: isChild ? now() : null, guardian_review_status: isChild ? "pending_institution_review" : null, created_at: now() };
   const student = { id: id(), user_id: user.id, institution_id: institution.id, created_at: now(), last_access: null };
   try {
     await store.insert("users", user);
@@ -356,6 +381,11 @@ async function register(request: Request, env: Env) {
     return fail("Não foi possível concluir o cadastro. Tente novamente.", 503);
   }
   await logEvent(env, "student_registered", user, institution.id);
+  if (isChild) {
+    await notifyInstitutionManagers(env, store, institution.id, "minor_registration_review", "Cadastro de criança aguardando validação", "Uma criança solicitou acesso ao Acolhe. Valide o responsável legal conforme a política da instituição antes de liberar o acesso.", { user_id: user.id });
+    await sendNotificationEmail(env, address, "Cadastro recebido no Acolhe", "Seu cadastro foi recebido e aguarda a validação da instituição e do responsável legal antes de liberar o acesso.");
+    return json({ pending_guardian: true, message: "Cadastro recebido. A instituição precisa validar o responsável legal antes de liberar o acesso." }, 202);
+  }
   await sendNotificationEmail(env, address, "Cadastro concluído no Acolhe", `Sua conta de estudante foi criada e já está ativa na instituição ${institution.name}.`);
   const accessToken = await createAccessToken({ sub: user.id, email: address, role: "student", session_version: 0 }, env.JWT_SECRET);
   return json({ user: publicUser(user), institution: publicInstitution(institution) }, 200, cookie(accessToken));
@@ -832,6 +862,10 @@ async function professionalRoutes(request: Request, env: Env, pathname: string):
       if (await store.update("availability", { id: slot.id, professional_id: professional.id, status: "open" }, { $set: { status: "reserved" } }) === 0) return fail("Este horário acabou de ser reservado", 409);
     } else {
       if (!validDate(proposedDate) || !validTime(proposedTime) || proposedDate < today || (proposedDate === today && proposedTime <= currentTime)) return fail("Escolha uma data e hora futuras.", 422);
+      // A direct proposal still becomes a real capacity record, so utilization
+      // metrics and conflict checks remain aligned with scheduled meetings.
+      const generatedSlot = { id: id(), professional_id: professional.id, institution_id: professional.institution_id, date: proposedDate, time: proposedTime, mode: record.meeting_mode === "presencial" ? "presencial" : "online", location: null, status: "reserved", source: "direct_request", created_at: now() };
+      try { await store.insert("availability", generatedSlot); slot = generatedSlot; } catch { return fail("Não foi possível reservar essa capacidade. Tente novamente.", 503); }
     }
     const date = slot?.date || proposedDate;
     const time = slot?.time || proposedTime;
@@ -920,7 +954,7 @@ async function institutionMetrics(env: Env, institutionId: string) {
   const openSlots = availability.filter((slot) => slot.status === "open").length;
   const reservedSlots = availability.filter((slot) => slot.status === "reserved").length;
   const capacityTotal = openSlots + reservedSlots;
-  return { students_registered: students.length, students_accessed: students.filter((student) => student.last_access).length, students_active_30d: students.filter((student) => student.last_access && String(student.last_access) >= cutoff).length, students_requested: requestingStudents.size, requests_total: allRequests.length, requests_pending: allRequests.filter((record) => record.status === "pending").length, requests_due_soon: pendingDueSoon, requests_overdue: pendingOverdue, requests_proposed: appointmentRequests.filter((record) => record.status === "proposed").length, requests_scheduled: scheduledSessions.length, requests_cancelled: allRequests.filter((record) => record.status === "cancelled").length, requests_declined: allRequests.filter((record) => record.status === "declined").length, response_time_minutes_avg: responseTimeMinutes, response_sample_size: responseSamples.length, responses_within_48h: responseSamples.length >= 5 ? Math.round((responseSamples.filter((minutes) => minutes <= 48 * 60).length / responseSamples.length) * 100) : null, attendance_rate: attendanceRate, attendance_sample_size: attendanceSessions.length, sessions_scheduled: scheduledSessions.length, sessions_completed: sessions.filter((session) => session.status === "completed").length, sessions_no_show: sessions.filter((session) => session.status === "no_show").length, referrals_total: referrals.length, referrals_by_status: referralsByStatus, professionals_linked: professionals.length, professionals_accessed: professionals.filter((professional) => professional.last_access).length, capacity_open_slots: openSlots, capacity_reserved_slots: reservedSlots, capacity_total_slots: capacityTotal, capacity_utilization_percent: capacityTotal ? Math.round((reservedSlots / capacityTotal) * 100) : null, requests_by_month: Object.entries(byMonth).sort(([a], [b]) => a.localeCompare(b)).map(([month, count]) => ({ month, requests: count })), feedback_count: scores.length, feedback_average: scores.length ? Math.round((scores.reduce((a, b) => a + b, 0) / scores.length) * 100) / 100 : null, metrics_period_label: "Desde o início do piloto", period_start: periodStart, period_end: periodEnd, baseline_available: false, minimum_sample_size: 5, has_data: Boolean(allRequests.length || sessions.length), data_source: "pilot" };
+  return { students_registered: students.length, students_accessed: students.filter((student) => student.last_access).length, students_active_30d: students.filter((student) => student.last_access && String(student.last_access) >= cutoff).length, students_requested: requestingStudents.size, requests_total: allRequests.length, requests_pending: allRequests.filter((record) => record.status === "pending").length, requests_due_soon: pendingDueSoon, requests_overdue: pendingOverdue, requests_proposed: appointmentRequests.filter((record) => record.status === "proposed").length, requests_scheduled: scheduledSessions.length, requests_cancelled: allRequests.filter((record) => record.status === "cancelled").length, requests_declined: allRequests.filter((record) => record.status === "declined").length, response_time_minutes_avg: responseTimeMinutes, response_sample_size: responseSamples.length, responses_within_48h: responseSamples.length >= 5 ? Math.round((responseSamples.filter((minutes) => minutes <= 48 * 60).length / responseSamples.length) * 100) : null, attendance_rate: attendanceRate, attendance_sample_size: attendanceSessions.length, sessions_scheduled: scheduledSessions.length, sessions_completed: sessions.filter((session) => session.status === "completed").length, sessions_no_show: sessions.filter((session) => session.status === "no_show").length, referrals_total: referrals.length, referrals_by_status: referralsByStatus, professionals_linked: professionals.length, professionals_accessed: professionals.filter((professional) => professional.last_access).length, capacity_open_slots: openSlots, capacity_reserved_slots: reservedSlots, capacity_total_slots: capacityTotal, capacity_utilization_percent: capacityTotal ? Math.round((reservedSlots / capacityTotal) * 100) : null, requests_by_month: Object.entries(byMonth).sort(([a], [b]) => a.localeCompare(b)).map(([month, count]) => ({ month, requests: count })), feedback_count: scores.length, feedback_average: scores.length >= 5 ? Math.round((scores.reduce((a, b) => a + b, 0) / scores.length) * 100) / 100 : null, metrics_period_label: "Desde o início do piloto", period_start: periodStart, period_end: periodEnd, baseline_available: false, minimum_sample_size: 5, has_data: Boolean(allRequests.length || sessions.length), data_source: "pilot" };
 }
 
 const impactMetricKeys = ["response_time_minutes_avg", "responses_within_48h", "attendance_rate", "capacity_utilization_percent", "requests_overdue", "referrals_total", "sessions_completed", "requests_total"] as const;
@@ -960,27 +994,6 @@ async function adminInstitutions(store: ReturnType<typeof db>, includeArchived =
     .map((institution) => ({ ...institution, active: institution.active !== false, students: studentsByInstitution.get(institution.id) || 0, professionals: professionalsByInstitution.get(institution.id) || 0 }));
 }
 
-async function repairKnownPilotInstitutionLink(store: ReturnType<typeof db>, env: Env, admin: Doc) {
-  const markerId = "repair-lucas-student-professional-institution-v1";
-  if (await store.findOne("events", { type: "data_repair", "meta.marker": markerId })) return;
-  const studentAccount = await store.findOne("users", { email: "luccasuper6@gmail.com", role: "student" }, { id: 1, institution_id: 1 });
-  const professionalAccount = await store.findOne("users", { email: "acolheiluminado@gmail.com", role: "professional" }, { id: 1, institution_id: 1 });
-  if (!studentAccount?.institution_id || !professionalAccount?.id || studentAccount.institution_id === professionalAccount.institution_id) return;
-  const professional = await store.findOne("professionals", { user_id: professionalAccount.id }, { id: 1, institution_id: 1 });
-  if (!professional) return;
-  const targetInstitutionId = String(studentAccount.institution_id);
-  await store.update("users", { id: professionalAccount.id }, { $set: { institution_id: targetInstitutionId } });
-  await store.update("professionals", { id: professional.id }, { $set: { institution_id: targetInstitutionId } });
-  const availability = await store.findMany("availability", { professional_id: professional.id }, { projection: { id: 1 }, limit: 500 });
-  for (const slot of availability) await store.update("availability", { id: slot.id }, { $set: { institution_id: targetInstitutionId } });
-  const requests = await store.findMany("requests", { professional_id: professional.id }, { projection: { id: 1 }, limit: 500 });
-  for (const record of requests) await store.update("requests", { id: record.id }, { $set: { institution_id: targetInstitutionId } });
-  const sessions = await store.findMany("sessions", { professional_id: professional.id }, { projection: { id: 1 }, limit: 500 });
-  for (const session of sessions) await store.update("sessions", { id: session.id }, { $set: { institution_id: targetInstitutionId } });
-  await logEvent(env, "data_repair", admin, targetInstitutionId, { marker: markerId, professional_id: professional.id });
-}
-
-
 async function globalMetrics(env: Env, store: ReturnType<typeof db>, institutions: Doc[]) {
   const [perInstitution, users, students, professionals, requests, appointmentRequests, sessions, referrals, events, pendingInvites] = await Promise.all([
     Promise.all(institutions.map(async (institution) => ({ institution: institution.name, code: institution.code, ...await institutionMetrics(env, institution.id) }))),
@@ -1019,7 +1032,17 @@ async function institutionRoutes(request: Request, env: Env, pathname: string): 
       store.findMany("appointment_requests", { institution_id: institution.id, status: "pending" }, { sort: { created_at: 1 }, limit: 100 }),
     ]);
     const fallbackRequests = [...overdueRequests, ...overdueAppointments].map((record) => ({ id: record.id, kind: overdueRequests.some((item) => item.id === record.id) ? "request" : "direct", created_at: record.created_at, ...requestFlowMeta(record) })).filter((record) => record.response_state === "overdue");
-    return json({ institution, metrics, impact_report: buildImpactReport(metrics, institution.impact_baseline || null), professionals, fallback_requests: fallbackRequests, certificates: certificates.map((certificate) => ({ id: certificate.id, code: certificate.code, title: certificate.title, professional_name: certificate.professional_name, completed_count: certificate.completed_count, issued_at: certificate.issued_at, status: certificate.status, revoked_at: certificate.revoked_at || null })) });
+    const minorRegistrations = await store.findMany("users", { institution_id: institution.id, role: "student", age_band: "child", guardian_review_status: "pending_institution_review" }, { projection: { id: 1, name: 1, guardian_name: 1, guardian_email: 1, created_at: 1 }, sort: { created_at: 1 }, limit: 100 });
+    return json({ institution, metrics, impact_report: buildImpactReport(metrics, institution.impact_baseline || null), professionals, minor_registrations: minorRegistrations, fallback_requests: fallbackRequests, certificates: certificates.map((certificate) => ({ id: certificate.id, code: certificate.code, title: certificate.title, professional_name: certificate.professional_name, completed_count: certificate.completed_count, issued_at: certificate.issued_at, status: certificate.status, revoked_at: certificate.revoked_at || null })) });
+  }
+  const minorApprovalId = pathParameter(pathname, "/api/institutions/me/minor-registrations/", "/approve");
+  if (minorApprovalId && request.method === "POST") {
+    const minor = await store.findOne("users", { id: minorApprovalId, institution_id: institution.id, role: "student", age_band: "child", guardian_review_status: "pending_institution_review" });
+    if (!minor) return fail("Cadastro infantil não encontrado ou já revisado", 404);
+    await store.update("users", { id: minorApprovalId, institution_id: institution.id }, { $set: { active: true, guardian_review_status: "approved", guardian_reviewed_at: now(), guardian_reviewed_by: user.id } });
+    await notifyUser(env, minorApprovalId, "minor_registration_approved", "Acesso liberado", "A instituição validou o cadastro do responsável. Você já pode entrar no Acolhe.");
+    await logEvent(env, "minor_registration_approved", user, institution.id, { student_user_id: minorApprovalId });
+    return json({ ok: true });
   }
   if (pathname === "/api/institutions/me/impact/baseline" && request.method === "POST") {
     const metrics = await institutionMetrics(env, institution.id);
@@ -1064,7 +1087,6 @@ async function adminRoutes(request: Request, env: Env, pathname: string): Promis
   if (adminNotificationId && request.method === "POST") { await store.update("notifications", { id: adminNotificationId, recipient_user_id: admin.id }, { $set: { read: true, read_at: now() } }); return json({ ok: true }); }
   const publicLead = (lead: Doc) => { const { manager_password_hash: _hidden, ...safeLead } = lead; return safeLead; };
   if (pathname === "/api/admin/dashboard" && request.method === "GET") {
-    await repairKnownPilotInstitutionLink(store, env, admin);
     const institutionsPromise = adminInstitutions(store, true);
     const [users, requests, appointmentRequests, leads, institutions, certificates] = await Promise.all([
       store.findMany("users", {}, { projection: { password_hash: 0, invite_token: 0, invite_expires_at: 0, session_version: 0 }, sort: { created_at: -1 }, limit: 500 }),

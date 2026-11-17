@@ -9,6 +9,7 @@ export default function InstitutionArea() {
   const [professionals, setProfessionals] = useState([]);
   const [certificates, setCertificates] = useState([]);
   const [fallbackRequests, setFallbackRequests] = useState([]);
+  const [minorRegistrations, setMinorRegistrations] = useState([]);
   const [impactReport, setImpactReport] = useState(null);
   const [institution, setInstitution] = useState(null);
   const [invite, setInvite] = useState({ name: "", email: "", link_type: "institution", specialty: "" });
@@ -28,7 +29,7 @@ export default function InstitutionArea() {
     try {
       const { data } = await api.get("/institutions/me/dashboard");
       if (requestId !== loadRequestRef.current) return;
-      setMetrics(data.metrics); setImpactReport(data.impact_report || null); setProfessionals(data.professionals || []); setCertificates(data.certificates || []); setFallbackRequests(data.fallback_requests || []); setInstitution(data.institution);
+      setMetrics(data.metrics); setImpactReport(data.impact_report || null); setProfessionals(data.professionals || []); setCertificates(data.certificates || []); setFallbackRequests(data.fallback_requests || []); setMinorRegistrations(data.minor_registrations || []); setInstitution(data.institution);
       setProfile({ name: data.institution?.name || "", contact_email: data.institution?.contact_email || "", support_note: data.institution?.support_note || "" });
       setLoadError("");
     } catch (error) {
@@ -93,6 +94,13 @@ export default function InstitutionArea() {
     catch (err) { toast.error(apiError(err)); }
     finally { mutationBusyRef.current = false; setFallbackBusy(null); }
   };
+  const approveMinor = async userId => {
+    if (mutationBusyRef.current) return;
+    mutationBusyRef.current = true;
+    try { await api.post(`/institutions/me/minor-registrations/${encodeURIComponent(userId)}/approve`, {}); toast.success("Cadastro infantil liberado após validação."); await load(); }
+    catch (err) { toast.error(apiError(err)); }
+    finally { mutationBusyRef.current = false; }
+  };
   const captureBaseline = async () => {
     if (baselineBusy || mutationBusyRef.current) return;
     mutationBusyRef.current = true;
@@ -141,6 +149,10 @@ export default function InstitutionArea() {
           <div><span className={linkedProfessionals ? "ready" : "pending"}>{linkedProfessionals ? "Ativo" : "Atenção"}</span><strong>Pedidos de estudantes</strong><small>{linkedProfessionals ? "Estudantes podem escolher um profissional e enviar um pedido." : "Vincule um profissional para liberar os pedidos."}</small></div>
         </div>
       </MvpCard>
+
+      {minorRegistrations.length > 0 && <MvpCard title="Cadastros infantis para validar" subtitle="Confirme o responsável legal conforme a política da instituição antes de liberar o acesso." testid="inst-minor-review-card">
+        {minorRegistrations.map(item => <div className="mvp-row" key={item.id}><div className="mvp-row-main"><strong>{item.name}</strong><span>Responsável informado: {item.guardian_name} · {item.guardian_email}</span><small>Recebido em {formatDate(item.created_at)}</small></div><button type="button" className="button small primary" onClick={() => approveMinor(item.id)}>Liberar acesso</button></div>)}
+      </MvpCard>}
 
       <MvpCard title="Guia rápido do piloto" subtitle="Veja o passo a passo da configuração, privacidade e operação." testid="inst-onboarding-card" className="institution-onboarding-card">
         <p>Use este roteiro para preparar a equipe em um dia, sem depender de suporte a cada ação.</p>

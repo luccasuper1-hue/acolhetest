@@ -19,7 +19,7 @@ Ambiente: `acolhetest.luccasuper1.workers.dev`
 - O chat aparece para aluno e profissional.
 - O histórico do aluno preserva conversas anteriores canceladas.
 - O profissional consegue continuar vendo disponibilidade e próximos encontros no mesmo painel.
-- Propostas individuais não dependem mais de uma disponibilidade geral publicada.
+- Propostas diretas agora geram/reservam um registro de capacidade antes de serem enviadas, mantendo os indicadores alinhados.
 - A interface impede novo pedido enquanto o estudante possui atendimento ativo.
 
 ## Histórico da auditoria e estado atual

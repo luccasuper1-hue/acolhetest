@@ -5,6 +5,7 @@ Executar com instituição e contas de teste, sem dados clínicos reais.
 - [ ] Criar instituição e confirmar código.
 - [ ] Convidar profissional e ativar convite.
 - [ ] Criar/vincular estudante com consentimento `pilot-v1`.
+- [ ] Para criança de teste, bloquear o acesso, validar responsável e liberar pela instituição; para adolescente, concluir cadastro normal.
 - [ ] Profissional publicar horário ou receber pedido direto.
 - [ ] Estudante enviar pedido.
 - [ ] Profissional propor horário.

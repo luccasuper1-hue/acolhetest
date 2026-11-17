@@ -8,8 +8,10 @@ import { apiError } from "./api";
 export default function RegisterPage() {
   const { signUp } = useMvpAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name: "", email: "", password: "", institution_code: "" });
+  const [form, setForm] = useState({ name: "", email: "", password: "", institution_code: "", birth_date: "", guardian_name: "", guardian_email: "" });
   const [consent, setConsent] = useState(false);
+  const [guardianConsent, setGuardianConsent] = useState(false);
+  const [pendingMessage, setPendingMessage] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const set = k => e => setForm(prev => ({ ...prev, [k]: e.target.value }));
@@ -18,7 +20,8 @@ export default function RegisterPage() {
     e.preventDefault();
     setBusy(true); setError("");
     try {
-      await signUp({ ...form, institution_code: form.institution_code.toUpperCase().trim(), consent, consent_role: "student", consent_version: "pilot-v1" });
+      const result = await signUp({ ...form, institution_code: form.institution_code.toUpperCase().trim(), consent, consent_role: "student", consent_version: "pilot-v1", guardian_consent: guardianConsent });
+      if (result?.pending_guardian) { setPendingMessage(result.message); return; }
       navigate("/aluno", { replace: true });
     } catch (err) {
       setError(apiError(err));
@@ -47,6 +50,13 @@ export default function RegisterPage() {
           <label>Código da instituição
             <input required value={form.institution_code} onChange={set("institution_code")} placeholder="Ex.: PILOTO2026" data-testid="register-code-input" />
           </label>
+          <label>Data de nascimento
+            <input type="date" required value={form.birth_date} onChange={set("birth_date")} data-testid="register-birth-date-input" />
+          </label>
+          {form.birth_date && (() => {
+            const today = new Date(); const birth = new Date(`${form.birth_date}T00:00:00`); let age = today.getFullYear() - birth.getFullYear(); if (today < new Date(today.getFullYear(), birth.getMonth(), birth.getDate())) age -= 1;
+            return age < 12 ? <div className="mvp-consent" data-testid="register-guardian-box"><p><ShieldCheck size={14} /> Crianças precisam de validação de um responsável legal e da instituição antes de acessar o Acolhe.</p><label>Nome do responsável<input required value={form.guardian_name} onChange={set("guardian_name")} data-testid="register-guardian-name-input" /></label><label>E-mail do responsável<input type="email" required value={form.guardian_email} onChange={set("guardian_email")} data-testid="register-guardian-email-input" /></label><label className="mvp-check"><input type="checkbox" checked={guardianConsent} onChange={e => setGuardianConsent(e.target.checked)} data-testid="register-guardian-consent-checkbox" /><span>Sou responsável legal e autorizo o envio deste cadastro para validação.</span></label></div> : null;
+          })()}
           <div className="mvp-consent" data-testid="register-consent-box">
             <p>
               <ShieldCheck size={14} /> Este é um <strong>piloto em validação</strong>. Estudantes podem ser menores de idade e
@@ -66,6 +76,7 @@ export default function RegisterPage() {
               </Link>
             )}
           </div>}
+          {pendingMessage && <div className="mvp-ok" role="status" aria-live="polite" data-testid="register-pending-message">{pendingMessage}</div>}
           <button type="submit" className="button primary full" disabled={busy || !consent} data-testid="register-submit-button">
             {busy ? "Criando…" : "Criar conta"} <ArrowRight size={16} />
           </button>

@@ -41,6 +41,7 @@ export function MvpAuthProvider({ children }) {
 
   const signUp = useCallback(async payload => {
     const { data } = await api.post("/auth/register", payload);
+    if (data?.pending_guardian) return data;
     setAccount({ user: data.user, institution: data.institution || null });
     setChecking(false);
     return data.user;

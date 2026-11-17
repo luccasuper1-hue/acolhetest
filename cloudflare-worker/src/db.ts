@@ -165,6 +165,9 @@ export class MongoGateway extends DurableObject<Env> {
             await database.collection("feedback").deleteMany(filter, { session });
             await database.collection("session_messages").deleteMany(filter, { session });
           }
+          // Also remove messages authored by the account in case a legacy
+          // session record is missing or was already archived.
+          await database.collection("session_messages").deleteMany({ sender_user_id: userId }, { session });
           if (user.role === "professional") {
             await database.collection("availability").deleteMany({ professional_id: profile.id }, { session });
           }

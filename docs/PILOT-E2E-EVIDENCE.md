@@ -10,7 +10,7 @@ Este registro deve ser preenchido durante um teste controlado com contas de test
 - Versão do Worker:
 - Responsável pelo teste:
 - Contas usadas (IDs, nunca senhas):
-- Resultado geral: `pendente`
+- Resultado geral: `pendente` (o código e o roteiro estão prontos; a execução com contas de staging ainda precisa ser registrada)
 
 ## Regra de resposta do piloto
 
@@ -22,7 +22,7 @@ O prazo começa em `created_at` e corresponde a 48 horas corridas, inclusive fin
 | --- | --- | --- | --- |
 | Cadastro e código da instituição | pendente |  |  |
 | Convite e ativação do profissional | pendente |  |  |
-| Cadastro do estudante e consentimento `pilot-v1` | pendente |  |  |
+| Cadastro do estudante, consentimento `pilot-v1` e regra de idade | pendente |  | Criança bloqueada até validação; adolescente segue fluxo normal |
 | Pedido, proposta e confirmação | pendente |  |  |
 | Atualização dos dois painéis/notificações | pendente |  |  |
 | Mensagem realtime ou fallback | pendente |  |  |
