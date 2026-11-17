@@ -243,8 +243,29 @@ export class MongoGateway extends DurableObject<Env> {
     });
   }
 
+  /** Claims an already published slot after rechecking all overlapping capacity. */
+  async reservePublishedCapacity(slotId: string, professionalId: string): Promise<boolean> {
+    return this.ctx.blockConcurrencyWhile(async () => {
+      const database = await this.db();
+      const session = this.client.startSession();
+      try {
+        return await session.withTransaction(async () => {
+          const slots = database.collection<RecordDoc>("availability");
+          const slot = await slots.findOne({ id: slotId, professional_id: professionalId, status: "open" }, { projection: { _id: 0 }, session });
+          if (!slot) return false;
+          const duration = durationMinutes(slot);
+          const availability = await slots.find({ professional_id: professionalId, date: slot.date, status: { $in: ["open", "reserved"] }, id: { $ne: slotId } }, { projection: { _id: 0, date: 1, time: 1, duration_minutes: 1 }, session }).toArray();
+          const sessions = await database.collection<RecordDoc>("sessions").find({ professional_id: professionalId, date: slot.date, status: "scheduled" }, { projection: { _id: 0, date: 1, time: 1, duration_minutes: 1 }, session }).toArray();
+          const proposals = await database.collection<RecordDoc>("appointment_requests").find({ professional_id: professionalId, date: slot.date, status: { $in: ["proposed", "accepted"] }, availability_id: { $ne: slotId } }, { projection: { _id: 0, date: 1, time: 1, duration_minutes: 1 }, session }).toArray();
+          if ([...availability, ...sessions, ...proposals].some(record => overlaps(String(slot.date), String(slot.time), duration, record))) return false;
+          return (await slots.updateOne({ id: slotId, professional_id: professionalId, status: "open" }, { $set: { status: "reserved" } }, { session })).modifiedCount === 1;
+        }, { readConcern: { level: "snapshot" }, writeConcern: { w: "majority" } });
+      } finally { await session.endSession(); }
+    });
+  }
+
   /** Approves a child account and its audit event in one Atlas transaction. */
-  async approveMinorRegistration(userId: string, institutionId: string, actorId: string): Promise<boolean> {
+  async approveMinorRegistration(userId: string, institutionId: string, actorId: string, validationMethod: string): Promise<boolean> {
     return this.ctx.blockConcurrencyWhile(async () => {
       const database = await this.db();
       const session = this.client.startSession();
@@ -256,7 +277,7 @@ export class MongoGateway extends DurableObject<Env> {
             { session },
           );
           if (!result.modifiedCount) return false;
-          await database.collection<RecordDoc>("events").insertOne({ id: crypto.randomUUID(), type: "minor_registration_approved", user_id: actorId, role: "institution", institution_id: institutionId, meta: { student_user_id: userId }, created_at: new Date().toISOString() }, { session });
+          await database.collection<RecordDoc>("events").insertOne({ id: crypto.randomUUID(), type: "minor_registration_approved", user_id: actorId, role: "institution", institution_id: institutionId, meta: { student_user_id: userId, validation_method: validationMethod }, created_at: new Date().toISOString() }, { session });
           return true;
         }, { readConcern: { level: "snapshot" }, writeConcern: { w: "majority" } });
       } finally { await session.endSession(); }
@@ -264,7 +285,7 @@ export class MongoGateway extends DurableObject<Env> {
   }
 }
 
-export type Mongo = Pick<MongoGateway, "findOne" | "findMany" | "insert" | "update" | "updateMany" | "remove" | "deleteAccount" | "count" | "distinct" | "findOneAndUpdate" | "reserveCapacity" | "approveMinorRegistration">;
+export type Mongo = Pick<MongoGateway, "findOne" | "findMany" | "insert" | "update" | "updateMany" | "remove" | "deleteAccount" | "count" | "distinct" | "findOneAndUpdate" | "reserveCapacity" | "reservePublishedCapacity" | "approveMinorRegistration">;
 
 export function gateway(env: Env): Mongo {
   return env.MONGO_GATEWAY.get(env.MONGO_GATEWAY.idFromName("acolhe-mongodb")) as unknown as Mongo;

@@ -3,7 +3,7 @@
 Data: 14/11/2026  
 Ambiente: `acolhetest.luccasuper1.workers.dev`
 
-Última revalidação operacional: 17/11/2026 · Worker `3ccc7118-9954-407f-b7ca-a4b5b0ed524d` · suíte frontend: 108 testes aprovados.
+Última revalidação operacional: 17/11/2026 · Worker `3a52e214-402c-4100-8bb2-5d13b7336506` · suíte frontend: 112 testes aprovados.
 
 ## Cobertura executada
 
@@ -71,8 +71,8 @@ Os itens de código listados na auditoria inicial estão corrigidos no estado at
 
 ## Status desta rodada
 
-Esta auditoria inicial foi superada pelas revalidações posteriores. O estado publicado atual é o Worker `3ccc7118-9954-407f-b7ca-a4b5b0ed524d`, com 108 testes frontend aprovados.
+Esta auditoria inicial foi superada pelas revalidações posteriores. O estado publicado atual é o Worker `3a52e214-402c-4100-8bb2-5d13b7336506`, com 112 testes frontend aprovados.
 
 ## Revalidação posterior
 
-Em 17/11/2026, a revalidação atual passou com 108 testes e o Worker foi publicado na versão `3ccc7118-9954-407f-b7ca-a4b5b0ed524d`. Ela também confirmou o bloqueio de rolagem compartilhado e idempotente nos overlays; os itens externos de staging continuam pendentes conforme a seção de limitações.
+Em 17/11/2026, a revalidação atual passou com 112 testes e o Worker foi publicado na versão `3a52e214-402c-4100-8bb2-5d13b7336506`. Ela também confirmou a proteção atômica contra sobreposição de capacidade, a aprovação infantil transacional e o bloqueio de rolagem compartilhado e idempotente nos overlays; os itens externos de staging continuam pendentes conforme a seção de limitações.

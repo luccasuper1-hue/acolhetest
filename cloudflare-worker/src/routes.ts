@@ -12,13 +12,13 @@ const MAX_LOGIN_ATTEMPTS = 5;
 const LOCK_MINUTES = 15;
 const RESPONSE_WINDOW_MS = 48 * 60 * 60 * 1000;
 const CHILD_AGE_LIMIT = 12;
+const APP_TIME_ZONE = "America/Fortaleza";
 
 const pathParameter = (pathname: string, prefix: string, suffix = "") => pathname.startsWith(prefix) && pathname.endsWith(suffix) ? decodeURIComponent(pathname.slice(prefix.length, suffix ? -suffix.length : undefined)) : undefined;
 const isoAfter = (hoursOrDays: number, kind: "hours" | "days") => new Date(Date.now() + hoursOrDays * (kind === "hours" ? 3_600_000 : 86_400_000)).toISOString();
 const minutesFromNow = (minutes: number) => new Date(Date.now() + minutes * 60_000).toISOString();
 const hoursAgo = (hours: number) => new Date(Date.now() - hours * 3_600_000).toISOString();
 const validPassword = (value: unknown) => typeof value === "string" && value.length >= 8 && value.length <= 128;
-const APP_TIME_ZONE = "America/Fortaleza";
 const localScheduleParts = () => Object.fromEntries(new Intl.DateTimeFormat("en-CA", { timeZone: APP_TIME_ZONE, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(new Date()).filter(part => part.type !== "literal").map(part => [part.type, part.value]));
 const localToday = () => { const parts = localScheduleParts(); return `${parts.year}-${parts.month}-${parts.day}`; };
 const localCurrentTime = () => { const parts = localScheduleParts(); return `${parts.hour}:${parts.minute}`; };
@@ -29,9 +29,11 @@ const validDateShape = (value: unknown) => {
   return !Number.isNaN(parsed.valueOf()) && parsed.toISOString().slice(0, 10) === value;
 };
 const ageOnDate = (birthDate: string) => {
-  const birth = new Date(`${birthDate}T00:00:00Z`), today = new Date();
-  let age = today.getUTCFullYear() - birth.getUTCFullYear();
-  const birthdayPassed = today.getUTCMonth() > birth.getUTCMonth() || (today.getUTCMonth() === birth.getUTCMonth() && today.getUTCDate() >= birth.getUTCDate());
+  const [birthYear, birthMonth, birthDay] = birthDate.split("-").map(Number);
+  const todayParts = Object.fromEntries(new Intl.DateTimeFormat("en-CA", { timeZone: APP_TIME_ZONE, year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date()).filter(part => part.type !== "literal").map(part => [part.type, part.value]));
+  const todayYear = Number(todayParts.year), todayMonth = Number(todayParts.month), todayDay = Number(todayParts.day);
+  let age = todayYear - birthYear;
+  const birthdayPassed = todayMonth > birthMonth || (todayMonth === birthMonth && todayDay >= birthDay);
   if (!birthdayPassed) age -= 1;
   return age;
 };
@@ -648,7 +650,7 @@ async function studentRoutes(request: Request, env: Env, pathname: string): Prom
     if (requestedMode === "presencial" && !slot.location) return fail("O local presencial ainda não foi configurado", 409);
     if (requestedMode === "presencial" && professional?.link_type !== "institution") return fail("Atendimento presencial disponível apenas com profissional da instituição", 409);
     if (requestedMode === "online" && slotMode === "presencial") return fail("Este horário é presencial", 409);
-    if (await store.update("availability", { id: slot.id, status: "open" }, { $set: { status: "reserved" } }) === 0) return fail("Este horário acabou de ser reservado. Escolha outro.", 409);
+    if (!await store.reservePublishedCapacity(slot.id, slot.professional_id)) return fail("Este horário acabou de ser reservado ou se sobrepõe a outro compromisso. Escolha outro.", 409);
     const record = { id: id(), student_id: student.id, professional_id: slot.professional_id, institution_id: student.institution_id, availability_id: slot.id, date: slot.date, time: slot.time, meeting_mode: requestedMode, meeting_location: requestedMode === "presencial" ? slot.location : null, reason_code: reason, reason_note: payload?.reason_note ? string(payload.reason_note) : null, status: "pending", created_at: now() };
     try { await store.insert("requests", record); } catch (error) { await store.update("availability", { id: slot.id, status: "reserved" }, { $set: { status: "open" } }); console.error("Request creation rolled back", error); return fail("Não foi possível criar a solicitação. Tente novamente.", 503); }
     if (professional?.user_id) await notifyUser(env, String(professional.user_id), "request_created", "Nova solicitação de conversa", `Há uma solicitação para ${record.date.split("-").reverse().join("/")} às ${record.time}.`, { request_id: record.id });
@@ -835,9 +837,8 @@ async function professionalRoutes(request: Request, env: Env, pathname: string):
       const generated = recurringAvailability(startDate, weekdays as number[], startTime, endTime, duration, weeks);
       const today = localToday(), currentTime = localCurrentTime();
       if (!generated.length || generated.length > 200 || generated.some((slot) => slot.date < today || (slot.date === today && slot.time <= currentTime))) return fail("A disponibilidade precisa começar no futuro.", 422);
-      const existing = await store.findMany("availability", { professional_id: professional.id, date: { $in: [...new Set(generated.map((slot) => slot.date))] }, time: { $in: [...new Set(generated.map((slot) => slot.time))] } }, { projection: { date: 1, time: 1 }, limit: 500 });
-      const existingKeys = new Set(existing.map((slot) => `${slot.date}|${slot.time}`));
-      if (generated.some((slot) => existingKeys.has(`${slot.date}|${slot.time}`))) return fail("Já existe disponibilidade publicada em parte desse período.", 409);
+      const existing = await store.findMany("availability", { professional_id: professional.id, date: { $in: [...new Set(generated.map((slot) => slot.date))] }, status: { $in: ["open", "reserved"] } }, { projection: { date: 1, time: 1, duration_minutes: 1 }, limit: 500 });
+      if (generated.some((slot) => existing.some((current) => intervalsOverlap(slot.date, slot.time, duration, current)))) return fail("Já existe disponibilidade publicada em parte desse período.", 409);
       const created: Doc[] = [];
       try {
         for (const slotData of generated) {
@@ -881,7 +882,7 @@ async function professionalRoutes(request: Request, env: Env, pathname: string):
       if (slot.status !== "open") return fail("Este horário acabou de ser reservado. Atualize sua agenda e escolha outro.", 409);
       if (!validDate(slot.date) || !validTime(slot.time) || slot.date < today || (slot.date === today && slot.time <= currentTime)) return fail("Este horário já passou. Escolha uma nova disponibilidade.", 409);
       if (record.meeting_mode === "presencial" && slot.mode === "online") return fail("O pedido exige um horário presencial", 409);
-      if (await store.update("availability", { id: slot.id, professional_id: professional.id, status: "open" }, { $set: { status: "reserved" } }) === 0) return fail("Este horário acabou de ser reservado", 409);
+      if (!await store.reservePublishedCapacity(slot.id, professional.id)) return fail("Este horário acabou de ser reservado ou se sobrepõe a outro compromisso", 409);
     } else {
       if (!validDate(proposedDate) || !validTime(proposedTime) || proposedDate < today || (proposedDate === today && proposedTime <= currentTime)) return fail("Escolha uma data e hora futuras.", 422);
       // A direct proposal still becomes a real capacity record, so utilization
@@ -1066,9 +1067,11 @@ async function institutionRoutes(request: Request, env: Env, pathname: string): 
   }
   const minorApprovalId = pathParameter(pathname, "/api/institutions/me/minor-registrations/", "/approve");
   if (minorApprovalId && request.method === "POST") {
+    const payload = await requestBody(request);
+    const validationMethod = oneOf(payload?.validation_method, ["manual_guardian_confirmation", "document_review", "institution_record"]) ? string(payload?.validation_method) : "manual_guardian_confirmation";
     const minor = await store.findOne("users", { id: minorApprovalId, institution_id: institution.id, role: "student", age_band: "child", guardian_review_status: "pending_institution_review" });
     if (!minor) return fail("Cadastro infantil não encontrado ou já revisado", 404);
-    try { if (!await store.approveMinorRegistration(minorApprovalId, institution.id, user.id)) return fail("Cadastro infantil já foi revisado ou não pertence a esta instituição", 409); }
+    try { if (!await store.approveMinorRegistration(minorApprovalId, institution.id, user.id, validationMethod)) return fail("Cadastro infantil já foi revisado ou não pertence a esta instituição", 409); }
     catch { return fail("Não foi possível registrar a liberação com auditoria. Tente novamente.", 503); }
     await notifyUser(env, minorApprovalId, "minor_registration_approved", "Acesso liberado", "A instituição validou o cadastro do responsável. Você já pode entrar no Acolhe.");
     return json({ ok: true });

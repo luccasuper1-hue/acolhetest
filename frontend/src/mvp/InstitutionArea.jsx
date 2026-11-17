@@ -97,7 +97,7 @@ export default function InstitutionArea() {
   const approveMinor = async userId => {
     if (mutationBusyRef.current) return;
     mutationBusyRef.current = true;
-    try { await api.post(`/institutions/me/minor-registrations/${encodeURIComponent(userId)}/approve`, {}); toast.success("Cadastro infantil liberado após validação."); await load(); }
+    try { await api.post(`/institutions/me/minor-registrations/${encodeURIComponent(userId)}/approve`, { validation_method: "manual_guardian_confirmation" }); toast.success("Cadastro infantil liberado após validação."); await load(); }
     catch (err) { toast.error(apiError(err)); }
     finally { mutationBusyRef.current = false; }
   };
