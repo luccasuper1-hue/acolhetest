@@ -72,4 +72,4 @@ As nove melhorias foram implementadas e publicadas na versão `bcf13d6f-9ac8-402
 
 ## Revalidação posterior
 
-Em 17/11/2026, a suíte atual passou com 99 testes e o Worker foi publicado na versão `72c8792b-73b5-4424-8ea6-e59fc9829540`. Esta revalidação também confirmou o bloqueio de rolagem compartilhado e idempotente nos overlays; os itens externos de staging continuam pendentes conforme a seção de limitações.
+Em 17/11/2026, a suíte atual passou com 105 testes e o Worker foi publicado na versão `b7967cd7-fd6d-4c19-9954-670aa3c4dc45`. Esta revalidação também confirmou o bloqueio de rolagem compartilhado e idempotente nos overlays; os itens externos de staging continuam pendentes conforme a seção de limitações.
