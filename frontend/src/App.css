@@ -1740,3 +1740,4 @@ html[data-theme="dark"] .home-route .footer { background: #17111f; }
 /* O kicker do CTA usa texto claro no fundo roxo para manter contraste AA
    também no tema claro. */
 .cta-band .section-kicker { color: #fff; }
+.home-route .cta-inner .section-kicker { color: #fff; }
