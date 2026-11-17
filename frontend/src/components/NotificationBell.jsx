@@ -11,8 +11,12 @@ export const NotificationBell = () => {
   const [open, setOpen] = useState(false);
   const [read, setRead] = useState(false);
   const ref = useRef(null);
+  const buttonRef = useRef(null);
+  const wasOpen = useRef(false);
 
   useEffect(() => {
+    if (wasOpen.current && !open) buttonRef.current?.focus();
+    wasOpen.current = open;
     if (!open) return;
     const onDown = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
     const onKey = e => { if (e.key === "Escape") setOpen(false); };
@@ -23,12 +27,12 @@ export const NotificationBell = () => {
 
   return (
     <div className="notif" ref={ref}>
-      <button type="button" className="notif-button" onClick={() => setOpen(!open)} aria-label="Notificações" aria-expanded={open} data-testid="notifications-button">
+      <button ref={buttonRef} type="button" className="notif-button" onClick={() => setOpen(!open)} aria-label="Notificações" aria-expanded={open} aria-controls="notifications-panel" data-testid="notifications-button">
         <Bell size={17}/>
         {!read && <i className="notif-dot" aria-hidden="true"/>}
       </button>
       {open && (
-        <div className="notif-panel" role="dialog" aria-modal="false" aria-label="Notificações" data-testid="notifications-panel">
+        <div id="notifications-panel" className="notif-panel" role="dialog" aria-modal="false" aria-label="Notificações" data-testid="notifications-panel">
           <div className="notif-head">
             <span className="notif-title">Notificações</span>
             <span className="demo-label">DEMO</span>
