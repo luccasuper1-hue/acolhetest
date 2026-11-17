@@ -143,7 +143,7 @@ export const MvpShell = ({ title, kicker, lead, flow = [], flowStep = 0, childre
     if (!onRefresh || !user?.role) return;
     if (realtimeRefreshTimer.current) window.clearTimeout(realtimeRefreshTimer.current);
     realtimeRefreshTimer.current = window.setTimeout(() => {
-      Promise.resolve(onRefresh()).catch(() => setRefreshError("Os dados podem estar desatualizados. Tente atualizar novamente."));
+      Promise.resolve().then(() => onRefresh()).catch(() => setRefreshError("Os dados podem estar desatualizados. Tente atualizar novamente."));
       realtimeRefreshTimer.current = null;
     }, 100);
   }, [onRefresh, user?.role]);
@@ -180,7 +180,7 @@ export const MvpShell = ({ title, kicker, lead, flow = [], flowStep = 0, childre
   }, [onNotificationsChange, refreshAfterRealtimeLoss, refreshFromRealtime, user?.id]);
   useEffect(() => {
     if (!onRefresh || !user?.role) return undefined;
-    const refreshWhenVisible = () => { if (document.visibilityState === "visible") Promise.resolve(onRefresh()).then(() => setRefreshError("")).catch(() => setRefreshError("Os dados podem estar desatualizados. Tente atualizar novamente.")); };
+    const refreshWhenVisible = () => { if (document.visibilityState === "visible") Promise.resolve().then(() => onRefresh()).then(() => setRefreshError("")).catch(() => setRefreshError("Os dados podem estar desatualizados. Tente atualizar novamente.")); };
     const timer = window.setInterval(refreshWhenVisible, 300_000);
     document.addEventListener("visibilitychange", refreshWhenVisible);
     return () => { window.clearInterval(timer); document.removeEventListener("visibilitychange", refreshWhenVisible); };
@@ -299,7 +299,7 @@ export const MvpShell = ({ title, kicker, lead, flow = [], flowStep = 0, childre
             <span>{institution?.name || "Rede Acolhe"}</span>
           </div>}
         </div>
-        {(notificationError || refreshError) && <div className="mvp-sync-warning" role="status"><span>{notificationError || refreshError}</span><button type="button" onClick={() => { setNotificationError(""); setRefreshError(""); loadNotifications(); if (onRefresh) Promise.resolve(onRefresh()).catch(() => setRefreshError("Ainda não foi possível atualizar os dados.")); }}>Atualizar</button></div>}
+        {(notificationError || refreshError) && <div className="mvp-sync-warning" role="status"><span>{notificationError || refreshError}</span><button type="button" onClick={() => { setNotificationError(""); setRefreshError(""); loadNotifications(); if (onRefresh) Promise.resolve().then(() => onRefresh()).catch(() => setRefreshError("Ainda não foi possível atualizar os dados.")); }}>Atualizar</button></div>}
         {loading ? <MvpDashboardSkeleton role={user?.role} /> : error ? <MvpLoadError message={error} onRetry={onRetry} /> : <div className="mvp-workspace-content">{children}</div>}
         <PasswordChangeCard collapsed={collapsePassword} />
         {(user?.role === "student" || user?.role === "professional") && <ConversationLauncher conversations={conversations} unreadCount={unreadConversationCount} onOpenConversation={openConversation} renderConversation={renderConversation} />}

@@ -572,14 +572,19 @@ test("interactive notification surfaces import their React hooks", async () => {
 
 test("sync retry tolerates panels without a refresh callback", async () => {
   const shell = await readFile(resolve(root, "src/mvp/MvpShell.jsx"), "utf8");
-  assert.match(shell, /if \(onRefresh\) Promise\.resolve\(onRefresh\(\)\)\.catch/);
+  assert.match(shell, /if \(onRefresh\) Promise\.resolve\(\)\.then\(\(\) => onRefresh\(\)\)\.catch/);
   assert.doesNotMatch(shell, /onRefresh\?\.\(\)\.catch/);
 });
 
 test("background refresh tolerates synchronous refresh callbacks", async () => {
   const shell = await readFile(resolve(root, "src/mvp/MvpShell.jsx"), "utf8");
-  assert.match(shell, /Promise\.resolve\(onRefresh\(\)\)\.catch/);
-  assert.match(shell, /Promise\.resolve\(onRefresh\(\)\)\.then/);
+  assert.match(shell, /Promise\.resolve\(\)\.then\(\(\) => onRefresh\(\)\)\.catch/);
+  assert.match(shell, /Promise\.resolve\(\)\.then\(\(\) => onRefresh\(\)\)\.then/);
+});
+
+test("background refresh also catches synchronous callback throws", async () => {
+  const shell = await readFile(resolve(root, "src/mvp/MvpShell.jsx"), "utf8");
+  assert.match(shell, /Promise\.resolve\(\)\.then\(\(\) => onRefresh\(\)\)/);
 });
 
 test("student and professional action controls declare button type", async () => {
