@@ -576,6 +576,13 @@ test("command palette restores focus after closing", async () => {
   assert.match(command, /returnFocusRef\.current\.focus\(\{ preventScroll: true \}\)/);
 });
 
+test("corner quick access keeps keyboard focus inside its panel", async () => {
+  const app = await readFile(resolve(root, "src/App.js"), "utf8");
+  assert.match(app, /dialogRef\.current/);
+  assert.match(app, /dialog\.querySelectorAll\("a\[href\], button/);
+  assert.match(app, /aria-modal="false"/);
+});
+
 test("interactive notification surfaces import their React hooks", async () => {
   const command = await readFile(resolve(root, "src/components/CommandPalette.jsx"), "utf8");
   const bell = await readFile(resolve(root, "src/components/NotificationBell.jsx"), "utf8");

@@ -66,11 +66,27 @@ function CornerLogo() {
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [open]);
+  useEffect(() => {
+    if (!open) return undefined;
+    const dialog = dialogRef.current;
+    if (!dialog) return undefined;
+    const handleKeyDown = event => {
+      if (event.key !== "Tab") return;
+      const items = [...dialog.querySelectorAll("a[href], button:not([disabled]), input, select, textarea")];
+      if (!items.length) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    };
+    dialog.addEventListener("keydown", handleKeyDown);
+    return () => dialog.removeEventListener("keydown", handleKeyDown);
+  }, [open]);
   useEffect(() => setOpen(false), [location.pathname]);
   if (isHome) return null;
   const close = () => setOpen(false);
   return <div className={open ? "corner-quick open" : "corner-quick"} ref={panelRef}>
-    {open && <div ref={dialogRef} id="corner-quick-panel" className="corner-quick-panel" role="dialog" aria-labelledby="corner-quick-title" tabIndex="-1">
+    {open && <div ref={dialogRef} id="corner-quick-panel" className="corner-quick-panel" role="dialog" aria-modal="false" aria-labelledby="corner-quick-title" tabIndex="-1">
       <div id="corner-quick-title" className="corner-quick-title">Acesso rápido</div>
       <Link to="/" onClick={close} data-testid="corner-quick-home"><span>Voltar ao início</span><ArrowRight size={15}/></Link>
       <Link to="/como-funciona" onClick={close} data-testid="corner-quick-how"><span>Como funciona</span><ArrowRight size={15}/></Link>
