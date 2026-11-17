@@ -299,7 +299,7 @@ export const MvpShell = ({ title, kicker, lead, flow = [], flowStep = 0, childre
             <span>{institution?.name || "Rede Acolhe"}</span>
           </div>}
         </div>
-        {(notificationError || refreshError) && <div className="mvp-sync-warning" role="status"><span>{notificationError || refreshError}</span><button type="button" onClick={() => { setNotificationError(""); setRefreshError(""); loadNotifications(); onRefresh?.().catch(() => setRefreshError("Ainda não foi possível atualizar os dados.")); }}>Atualizar</button></div>}
+        {(notificationError || refreshError) && <div className="mvp-sync-warning" role="status"><span>{notificationError || refreshError}</span><button type="button" onClick={() => { setNotificationError(""); setRefreshError(""); loadNotifications(); if (onRefresh) Promise.resolve(onRefresh()).catch(() => setRefreshError("Ainda não foi possível atualizar os dados.")); }}>Atualizar</button></div>}
         {loading ? <MvpDashboardSkeleton role={user?.role} /> : error ? <MvpLoadError message={error} onRetry={onRetry} /> : <div className="mvp-workspace-content">{children}</div>}
         <PasswordChangeCard collapsed={collapsePassword} />
         {(user?.role === "student" || user?.role === "professional") && <ConversationLauncher conversations={conversations} unreadCount={unreadConversationCount} onOpenConversation={openConversation} renderConversation={renderConversation} />}

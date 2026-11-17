@@ -570,6 +570,12 @@ test("interactive notification surfaces import their React hooks", async () => {
   assert.match(bell, /role="dialog"/);
 });
 
+test("sync retry tolerates panels without a refresh callback", async () => {
+  const shell = await readFile(resolve(root, "src/mvp/MvpShell.jsx"), "utf8");
+  assert.match(shell, /if \(onRefresh\) Promise\.resolve\(onRefresh\(\)\)\.catch/);
+  assert.doesNotMatch(shell, /onRefresh\?\.\(\)\.catch/);
+});
+
 test("student and professional action controls declare button type", async () => {
   const studentSource = await readFile(resolve(root, "src/mvp/StudentArea.jsx"), "utf8");
   const professionalSource = await readFile(resolve(root, "src/mvp/ProfessionalArea.jsx"), "utf8");
