@@ -8,7 +8,7 @@ $output = [System.IO.Path]::GetFullPath($OutputPath)
 $staging = Join-Path ([System.IO.Path]::GetTempPath()) ("acolhe-release-" + [guid]::NewGuid().ToString("N"))
 $excludedDirectories = @(
   ".git", ".edge-shot", ".browser-profile", ".playwright", ".auth", ".wrangler",
-  "node_modules", "build", "dist", "coverage", ".cache", "__pycache__"
+  "node_modules", "build", "dist", "coverage", ".cache", "__pycache__", ".pytest_cache"
 )
 $excludedExtensions = @(".zip", ".tar", ".tar.gz", ".tgz", ".pyc", ".pyo", ".log")
 $excludedFileNames = @(".env", ".dev.vars", ".dev.vars.example", "credentials.json", "token.json")
