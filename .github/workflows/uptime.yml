@@ -20,7 +20,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          base="${ACOLHE_BASE_URL:-https://acolhetest.luccasuper1.workers.dev}"
+          test -n "${ACOLHE_BASE_URL:-}" || { echo "ACOLHE_BASE_URL is not configured" >&2; exit 1; }
+          base="$ACOLHE_BASE_URL"
           base="${base%/}"
           curl --fail --silent --show-error --location --max-time 20 "$base/" >/dev/null
           health="$(curl --fail --silent --show-error --location --max-time 20 "$base/api/health")"
