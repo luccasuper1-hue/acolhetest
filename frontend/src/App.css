@@ -1736,3 +1736,7 @@ html[data-theme="dark"] .home-route .footer { background: #17111f; }
 .bottom-nav { background: color-mix(in srgb, var(--surface) 92%, transparent); border-color: var(--line); }
 .bottom-nav a,
 .bottom-nav button { color: var(--muted); }
+
+/* O kicker do CTA usa texto claro no fundo roxo para manter contraste AA
+   também no tema claro. */
+.cta-band .section-kicker { color: #fff; }
