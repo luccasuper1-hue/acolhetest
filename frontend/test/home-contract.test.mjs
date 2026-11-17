@@ -148,12 +148,12 @@ test("protected areas redirect missing or mismatched roles", () => {
 });
 
 test("legacy beta paths are kept behind the MVP entry point", () => {
-  assert.match(app, /location\.pathname === "\/login-demo"/);
+  assert.match(app, /const isLegacyPath = location\.pathname === "\/login-demo"/);
   assert.match(app, /location\.pathname === "\/profissional-dashboard"/);
   assert.match(app, /location\.pathname === "\/instituicoes\/painel"/);
   assert.match(app, /location\.pathname === "\/app"/);
   assert.match(app, /location\.pathname\.startsWith\("\/app\/"\)/);
-  assert.match(app, /window\.location\.replace\("\/entrar"\)/);
+  assert.match(app, /if \(isLegacyPath\) return <Navigate to="\/entrar" replace \/>/);
 });
 
 test("informational CTAs do not promise the retired beta", () => {

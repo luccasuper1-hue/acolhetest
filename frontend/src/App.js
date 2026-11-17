@@ -315,10 +315,6 @@ const REVEAL_SELECTORS = ["main .section:not(.hero) > *", "main .section-heading
 
 function useScrollReveal() {
   const location = useLocation();
-  useEffect(() => {
-    const demoPath = location.pathname === "/login-demo" || location.pathname === "/profissional-dashboard" || location.pathname === "/instituicoes/painel" || location.pathname === "/app" || location.pathname.startsWith("/app/");
-    if (demoPath) window.location.replace("/entrar");
-  }, [location.pathname]);
   useLayoutEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const observer = new IntersectionObserver(entries => {
@@ -426,6 +422,7 @@ function AppRoutes() {
   const hasLeftHome = useRef(false);
   const [homeReturn, setHomeReturn] = useState(false);
   const isHome = location.pathname === "/";
+  const isLegacyPath = location.pathname === "/login-demo" || location.pathname === "/profissional-dashboard" || location.pathname === "/instituicoes/painel" || location.pathname === "/app" || location.pathname.startsWith("/app/");
 
   useLayoutEffect(() => {
     // Each route is a new screen: start it at the beginning instead of
@@ -463,6 +460,7 @@ function AppRoutes() {
   }, [isHome]);
 
   const homeClass = isHome ? ` home-route${homeReturn ? " home-return" : ""}` : "";
+  if (isLegacyPath) return <Navigate to="/entrar" replace />;
   return <div className={`route-fade${homeClass}`} key={location.pathname}><Routes><Route path="/" element={<HomeEntry/>}/><Route path="/login-demo" element={<DemoLogin/>}/><Route path="/entrar" element={<MvpLoginPage/>}/><Route path="/login" element={<Navigate to="/entrar" replace/>}/><Route path="/cadastro" element={<MvpRegisterPage/>}/><Route path="/convite/:token" element={<MvpInvitePage/>}/><Route path="/recuperar-senha" element={<MvpForgotPassword/>}/><Route path="/redefinir-senha" element={<MvpResetPassword/>}/><Route path="/validar-certificado/:code" element={<CertificateValidationPage/>}/><Route path="/aluno" element={<RequireRole role="student"><StudentArea/></RequireRole>}/><Route path="/profissional" element={<RequireRole role="professional"><ProfessionalArea/></RequireRole>}/><Route path="/instituicao" element={<RequireRole role="institution"><InstitutionArea/></RequireRole>}/><Route path="/admin" element={<RequireRole role="admin"><AdminArea/></RequireRole>}/><Route path="/profissional-dashboard" element={<ProfessionalDashboard/>}/><Route path="/como-funciona" element={<InfoPage type="como-funciona"/>}/><Route path="/para-estudantes" element={<InfoPage type="para-estudantes"/>}/><Route path="/profissionais" element={<InfoPage type="profissionais"/>}/><Route path="/instituicoes" element={<InfoPage type="instituicoes"/>}/><Route path="/privacidade" element={<InfoPage type="privacidade"/>}/><Route path="/ajuda" element={<HelpPage/>}/><Route path="/ajuda/instituicoes" element={<InstitutionOnboardingPage/>}/><Route path="/termos/estudante" element={<RoleTermsPage role="student"/>}/><Route path="/termos/profissional" element={<RoleTermsPage role="professional"/>}/><Route path="/termos/instituicao" element={<RoleTermsPage role="institution"/>}/><Route path="/preciso-ajuda" element={<EmergencyPage/>}/><Route path="/app" element={<AppHome/>}/><Route path="/app/assunto" element={<TopicPage/>}/><Route path="/app/profissionais" element={<ProfessionalsPage/>}/><Route path="/app/profissional/:id" element={<ProfilePage/>}/><Route path="/app/agendamento" element={<BookingPage/>}/><Route path="/app/pagamento" element={<PaymentPage/>}/><Route path="/app/confirmacao" element={<ConfirmationPage/>}/><Route path="/app/sessao" element={<SessionPage/>}/><Route path="/recursos" element={<ResourcesPage/>}/><Route path="/termos" element={<TermsPage/>}/><Route path="/instituicoes/painel" element={<InstitutionDashboard/>}/><Route path="/app/agenda" element={<AgendaPage/>}/><Route path="/app/jornada" element={<JourneyPage/>}/><Route path="/app/pos-conversa" element={<PostConversation/>}/><Route path="*" element={<NotFoundPage/>}/></Routes></div>;
 }
 export default function App() { useIntro(); useEffect(() => { document.title = "Acolhe — Um primeiro passo para cuidar de você"; const meta = document.querySelector('meta[name="description"]'); if (meta) meta.setAttribute("content", "Acolhe é uma proposta de plataforma que aproxima estudantes de profissionais de Psicologia de forma simples, acessível e virtual."); }, []); return <ThemeProvider><MvpAuthProvider><AuthProvider><BookingProvider><BrowserRouter><SkipLink/><AppRoutes/><CommandPalette/><Toaster position="bottom-right" gap={10} offset={26} toastOptions={{ className: "acolhe-toast", duration: 3200 }}/></BrowserRouter></BookingProvider></AuthProvider></MvpAuthProvider></ThemeProvider>; }
