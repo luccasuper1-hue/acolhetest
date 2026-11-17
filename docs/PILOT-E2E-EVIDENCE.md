@@ -29,4 +29,14 @@ Este registro deve ser preenchido durante um teste controlado com contas de test
 | Certificado emitido e validado | pendente |  |  |
 | Visibilidade institucional agregada | pendente |  |  |
 
+## Exercício de incidentes
+
+| Cenário | Resultado | Evidência |
+| --- | --- | --- |
+| Banco indisponível | validado por contrato; falta teste controlado em staging | `docs/INCIDENT-DRILL-RESULTS.md` |
+| Worker indisponível | parcialmente validado; alerta ainda precisa ser observado | `docs/INCIDENT-DRILL-RESULTS.md` |
+| E-mail indisponível | validado por contrato | `docs/INCIDENT-DRILL-RESULTS.md` |
+| Menor sem consentimento | pendente de regra jurídica e de produto | `docs/INCIDENT-DRILL-RESULTS.md` |
+| Restore em banco separado | pendente de credenciais, ferramenta e arquivo de backup | `docs/INCIDENT-DRILL-RESULTS.md` |
+
 Não registrar texto de conversa, senha, token ou dado clínico neste documento.
