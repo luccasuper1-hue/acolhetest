@@ -31,7 +31,7 @@ export const NotificationBell = () => {
 
   return (
     <div className="notif" ref={ref}>
-      <button ref={buttonRef} type="button" className="notif-button" onClick={() => setOpen(!open)} aria-label={read ? "Notificações" : "Notificações, há itens não lidos"} aria-expanded={open} aria-controls={panelId} data-testid="notifications-button">
+      <button ref={buttonRef} type="button" className="notif-button" onClick={() => setOpen(value => !value)} aria-label={read ? "Notificações" : "Notificações, há itens não lidos"} aria-expanded={open} aria-controls={panelId} data-testid="notifications-button">
         <Bell size={17}/>
         {!read && <i className="notif-dot" aria-hidden="true"/>}
       </button>
