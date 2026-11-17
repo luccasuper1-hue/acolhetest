@@ -717,6 +717,7 @@ test("expanded chat and notifications use the dynamic mobile viewport", async ()
   assert.match(css, /height: min\(576px, calc\(100dvh - 112px\)\)/);
   assert.match(css, /body:has\(\.mvp-conversation-window\) \{ overflow: hidden; \}/);
   assert.match(css, /overscroll-behavior: contain/);
+  assert.match(css, /\.mvp-conversation-panel \{[^}]*overscroll-behavior: contain/);
 });
 
 test("backend notification fan-out deduplicates recipients", async () => {
