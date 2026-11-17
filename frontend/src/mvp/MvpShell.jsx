@@ -376,7 +376,7 @@ function ConversationLauncher({ conversations, unreadCount, onOpenConversation, 
       </div> : <>
       <div className="mvp-conversation-panel-head">
         <div><strong>Mensagens</strong><small>Conversas confirmadas</small></div>
-        <button ref={conversationCloseRef} type="button" className="mvp-conversation-close" onClick={() => setOpen(false)} aria-label="Fechar mensagens"><X size={16} /></button>
+        <button ref={conversationCloseRef} type="button" className="mvp-conversation-close" onClick={() => { setOpen(false); setSelectedId(null); }} aria-label="Fechar mensagens"><X size={16} /></button>
       </div>
       {conversations.length ? conversations.map(item => <button type="button" className="mvp-conversation-item" key={item.id} onClick={() => { setSelectedId(item.id); onOpenConversation?.(item.id); }}>
         <span className="mvp-conversation-avatar"><MessageCircle size={16} /></span>

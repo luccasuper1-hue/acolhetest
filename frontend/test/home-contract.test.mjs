@@ -690,6 +690,11 @@ test("intentional hidden-tab realtime pauses do not trigger fallback polling", a
   assert.match(shell, /if \(status !== "error" && status !== "closed"\) return;[\s\S]*document\.visibilityState/);
 });
 
+test("closing the conversation list clears its selection so it can reopen", async () => {
+  const shell = await readFile(resolve(root, "src/mvp/MvpShell.jsx"), "utf8");
+  assert.match(shell, /onClick=\{\(\) => \{ setOpen\(false\); setSelectedId\(null\); \}\} aria-label="Fechar mensagens"/);
+});
+
 test("all dashboard loaders import the ref hook used for request ordering", async () => {
   const files = ["src/mvp/StudentArea.jsx", "src/mvp/ProfessionalArea.jsx", "src/mvp/InstitutionArea.jsx", "src/mvp/AdminArea.jsx"];
   for (const file of files) {
