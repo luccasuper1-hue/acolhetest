@@ -596,6 +596,15 @@ test("notification panel announces pagination loading", async () => {
   assert.match(shell, /aria-busy=\{notificationsLoading \|\| notificationPage\.loading\}/);
 });
 
+test("public assets receive a compatible content security policy", async () => {
+  const worker = await readFile(resolve(root, "../cloudflare-worker/src/index.ts"), "utf8");
+  assert.match(worker, /content-security-policy/);
+  assert.match(worker, /script-src 'self'/);
+  assert.match(worker, /connect-src 'self' wss:/);
+  assert.match(worker, /frame-ancestors 'none'/);
+  assert.match(worker, /env\.ASSETS\.fetch\(request\)/);
+});
+
 test("overlay panels move focus to their close actions", async () => {
   const shell = await readFile(resolve(root, "src/mvp/MvpShell.jsx"), "utf8");
   assert.match(shell, /notificationCloseRef\.current\?\.focus\(\)/);
