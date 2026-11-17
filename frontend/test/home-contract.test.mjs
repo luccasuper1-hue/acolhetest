@@ -15,6 +15,8 @@ const register = await readFile(resolve(root, "src/mvp/RegisterPage.jsx"), "utf8
 const certificateValidation = await readFile(resolve(root, "src/mvp/CertificateValidationPage.jsx"), "utf8");
 const admin = await readFile(resolve(root, "src/mvp/AdminArea.jsx"), "utf8");
 const frontendInstitution = await readFile(resolve(root, "src/mvp/InstitutionArea.jsx"), "utf8");
+const operations = await readFile(resolve(root, "..", "docs", "OPERATIONS.md"), "utf8");
+const pilotEvidence = await readFile(resolve(root, "..", "docs", "PILOT-E2E-EVIDENCE.md"), "utf8");
 const realtime = await readFile(resolve(root, "src/mvp/api.js"), "utf8");
 const routes = await readFile(resolve(root, "..", "cloudflare-worker", "src", "routes.ts"), "utf8");
 const core = await readFile(resolve(root, "..", "cloudflare-worker", "src", "core.ts"), "utf8");
@@ -466,4 +468,13 @@ test("dashboard refresh stays centralized in the MVP shell", () => {
   assert.doesNotMatch(student, /setInterval\(refreshWhenVisible, 300000\)/);
   assert.doesNotMatch(professional, /setInterval\(refreshWhenVisible, 300000\)/);
   assert.match(shell, /window\.setInterval\(refreshWhenVisible, 300_000\)/);
+});
+
+test("response SLA is framed as an operational pilot target", () => {
+  const disclaimer = /meta operacional do piloto, não uma garantia/;
+  assert.match(frontendInstitution, disclaimer);
+  assert.match(operations, disclaimer);
+  assert.match(pilotEvidence, disclaimer);
+  assert.match(operations, /48 horas corridas/);
+  assert.match(operations, /America\/Fortaleza/);
 });

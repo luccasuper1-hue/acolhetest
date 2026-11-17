@@ -31,3 +31,13 @@ Monitorar mensalmente requests do Worker, Durable Object, MongoDB, armazenamento
 ## Suporte
 
 Registrar horário, impacto, instituição, rota e versão publicada. Nunca pedir conteúdo de conversa, senha ou token em chamado operacional.
+
+## Prazo operacional de resposta
+
+- O prazo começa em `created_at` e corresponde a 48 horas corridas.
+- O relógio permanece ativo enquanto o pedido estiver com status `pending`, incluindo fins de semana e feriados.
+- O prazo termina quando o profissional aceita, recusa ou propõe um horário. Pedidos cancelados ou encerrados deixam de ser contabilizados como pendentes.
+- O banco registra timestamps em UTC; a interface exibe datas e horários em `America/Fortaleza`.
+- Os estados apresentados são `aguardando`, `prazo próximo` e `atrasado`.
+- A fila de apoio e qualquer redistribuição são manuais, dependem de consentimento e devem ser acionadas pela instituição ou por um responsável designado.
+- O prazo de 48 horas é uma meta operacional do piloto, não uma garantia de atendimento clínico, disponibilidade profissional ou resultado terapêutico.

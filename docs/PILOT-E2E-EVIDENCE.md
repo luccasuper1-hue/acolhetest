@@ -12,6 +12,10 @@ Este registro deve ser preenchido durante um teste controlado com contas de test
 - Contas usadas (IDs, nunca senhas):
 - Resultado geral: `pendente`
 
+## Regra de resposta do piloto
+
+O prazo começa em `created_at` e corresponde a 48 horas corridas, inclusive fins de semana e feriados. O relógio fica ativo enquanto o pedido está `pending` e termina quando há aceite, recusa ou proposta de horário. O prazo é uma meta operacional do piloto, não uma garantia de atendimento clínico, disponibilidade profissional ou resultado terapêutico.
+
 ## Evidências por etapa
 
 | Etapa | Resultado | Evidência/link | Observação |

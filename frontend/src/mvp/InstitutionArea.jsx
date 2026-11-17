@@ -140,7 +140,7 @@ export default function InstitutionArea() {
       <MvpCard title="Relatório do piloto" subtitle="Leitura operacional, sem avaliação clínica ou ranking de profissionais." testid="inst-impact-report-card">
         <div className="mvp-row"><div className="mvp-row-main"><strong>Período atual</strong><span>{metrics?.metrics_period_label || "Desde o início do piloto"}</span></div><span className="mvp-tag">{metrics?.requests_total || 0} pedidos</span></div>
         <div className="mvp-row"><div className="mvp-row-main"><strong>Linha de base</strong><span>{metrics?.baseline_available ? "Disponível para comparação" : "Ainda não registrada"}</span></div><span className="mvp-tag wait">{metrics?.baseline_available ? "PRONTA" : "PENDENTE"}</span></div>
-        <p className="mvp-note">As métricas de velocidade e comparecimento só aparecem com pelo menos {metrics?.minimum_sample_size ?? 5} casos. O período e a amostra devem acompanhar qualquer comparação antes/depois.</p>
+        <p className="mvp-note">As métricas de velocidade e comparecimento só aparecem com pelo menos {metrics?.minimum_sample_size ?? 5} casos. O período e a amostra devem acompanhar qualquer comparação antes/depois. As 48 horas são uma meta operacional do piloto, não uma garantia clínica, de disponibilidade ou de resultado terapêutico.</p>
       </MvpCard>
 
       <div className="mvp-grid">
