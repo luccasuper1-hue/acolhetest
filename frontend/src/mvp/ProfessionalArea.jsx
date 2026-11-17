@@ -216,7 +216,7 @@ export default function ProfessionalArea() {
     >
       {appointmentRequests.length > 0 && <MvpCard id="professional-requests" title="Pedidos diretos de atendimento" subtitle="Estudantes que escolheram você para propor uma data e horário." testid="pro-appointment-requests-card" className="professional-requests-card">
         {appointmentRequests.map(item => <div className="mvp-row professional-appointment-request" key={item.id} data-testid={`pro-appointment-request-${item.id}`}>
-          <div className="mvp-row-main"><strong>{item.student_name}</strong><span>{reasonLabel(item.reason_code)} · {item.meeting_mode === "presencial" ? "Presencial" : "Online"}</span>{item.note && <span>“{item.note}”</span>}{item.status === "proposed" && <span>Proposta enviada: {formatDate(item.date)} · {item.time}</span>}</div>
+          <div className="mvp-row-main"><strong>{item.student_name}</strong><span>{reasonLabel(item.reason_code)} · {item.meeting_mode === "presencial" ? "Presencial" : "Online"}</span>{item.note && <span>“{item.note}”</span>}{item.status === "proposed" && <span>Proposta enviada: {formatDate(item.date)} · {item.time}</span>}<small className="mvp-next-step">{item.response_overdue ? "Resposta atrasada — priorize este pedido." : item.response_state === "due_soon" ? "Prazo próximo — responda antes de 48h." : `Próximo passo: ${item.next_step}`}</small></div>
           {item.status === "pending" ? <div className="mvp-row-actions professional-appointment-actions">
             <div className="appointment-custom-choice"><label>Data proposta <input type="text" inputMode="numeric" placeholder="dd/mm/aaaa" value={appointmentCustom[item.id]?.dateText || ""} onChange={e => { const dateText = formatBrazilianDateInput(e.target.value); setAppointmentCustom(current => ({ ...current, [item.id]: { ...current[item.id], dateText, date: parseBrazilianDate(dateText) || "" } })); }} /></label><label>Hora <select value={appointmentCustom[item.id]?.time || ""} onChange={e => setAppointmentCustom(current => ({ ...current, [item.id]: { ...current[item.id], time: e.target.value } }))}><option value="">Escolha</option>{TIME_OPTIONS.map(time => <option key={time} value={time}>{time}</option>)}</select></label></div>
             <div className="appointment-action-buttons"><button className="button small primary" onClick={() => proposeAppointment(item.id)} disabled={!(appointmentCustom[item.id]?.date && appointmentCustom[item.id]?.time)}>Propor horário</button><button className="button small quiet" onClick={() => declineAppointment(item.id)}>Recusar</button></div>
@@ -230,6 +230,7 @@ export default function ProfessionalArea() {
             <div className="mvp-row-main">
               <strong>{formatDate(r.date)} · {r.time}</strong>
               <span>{reasonLabel(r.reason_code)} · {r.meeting_mode === "presencial" ? "Presencial · na instituição" : "Online"}</span>
+              <small className="mvp-next-step">{r.response_overdue ? "Resposta atrasada — priorize este pedido." : r.response_state === "due_soon" ? "Prazo próximo — responda antes de 48h." : `Próximo passo: ${r.next_step}`}</small>
               {r.reason_note && <span>“{r.reason_note}”</span>}
             </div>
             <div className="mvp-row-actions">

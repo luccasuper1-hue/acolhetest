@@ -157,6 +157,8 @@ export default function InstitutionArea() {
             <>
               <div className="mvp-row"><div className="mvp-row-main"><strong>Aguardando profissional</strong></div><span className="mvp-tag wait">{metrics.requests_pending}</span></div>
               {metrics.requests_proposed > 0 && <div className="mvp-row"><div className="mvp-row-main"><strong>Aguardando confirmação do estudante</strong></div><span className="mvp-tag wait">{metrics.requests_proposed}</span></div>}
+              {metrics.requests_due_soon > 0 && <div className="mvp-row"><div className="mvp-row-main"><strong>Prazo próximo de vencer</strong><span>Acompanhar resposta do profissional</span></div><span className="mvp-tag wait">{metrics.requests_due_soon}</span></div>}
+              {metrics.requests_overdue > 0 && <div className="mvp-row"><div className="mvp-row-main"><strong>Pedidos sem resposta no prazo</strong><span>Definir próximo passo com o estudante</span></div><span className="mvp-tag off">{metrics.requests_overdue}</span></div>}
               <div className="mvp-row"><div className="mvp-row-main"><strong>Confirmadas</strong></div><span className="mvp-tag ok">{metrics.requests_scheduled}</span></div>
               <div className="mvp-row"><div className="mvp-row-main"><strong>Canceladas pelo estudante</strong></div><span className="mvp-tag off">{metrics.requests_cancelled}</span></div>
               <div className="mvp-row"><div className="mvp-row-main"><strong>Recusadas pelo profissional</strong></div><span className="mvp-tag off">{metrics.requests_declined}</span></div>

@@ -1924,3 +1924,11 @@ html[data-theme="dark"] .mvp-shell[data-testid="student-area"] .student-active-a
   .mvp-kpis, .mvp-shell[data-testid="admin-area"] .mvp-kpis { grid-template-columns: 1fr; }
   .appointment-custom-choice { grid-template-columns: 1fr; }
 }
+.mvp-next-step {
+  display: block;
+  margin-top: 4px;
+  color: var(--mvp-muted, #81758f);
+  font-size: .82rem;
+  line-height: 1.4;
+}
+

@@ -10,6 +10,7 @@ const meetingModes = ["online", "presencial", "ambos"] as const;
 const leadStatuses = ["pending", "approved", "contacted", "rejected", "archived"] as const;
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCK_MINUTES = 15;
+const RESPONSE_WINDOW_MS = 48 * 60 * 60 * 1000;
 
 const pathParameter = (pathname: string, prefix: string, suffix = "") => pathname.startsWith(prefix) && pathname.endsWith(suffix) ? decodeURIComponent(pathname.slice(prefix.length, suffix ? -suffix.length : undefined)) : undefined;
 const isoAfter = (hoursOrDays: number, kind: "hours" | "days") => new Date(Date.now() + hoursOrDays * (kind === "hours" ? 3_600_000 : 86_400_000)).toISOString();
@@ -35,6 +36,21 @@ const sessionHasStarted = (session: Doc) => {
   const today = localToday(), currentTime = localCurrentTime();
   return validDateShape(session.date) && validTime(session.time) && (session.date < today || (session.date === today && session.time <= currentTime));
 };
+function requestFlowMeta(record: Doc) {
+  const status = String(record.status || "pending");
+  const createdAt = Date.parse(String(record.created_at || ""));
+  const dueAt = Number.isFinite(createdAt) ? new Date(createdAt + RESPONSE_WINDOW_MS).toISOString() : null;
+  const age = Number.isFinite(createdAt) ? Date.now() - createdAt : 0;
+  const pending = status === "pending";
+  const overdue = pending && age >= RESPONSE_WINDOW_MS;
+  const dueSoon = pending && !overdue && age >= RESPONSE_WINDOW_MS - 6 * 60 * 60 * 1000;
+  if (status === "pending") return { response_due_at: dueAt, response_state: overdue ? "overdue" : dueSoon ? "due_soon" : "waiting", response_overdue: overdue, next_step: overdue ? "Resposta atrasada: procure a instituição para definir o próximo passo." : dueSoon ? "Prazo próximo: o profissional precisa responder." : "Aguardando resposta do profissional." };
+  if (status === "proposed") return { response_due_at: dueAt, response_state: "responded", response_overdue: false, next_step: "Confirme o horário proposto." };
+  if (status === "accepted" || status === "scheduled") return { response_due_at: dueAt, response_state: "confirmed", response_overdue: false, next_step: "Prepare a conversa e entre na sala no horário." };
+  if (status === "completed") return { response_due_at: dueAt, response_state: "completed", response_overdue: false, next_step: "Envie seu feedback e consulte os próximos passos." };
+  if (status === "declined" || status === "cancelled" || status === "expired" || status === "no_show") return { response_due_at: dueAt, response_state: status, response_overdue: false, next_step: "Escolha outro horário ou peça orientação à instituição." };
+  return { response_due_at: dueAt, response_state: status, response_overdue: false, next_step: "Consulte o status do pedido." };
+}
 const sortDate = { date: 1 as const, time: 1 as const };
 const timeToMinutes = (value: string) => Number(value.slice(0, 2)) * 60 + Number(value.slice(3, 5));
 const minutesToTime = (value: number) => `${String(Math.floor(value / 60)).padStart(2, "0")}:${String(value % 60).padStart(2, "0")}`;
@@ -516,7 +532,7 @@ async function studentRequests(store: ReturnType<typeof db>, student: Doc) {
   const sessionByRequest = new Map(sessions.map((session) => [session.request_id, session]));
   const referralBySession = new Map(referrals.map((referral) => [referral.session_id, referral]));
   const feedbackBySession = new Map(feedback.map((entry) => [entry.session_id, entry]));
-  return records.map((record) => { const pro = proById.get(record.professional_id), session = sessionByRequest.get(record.id); return { ...record, professional_name: pro ? accountById.get(pro.user_id) || "Profissional" : "Profissional", session: session || null, referral: session ? referralBySession.get(session.id) || null : null, feedback: session ? feedbackBySession.get(session.id) || null : null }; });
+  return records.map((record) => { const pro = proById.get(record.professional_id), session = sessionByRequest.get(record.id); return { ...record, ...requestFlowMeta(record), professional_name: pro ? accountById.get(pro.user_id) || "Profissional" : "Profissional", session: session || null, referral: session ? referralBySession.get(session.id) || null : null, feedback: session ? feedbackBySession.get(session.id) || null : null }; });
 }
 
 async function studentAvailabilityInterest(store: ReturnType<typeof db>, student: Doc) {
@@ -538,7 +554,7 @@ async function studentAppointmentRequests(store: ReturnType<typeof db>, student:
   const sessionByRequest = new Map(sessions.map((session) => [session.appointment_request_id, session]));
   const referralBySession = new Map(referrals.map((referral) => [referral.session_id, referral]));
   const feedbackBySession = new Map(feedback.map((entry) => [entry.session_id, entry]));
-  return records.map((record) => { const professional = proById.get(record.professional_id), session = sessionByRequest.get(record.id) || null; return { ...record, professional_name: professional ? accountById.get(professional.user_id) || "Profissional" : "Profissional", session, referral: session ? referralBySession.get(session.id) || null : null, feedback: session ? feedbackBySession.get(session.id) || null : null }; });
+  return records.map((record) => { const professional = proById.get(record.professional_id), session = sessionByRequest.get(record.id) || null; return { ...record, ...requestFlowMeta(record), professional_name: professional ? accountById.get(professional.user_id) || "Profissional" : "Profissional", session, referral: session ? referralBySession.get(session.id) || null : null, feedback: session ? feedbackBySession.get(session.id) || null : null }; });
 }
 
 async function studentRoutes(request: Request, env: Env, pathname: string): Promise<Response | undefined> {
@@ -734,7 +750,7 @@ async function professionalRoutes(request: Request, env: Env, pathname: string):
     await sessionReminderNotifications(store, env, sessions, user.id);
     const availabilityInterestByReason = availabilityInterests.reduce<Record<string, number>>((counts, interest) => { counts[String(interest.reason_code)] = (counts[String(interest.reason_code)] || 0) + 1; return counts; }, {});
     const notificationPage = await listNotificationsPage(env, user.id, { includeUnreadCount: true });
-    return json({ availability, availability_interest: { total: availabilityInterests.length, by_reason: availabilityInterestByReason }, notifications: notificationPage.items, notification_unread_count: notificationPage.unread_count || 0, appointment_requests: appointmentRequests.map((record) => { const student = studentById.get(record.student_id); return { ...record, student_name: student ? studentUserById.get(student.user_id) || "Estudante" : "Estudante" }; }), requests: requests.map((record) => ({ id: record.id, date: record.date, time: record.time, status: record.status, meeting_mode: record.meeting_mode || "online", meeting_location: record.meeting_location || null, reason_code: record.reason_code, reason_note: record.reason_note, room_link: record.room_link, created_at: record.created_at, session: requestSessionById.get(record.id) || null })), sessions: sessions.map((session) => { const record = requestById.get(session.request_id); return { ...session, student_name: sessionStudentNameById.get(session.student_id) || "Estudante", meeting_mode: record?.meeting_mode || session.meeting_mode || "online", meeting_location: record?.meeting_location || null, reason_code: record?.reason_code, reason_note: record?.reason_note, room_link: record?.room_link || session.room_link || null, referral: referralBySession.get(session.id) || null }; }) });
+    return json({ availability, availability_interest: { total: availabilityInterests.length, by_reason: availabilityInterestByReason }, notifications: notificationPage.items, notification_unread_count: notificationPage.unread_count || 0, appointment_requests: appointmentRequests.map((record) => { const student = studentById.get(record.student_id); return { ...record, ...requestFlowMeta(record), student_name: student ? studentUserById.get(student.user_id) || "Estudante" : "Estudante" }; }), requests: requests.map((record) => ({ ...requestFlowMeta(record), id: record.id, date: record.date, time: record.time, status: record.status, meeting_mode: record.meeting_mode || "online", meeting_location: record.meeting_location || null, reason_code: record.reason_code, reason_note: record.reason_note, room_link: record.room_link, created_at: record.created_at, session: requestSessionById.get(record.id) || null })), sessions: sessions.map((session) => { const record = requestById.get(session.request_id); return { ...session, student_name: sessionStudentNameById.get(session.student_id) || "Estudante", meeting_mode: record?.meeting_mode || session.meeting_mode || "online", meeting_location: record?.meeting_location || null, reason_code: record?.reason_code, reason_note: record?.reason_note, room_link: record?.room_link || session.room_link || null, referral: referralBySession.get(session.id) || null }; }) });
   }
   if (pathname === "/api/professionals/me/availability" && request.method === "GET") return json(await store.findMany("availability", { professional_id: professional.id, date: { $gte: localToday() } }, { sort: sortDate, limit: 500 }));
   if (pathname === "/api/professionals/me/availability" && request.method === "POST") {
@@ -872,6 +888,9 @@ async function institutionMetrics(env: Env, institutionId: string) {
   for (const referral of referrals) referralsByStatus[String(referral.status)] = (referralsByStatus[String(referral.status)] || 0) + 1;
   const scores = feedback.map((entry) => Number(entry.score)).filter((score) => Number.isFinite(score) && score > 0), requestingStudents = new Set([...requests, ...appointmentRequests].map((record) => record.student_id));
   const allRequests = [...requests, ...appointmentRequests];
+  const pendingFlow = allRequests.filter((record) => record.status === "pending").map(requestFlowMeta);
+  const pendingDueSoon = pendingFlow.filter((meta) => meta.response_state === "due_soon").length;
+  const pendingOverdue = pendingFlow.filter((meta) => meta.response_state === "overdue").length;
   const responseSamples = allRequests.map((record) => {
     const created = Date.parse(String(record.created_at || ""));
     const responded = Date.parse(String(record.responded_at || record.proposed_at || ""));
@@ -881,7 +900,7 @@ async function institutionMetrics(env: Env, institutionId: string) {
   const attendanceSessions = sessions.filter((session) => ["completed", "no_show"].includes(String(session.status)));
   const attendanceRate = attendanceSessions.length >= 5 ? Math.round((attendanceSessions.filter((session) => session.status === "completed").length / attendanceSessions.length) * 100) : null;
   const scheduledSessions = sessions.filter((session) => session.status === "scheduled");
-  return { students_registered: students.length, students_accessed: students.filter((student) => student.last_access).length, students_active_30d: students.filter((student) => student.last_access && String(student.last_access) >= cutoff).length, students_requested: requestingStudents.size, requests_total: allRequests.length, requests_pending: allRequests.filter((record) => record.status === "pending").length, requests_proposed: appointmentRequests.filter((record) => record.status === "proposed").length, requests_scheduled: scheduledSessions.length, requests_cancelled: allRequests.filter((record) => record.status === "cancelled").length, requests_declined: allRequests.filter((record) => record.status === "declined").length, response_time_minutes_avg: responseTimeMinutes, response_sample_size: responseSamples.length, responses_within_48h: responseSamples.length >= 5 ? Math.round((responseSamples.filter((minutes) => minutes <= 48 * 60).length / responseSamples.length) * 100) : null, attendance_rate: attendanceRate, attendance_sample_size: attendanceSessions.length, sessions_scheduled: scheduledSessions.length, sessions_completed: sessions.filter((session) => session.status === "completed").length, sessions_no_show: sessions.filter((session) => session.status === "no_show").length, referrals_total: referrals.length, referrals_by_status: referralsByStatus, professionals_linked: professionals.length, professionals_accessed: professionals.filter((professional) => professional.last_access).length, requests_by_month: Object.entries(byMonth).sort(([a], [b]) => a.localeCompare(b)).map(([month, count]) => ({ month, requests: count })), feedback_count: scores.length, feedback_average: scores.length ? Math.round((scores.reduce((a, b) => a + b, 0) / scores.length) * 100) / 100 : null, metrics_period_label: "Desde o início do piloto", baseline_available: false, minimum_sample_size: 5, has_data: Boolean(allRequests.length || sessions.length), data_source: "pilot" };
+  return { students_registered: students.length, students_accessed: students.filter((student) => student.last_access).length, students_active_30d: students.filter((student) => student.last_access && String(student.last_access) >= cutoff).length, students_requested: requestingStudents.size, requests_total: allRequests.length, requests_pending: allRequests.filter((record) => record.status === "pending").length, requests_due_soon: pendingDueSoon, requests_overdue: pendingOverdue, requests_proposed: appointmentRequests.filter((record) => record.status === "proposed").length, requests_scheduled: scheduledSessions.length, requests_cancelled: allRequests.filter((record) => record.status === "cancelled").length, requests_declined: allRequests.filter((record) => record.status === "declined").length, response_time_minutes_avg: responseTimeMinutes, response_sample_size: responseSamples.length, responses_within_48h: responseSamples.length >= 5 ? Math.round((responseSamples.filter((minutes) => minutes <= 48 * 60).length / responseSamples.length) * 100) : null, attendance_rate: attendanceRate, attendance_sample_size: attendanceSessions.length, sessions_scheduled: scheduledSessions.length, sessions_completed: sessions.filter((session) => session.status === "completed").length, sessions_no_show: sessions.filter((session) => session.status === "no_show").length, referrals_total: referrals.length, referrals_by_status: referralsByStatus, professionals_linked: professionals.length, professionals_accessed: professionals.filter((professional) => professional.last_access).length, requests_by_month: Object.entries(byMonth).sort(([a], [b]) => a.localeCompare(b)).map(([month, count]) => ({ month, requests: count })), feedback_count: scores.length, feedback_average: scores.length ? Math.round((scores.reduce((a, b) => a + b, 0) / scores.length) * 100) / 100 : null, metrics_period_label: "Desde o início do piloto", baseline_available: false, minimum_sample_size: 5, has_data: Boolean(allRequests.length || sessions.length), data_source: "pilot" };
 }
 
 async function institutionProfessionals(store: ReturnType<typeof db>, institutionId: string) {

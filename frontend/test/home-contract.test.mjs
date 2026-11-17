@@ -247,6 +247,17 @@ test("institution impact report explains period and protects small samples", () 
   assert.match(frontendInstitution, /Linha de base/);
 });
 
+test("requests always expose an operational next step and response deadline", () => {
+  assert.match(routes, /RESPONSE_WINDOW_MS = 48 \* 60 \* 60 \* 1000/);
+  assert.match(routes, /response_due_at/);
+  assert.match(routes, /response_state/);
+  assert.match(routes, /next_step/);
+  assert.match(routes, /requests_due_soon/);
+  assert.match(routes, /requests_overdue/);
+  assert.match(frontendInstitution, /Pedidos sem resposta no prazo/);
+  assert.match(frontendInstitution, /Definir próximo passo com o estudante/);
+});
+
 test("notification history stays cursor-paginated", () => {
   assert.match(core, /limit: 41/);
   assert.match(core, /rows\.slice\(0, 40\)/);
