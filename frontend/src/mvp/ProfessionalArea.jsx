@@ -42,6 +42,8 @@ export default function ProfessionalArea() {
   const [chatTyping, setChatTyping] = useState(false);
   const [chatOnline, setChatOnline] = useState(false);
   const [chatRealtimeConnected, setChatRealtimeConnected] = useState(false);
+  const [actionBusy, setActionBusy] = useState(false);
+  const actionBusyRef = useRef(false);
   const [chatReadAt, setChatReadAt] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
@@ -71,8 +73,12 @@ export default function ProfessionalArea() {
 
   useEffect(() => { load().catch(e => toast.error(apiError(e))); }, [load]);
   const run = async (fn, okMsg) => {
+    if (actionBusyRef.current) return;
+    actionBusyRef.current = true;
+    setActionBusy(true);
     try { await fn(); if (okMsg) toast.success(okMsg); await load(); }
     catch (e) { toast.error(apiError(e)); }
+    finally { actionBusyRef.current = false; setActionBusy(false); }
   };
   const issueCertificate = async () => {
     try { const { data } = await api.post("/professionals/me/certificate", {}); setCertificate(data.certificate); toast.success("Certificado emitido."); }
@@ -223,7 +229,7 @@ export default function ProfessionalArea() {
           <div className="mvp-row-main"><strong>{item.student_name}</strong><span>{reasonLabel(item.reason_code)} · {item.meeting_mode === "presencial" ? "Presencial" : "Online"}</span>{item.note && <span>“{item.note}”</span>}{item.status === "proposed" && <span>Proposta enviada: {formatDate(item.date)} · {item.time}</span>}<small className="mvp-next-step">{item.response_overdue ? "Resposta atrasada — priorize este pedido." : item.response_state === "due_soon" ? "Prazo próximo — responda antes de 48h." : `Próximo passo: ${item.next_step}`}</small></div>
           {item.status === "pending" ? <div className="mvp-row-actions professional-appointment-actions">
             <div className="appointment-custom-choice"><label>Data proposta <input type="text" inputMode="numeric" placeholder="dd/mm/aaaa" value={appointmentCustom[item.id]?.dateText || ""} onChange={e => { const dateText = formatBrazilianDateInput(e.target.value); setAppointmentCustom(current => ({ ...current, [item.id]: { ...current[item.id], dateText, date: parseBrazilianDate(dateText) || "" } })); }} /></label><label>Hora <select value={appointmentCustom[item.id]?.time || ""} onChange={e => setAppointmentCustom(current => ({ ...current, [item.id]: { ...current[item.id], time: e.target.value } }))}><option value="">Escolha</option>{TIME_OPTIONS.map(time => <option key={time} value={time}>{time}</option>)}</select></label></div>
-            <div className="appointment-action-buttons"><button type="button" className="button small primary" onClick={() => proposeAppointment(item.id)} disabled={!(appointmentCustom[item.id]?.date && appointmentCustom[item.id]?.time)}>Propor horário</button><button type="button" className="button small quiet" onClick={() => declineAppointment(item.id)}>Recusar</button></div>
+            <div className="appointment-action-buttons"><button type="button" className="button small primary" onClick={() => proposeAppointment(item.id)} disabled={actionBusy || !(appointmentCustom[item.id]?.date && appointmentCustom[item.id]?.time)} aria-busy={actionBusy}>Propor horário</button><button type="button" className="button small quiet" onClick={() => declineAppointment(item.id)} disabled={actionBusy} aria-busy={actionBusy}>Recusar</button></div>
           </div> : <div className="mvp-row-actions"><span className="mvp-tag wait">Aguardando aluno</span></div>}
         </div>)}
       </MvpCard>}
@@ -239,9 +245,9 @@ export default function ProfessionalArea() {
             </div>
             <div className="mvp-row-actions">
               <button type="button" className="button small primary" onClick={() => run(() => api.post(`/professionals/me/requests/${r.id}/accept`), "Solicitação aceita.")}
-                data-testid={`accept-request-${r.id}`}>Aceitar</button>
+                disabled={actionBusy} aria-busy={actionBusy} data-testid={`accept-request-${r.id}`}>Aceitar</button>
               <button type="button" className="button small quiet" onClick={() => run(() => api.post(`/professionals/me/requests/${r.id}/decline`), "Solicitação recusada.")}
-                data-testid={`decline-request-${r.id}`}>Recusar</button>
+                disabled={actionBusy} aria-busy={actionBusy} data-testid={`decline-request-${r.id}`}>Recusar</button>
             </div>
           </div>
         ))}

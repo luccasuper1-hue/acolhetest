@@ -558,6 +558,15 @@ test("authentication loading state is announced to assistive technology", async 
   assert.match(auth, /className="mvp-loading" role="status" aria-live="polite" aria-busy="true"/);
 });
 
+test("professional mutations guard against duplicate submissions", async () => {
+  const professional = await readFile(resolve(root, "src/mvp/ProfessionalArea.jsx"), "utf8");
+  assert.match(professional, /const actionBusyRef = useRef\(false\)/);
+  assert.match(professional, /if \(actionBusyRef\.current\) return/);
+  assert.match(professional, /actionBusyRef\.current = true/);
+  assert.match(professional, /actionBusyRef\.current = false/);
+  assert.match(professional, /disabled=\{actionBusy\}/);
+});
+
 test("overlay panels move focus to their close actions", async () => {
   const shell = await readFile(resolve(root, "src/mvp/MvpShell.jsx"), "utf8");
   assert.match(shell, /notificationCloseRef\.current\?\.focus\(\)/);
