@@ -544,6 +544,14 @@ test("authentication errors are announced to assistive technology", async () => 
   }
 });
 
+test("overlay panels move focus to their close actions", async () => {
+  const shell = await readFile(resolve(root, "src/mvp/MvpShell.jsx"), "utf8");
+  assert.match(shell, /notificationCloseRef\.current\?\.focus\(\)/);
+  assert.match(shell, /conversationCloseRef\.current\?\.focus\(\)/);
+  assert.match(shell, /ref=\{notificationCloseRef\}/);
+  assert.match(shell, /ref=\{conversationCloseRef\}/);
+});
+
 test("student and professional action controls declare button type", async () => {
   const studentSource = await readFile(resolve(root, "src/mvp/StudentArea.jsx"), "utf8");
   const professionalSource = await readFile(resolve(root, "src/mvp/ProfessionalArea.jsx"), "utf8");

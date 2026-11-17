@@ -30,6 +30,8 @@ export const MvpShell = ({ title, kicker, lead, flow = [], flowStep = 0, childre
   const notificationsRef = useRef([]);
   const notificationsOpenRef = useRef(false);
   const notificationRef = useRef(null);
+  const notificationCloseRef = useRef(null);
+  const conversationCloseRef = useRef(null);
   const realtimeRefreshTimer = useRef(null);
   const realtimeFallbackAt = useRef(0);
   const dashboardNotificationPageLoaded = useRef(false);
@@ -44,6 +46,7 @@ export const MvpShell = ({ title, kicker, lead, flow = [], flowStep = 0, childre
   const exit = async () => { await signOut(); navigate("/"); };
   useEffect(() => { notificationsRef.current = notifications; }, [notifications]);
   useEffect(() => { notificationsOpenRef.current = notificationsOpen; }, [notificationsOpen]);
+  useEffect(() => { if (notificationsOpen) notificationCloseRef.current?.focus(); }, [notificationsOpen]);
   const loadNotifications = useCallback(async () => {
     if (!user?.role) return;
     setNotificationsLoading(true);
@@ -258,7 +261,7 @@ export const MvpShell = ({ title, kicker, lead, flow = [], flowStep = 0, childre
           {user?.role && <div className="mvp-notifications" ref={notificationRef}>
             <button className={`mvp-notification-button ${displayedUnreadCount ? "has-unread" : ""}`} type="button" aria-label={`Notificações${displayedUnreadCount ? `, ${displayedUnreadCount} não lidas` : ""}`} aria-expanded={notificationsOpen} aria-controls="mvp-notification-panel" title="Notificações" onClick={toggleNotifications} data-testid="mvp-notifications-button"><Bell size={17} />{displayedUnreadCount > 0 && <span className="mvp-notification-badge">{Math.min(displayedUnreadCount, 9)}{displayedUnreadCount > 9 ? "+" : ""}</span>}</button>
             {notificationsOpen && <div className="mvp-notification-panel is-expanded" id="mvp-notification-panel" role="dialog" aria-labelledby="mvp-notification-title" aria-live="polite" aria-busy={notificationsLoading}>
-              <div className="mvp-notification-panel-head"><strong id="mvp-notification-title">Notificações{displayedUnreadCount > 0 ? ` (${displayedUnreadCount})` : ""}</strong><button type="button" className="mvp-notification-close" onClick={() => setNotificationsOpen(false)} aria-label="Fechar notificações"><X size={15} /></button></div>
+              <div className="mvp-notification-panel-head"><strong id="mvp-notification-title">Notificações{displayedUnreadCount > 0 ? ` (${displayedUnreadCount})` : ""}</strong><button ref={notificationCloseRef} type="button" className="mvp-notification-close" onClick={() => setNotificationsOpen(false)} aria-label="Fechar notificações"><X size={15} /></button></div>
               {typeof window !== "undefined" && "Notification" in window && Notification.permission !== "granted" && <button type="button" className="mvp-notification-enable" onClick={enableBrowserNotifications}>Ativar avisos na tela</button>}
               {notificationError && <div className="mvp-notification-error" role="status"><span>{notificationError}</span><button type="button" onClick={loadNotifications}>Tentar novamente</button></div>}
               <div className="mvp-notification-filters" role="tablist" aria-label="Filtrar notificações">{[["all", "Todas"], ["messages", "Mensagens"], ["appointments", "Atendimentos"], ["updates", "Atualizações"]].map(([value, label]) => <button type="button" role="tab" aria-selected={notificationFilter === value} aria-controls="mvp-notification-items" className={notificationFilter === value ? "active" : ""} key={value} onClick={() => setNotificationFilter(value)}>{label}</button>)}</div>
@@ -342,15 +345,16 @@ function ConversationLauncher({ conversations, unreadCount, onOpenConversation, 
     document.addEventListener("keydown", closeOnEscape);
     return () => { document.removeEventListener("pointerdown", closeOnOutsideClick); document.removeEventListener("keydown", closeOnEscape); };
   }, [open]);
+  useEffect(() => { if (open) conversationCloseRef.current?.focus(); }, [open]);
   return <div ref={launcherRef} className={`mvp-conversation-launcher ${open ? "open" : ""}`}>
     {open && <div className="mvp-conversation-panel" id="mvp-conversation-panel" role="dialog" aria-label="Mensagens" aria-modal="false">
       {selectedId && selected && renderConversation ? <div className="mvp-conversation-window">
-        <div className="mvp-conversation-panel-head"><button type="button" className="mvp-conversation-back" onClick={closeConversation} aria-label="Voltar para mensagens">‹</button><div><strong>{selected.title}</strong><small>{selected.subtitle}</small><span className="mvp-conversation-status"><i />Conversa confirmada</span></div><button type="button" className="mvp-conversation-close" onClick={() => { closeConversation(); setOpen(false); }} aria-label="Fechar mensagens"><X size={16} /></button></div>
+        <div className="mvp-conversation-panel-head"><button type="button" className="mvp-conversation-back" onClick={closeConversation} aria-label="Voltar para mensagens">‹</button><div><strong>{selected.title}</strong><small>{selected.subtitle}</small><span className="mvp-conversation-status"><i />Conversa confirmada</span></div><button ref={conversationCloseRef} type="button" className="mvp-conversation-close" onClick={() => { closeConversation(); setOpen(false); }} aria-label="Fechar mensagens"><X size={16} /></button></div>
         {renderConversation(selectedId, closeConversation)}
       </div> : <>
       <div className="mvp-conversation-panel-head">
         <div><strong>Mensagens</strong><small>Conversas confirmadas</small></div>
-        <button type="button" className="mvp-conversation-close" onClick={() => setOpen(false)} aria-label="Fechar mensagens"><X size={16} /></button>
+        <button ref={conversationCloseRef} type="button" className="mvp-conversation-close" onClick={() => setOpen(false)} aria-label="Fechar mensagens"><X size={16} /></button>
       </div>
       {conversations.length ? conversations.map(item => <button type="button" className="mvp-conversation-item" key={item.id} onClick={() => { setSelectedId(item.id); onOpenConversation?.(item.id); }}>
         <span className="mvp-conversation-avatar"><MessageCircle size={16} /></span>
