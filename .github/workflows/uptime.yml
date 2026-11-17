@@ -5,9 +5,14 @@ on:
     - cron: "*/15 * * * *"
   workflow_dispatch:
 
+concurrency:
+  group: acolhe-uptime
+  cancel-in-progress: true
+
 jobs:
   check:
     runs-on: ubuntu-latest
+    timeout-minutes: 2
     env:
       ACOLHE_BASE_URL: ${{ vars.ACOLHE_BASE_URL }}
     steps:
