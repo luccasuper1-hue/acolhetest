@@ -59,7 +59,7 @@ export const Onboarding = ({ onFinish, onExplore }) => {
     return () => dialog.removeEventListener("keydown", handleKeyDown);
   }, [index, onFinish]);
   return createPortal(
-    <div ref={dialogRef} className="onboarding" role="dialog" aria-modal="true" aria-label="Apresentação do Acolhe" data-testid="onboarding-overlay">
+    <div ref={dialogRef} className="onboarding" role="dialog" aria-modal="true" aria-labelledby="onboarding-title" aria-describedby="onboarding-description" data-testid="onboarding-overlay">
       <div className="onboarding-card" key={index}>
         <div className="onboarding-top">
           <span className="onboarding-badge"><ShieldCheck size={13}/> Piloto institucional</span>
@@ -69,8 +69,8 @@ export const Onboarding = ({ onFinish, onExplore }) => {
         <div className="onboarding-body">
           <div className="onboarding-copy">
             <span className="section-kicker">{String(index + 1).padStart(2, "0")} · {step.kicker}</span>
-            <h2 data-testid="onboarding-title">{step.title}</h2>
-            <p>{step.text}</p>
+            <h2 id="onboarding-title" data-testid="onboarding-title">{step.title}</h2>
+            <p id="onboarding-description">{step.text}</p>
           </div>
           <div className="onboarding-visual" aria-hidden="true">
             {step.visual === "mark" && <div className="onboarding-mark"><AcolheMark size="small"/></div>}
