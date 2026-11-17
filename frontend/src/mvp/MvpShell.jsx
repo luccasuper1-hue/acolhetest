@@ -32,8 +32,6 @@ export const MvpShell = ({ title, kicker, lead, flow = [], flowStep = 0, childre
   const notificationRef = useRef(null);
   const notificationCloseRef = useRef(null);
   const notificationTriggerRef = useRef(null);
-  const conversationTriggerRef = useRef(null);
-  const previousConversationOpen = useRef(false);
   const previousNotificationsOpen = useRef(false);
   const realtimeRefreshTimer = useRef(null);
   const realtimeFallbackAt = useRef(0);
@@ -358,6 +356,8 @@ function ConversationLauncher({ conversations, unreadCount, onOpenConversation, 
   const [selectedId, setSelectedId] = useState(null);
   const launcherRef = useRef(null);
   const conversationCloseRef = useRef(null);
+  const conversationTriggerRef = useRef(null);
+  const previousConversationOpen = useRef(false);
   const selected = conversations.find(item => item.id === selectedId);
   const closeConversation = () => setSelectedId(null);
   useEffect(() => {
