@@ -563,7 +563,7 @@ test("overlay panels restore focus to their launch controls", async () => {
 test("interactive notification surfaces import their React hooks", async () => {
   const command = await readFile(resolve(root, "src/components/CommandPalette.jsx"), "utf8");
   const bell = await readFile(resolve(root, "src/components/NotificationBell.jsx"), "utf8");
-  assert.match(command, /import \{ useEffect, useMemo, useState \} from "react"/);
+  assert.match(command, /import \{ useEffect, useMemo, useRef, useState \} from "react"/);
   assert.match(command, /aria-modal="true"/);
   assert.match(command, /aria-label="Buscar páginas e profissionais"/);
   assert.match(bell, /import \{ useEffect, useId, useRef, useState \} from "react"/);

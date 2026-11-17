@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, CornerDownLeft, Search } from "lucide-react";
 import { professionals } from "../data";
@@ -19,6 +19,7 @@ const PAGES = [
 export const CommandPalette = () => {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const panelRef = useRef(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -29,6 +30,23 @@ export const CommandPalette = () => {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const panel = panelRef.current;
+    if (!panel) return undefined;
+    const handleKeyDown = event => {
+      if (event.key !== "Tab") return;
+      const items = [...panel.querySelectorAll("input, button:not([disabled])")];
+      if (!items.length) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    };
+    panel.addEventListener("keydown", handleKeyDown);
+    return () => panel.removeEventListener("keydown", handleKeyDown);
+  }, [open]);
 
   const results = useMemo(() => {
     const items = [
@@ -45,7 +63,7 @@ export const CommandPalette = () => {
 
   return (
     <div className="command-overlay" onClick={() => setOpen(false)} data-testid="command-palette">
-      <div className="command-panel" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Busca rápida">
+      <div ref={panelRef} className="command-panel" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Busca rápida">
         <div className="command-input">
           <Search size={17}/>
           <input
