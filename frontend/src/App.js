@@ -33,6 +33,19 @@ import InstitutionArea from "./mvp/InstitutionArea";
 import AdminArea from "./mvp/AdminArea";
 import CertificateValidationPage from "./mvp/CertificateValidationPage";
 import "./mvp/mvp.css";
+
+let pageOverlayScrollLocks = 0;
+let pageOverlayPreviousOverflow = "";
+const lockPageOverlayScroll = () => {
+  if (typeof document === "undefined") return () => {};
+  if (pageOverlayScrollLocks === 0) pageOverlayPreviousOverflow = document.body.style.overflow;
+  pageOverlayScrollLocks += 1;
+  document.body.style.overflow = "hidden";
+  return () => {
+    pageOverlayScrollLocks = Math.max(0, pageOverlayScrollLocks - 1);
+    if (pageOverlayScrollLocks === 0) document.body.style.overflow = pageOverlayPreviousOverflow;
+  };
+};
 import "./App.css";
 import "./theme-dark.css";
 import "./institutional.css";
@@ -81,6 +94,10 @@ function CornerLogo() {
     };
     dialog.addEventListener("keydown", handleKeyDown);
     return () => dialog.removeEventListener("keydown", handleKeyDown);
+  }, [open]);
+  useEffect(() => {
+    if (!open) return undefined;
+    return lockPageOverlayScroll();
   }, [open]);
   useEffect(() => setOpen(false), [location.pathname]);
   if (isHome) return null;
@@ -138,6 +155,10 @@ function Header() {
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [open]);
+  useEffect(() => {
+    if (!open) return undefined;
+    return lockPageOverlayScroll();
   }, [open]);
   return <header className="site-header">{open && <div className="nav-backdrop" onClick={() => { setOpen(false); setMore(false); }} aria-hidden="true"/>}<div className="nav-wrap"><Logo /><nav ref={menuRef} className={open ? "nav-links open" : "nav-links"} role={open ? "dialog" : undefined} aria-modal={open ? "true" : undefined} aria-label={open ? "Menu principal" : undefined} data-testid="main-navigation" onClick={() => setOpen(false)}><div className="nav-drawer-head"><Logo/><div className="nav-drawer-actions" onClick={e => e.stopPropagation()}><ThemeToggle/><button className="nav-drawer-close" onClick={() => { setOpen(false); setMore(false); }} aria-label="Fechar menu" data-testid="drawer-close-button"><X size={22}/></button></div></div><Link to="/como-funciona" data-testid="nav-how">Como funciona</Link><Link to="/para-estudantes" data-testid="nav-students">Para estudantes</Link><Link to="/profissionais" data-testid="nav-pros">Para profissionais</Link><Link to="/instituicoes" data-testid="nav-schools">Para instituições</Link><div className="nav-more"><button className="nav-more-button" onClick={e => { e.stopPropagation(); setMore(!more); }} aria-expanded={more} data-testid="nav-more-button">Mais <ChevronDown size={14}/></button><div className={more ? "nav-more-menu open" : "nav-more-menu"}><Link to="/recursos" data-testid="nav-resources">Recursos</Link><Link to="/ajuda" data-testid="nav-help">Ajuda</Link><Link to="/privacidade" data-testid="nav-privacy">Privacidade</Link><Link to="/termos" data-testid="nav-terms">Termos</Link></div></div><div className="nav-drawer-foot"><Link to="/entrar" className="button primary full" data-testid="drawer-talk-button">Quero conversar <ArrowRight size={16}/></Link><span><ShieldCheck size={14}/> Piloto institucional · atendimento conforme a equipe vinculada</span></div></nav><ThemeToggle /><PilotAccessLink /><Link to="/entrar" className="header-cta" data-testid="header-talk-button">Quero conversar <ArrowRight size={16}/></Link><button ref={menuButtonRef} className="icon-button mobile-menu" onClick={() => setOpen(!open)} aria-label={open ? "Fechar menu" : "Abrir menu"} aria-expanded={open} aria-controls="main-navigation" data-testid="mobile-menu-button">{open ? <X/> : <Menu/>}</button></div></header>;
 }
