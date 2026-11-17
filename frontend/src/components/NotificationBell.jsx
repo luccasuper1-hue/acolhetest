@@ -37,7 +37,8 @@ export const NotificationBell = () => {
             <span className="notif-title">Notificações</span>
             <span className="demo-label">DEMO</span>
           </div>
-          <div role="list" aria-label="Lista de notificações" aria-live="polite" aria-relevant="additions text">
+          <span className="sr-only" role="status" aria-live="polite">{read ? "Todas as notificações estão lidas." : "Há notificações não lidas."}</span>
+          <div role="list" aria-label="Lista de notificações">
           {DEMO_NOTIFICATIONS.map(({ id, Icon, text, time }) => (
             <div role="listitem" className={read ? "notif-row" : "notif-row unread"} key={id}>
               <span className="notif-icon"><Icon size={15}/></span>
