@@ -180,7 +180,7 @@ test("notification history and chat actions stay connected", () => {
   assert.match(shell, /Fechar notificações/);
   assert.match(shell, /role="group" aria-label="Filtrar notificações"/);
   assert.match(shell, /aria-pressed=\{notificationFilter === value\}/);
-  assert.match(shell, /role="tabpanel"/);
+  assert.match(shell, /id="mvp-notification-items" role="region" aria-label="Lista de notificações"/);
   assert.match(shell, /dashboardNotificationPageLoaded/);
   assert.match(shell, /notifications_changed/);
   assert.match(shell, /notificationPath}\/read/);
