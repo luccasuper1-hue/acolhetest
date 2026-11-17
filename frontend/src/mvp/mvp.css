@@ -836,16 +836,19 @@ html[data-theme="dark"] .availability-interest-inline span { color: var(--muted)
   .mvp-shell[data-testid="admin-area"] .mvp-workspace-content > .admin-leads-card,
   .mvp-shell[data-testid="admin-area"] .mvp-workspace-content > .mvp-grid,
   .mvp-shell[data-testid="admin-area"] .mvp-workspace-content > .admin-users-card { grid-column: 1 / -1; }
-  .mvp-shell[data-testid="admin-area"] .mvp-workspace-content > .admin-metrics-details { grid-column: 1; }
-  .mvp-shell[data-testid="admin-area"] .mvp-workspace-content > .admin-certificates-card { grid-column: 2; }
+  /* Keep the metrics and certificate sections in one visual flow. A collapsed
+     metrics panel should not leave a large empty column beside the taller
+     certificate list. */
+  .mvp-shell[data-testid="admin-area"] .mvp-workspace-content > .admin-metrics-details,
+  .mvp-shell[data-testid="admin-area"] .mvp-workspace-content > .admin-certificates-card { grid-column: 1 / -1; }
   .mvp-shell[data-testid="admin-area"] .mvp-workspace-content > .admin-operations-card { order: 1; }
   .mvp-shell[data-testid="admin-area"] .mvp-workspace-content > .admin-pending-leads-card { order: 2; }
-  .mvp-shell[data-testid="admin-area"] .mvp-workspace-content > .admin-metrics-details,
-  .mvp-shell[data-testid="admin-area"] .mvp-workspace-content > .admin-certificates-card { order: 3; }
-  .mvp-shell[data-testid="admin-area"] .mvp-workspace-content > .admin-manual-institution { grid-column: 1 / -1; order: 4; }
-  .mvp-shell[data-testid="admin-area"] .mvp-workspace-content > .admin-leads-card { order: 5; }
-  .mvp-shell[data-testid="admin-area"] .mvp-workspace-content > .mvp-grid { order: 6; }
-  .mvp-shell[data-testid="admin-area"] .mvp-workspace-content > .admin-users-card { order: 7; }
+  .mvp-shell[data-testid="admin-area"] .mvp-workspace-content > .admin-metrics-details { order: 3; }
+  .mvp-shell[data-testid="admin-area"] .mvp-workspace-content > .admin-certificates-card { order: 4; }
+  .mvp-shell[data-testid="admin-area"] .mvp-workspace-content > .admin-manual-institution { grid-column: 1 / -1; order: 5; }
+  .mvp-shell[data-testid="admin-area"] .mvp-workspace-content > .admin-leads-card { order: 6; }
+  .mvp-shell[data-testid="admin-area"] .mvp-workspace-content > .mvp-grid { order: 7; }
+  .mvp-shell[data-testid="admin-area"] .mvp-workspace-content > .admin-users-card { order: 8; }
   .mvp-shell[data-testid="admin-area"] .mvp-workspace-content > .mvp-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
   .mvp-shell[data-testid="admin-area"] .mvp-workspace-content > .mvp-grid > .admin-institutions-secondary { grid-column: 1; grid-row: 1; }
   .mvp-shell[data-testid="admin-area"] .mvp-workspace-content > .mvp-grid > .admin-requests-secondary { grid-column: 2; grid-row: 1; }
