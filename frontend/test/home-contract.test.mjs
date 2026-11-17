@@ -843,3 +843,13 @@ test("transient MVP auth failures preserve the current session", async () => {
   assert.match(auth, /if \(\[401, 403\]\.includes\(e\?\.response\?\.status\)\)/);
   assert.doesNotMatch(auth, /catch \(e\) \{\s*setAccount\(null\);\s*clearToken\(\);/);
 });
+
+test("account privacy controls are shared by user panels but excluded from admin", () => {
+  assert.ok(shell.includes('{user?.role !== "admin" && <AccountPrivacyCard'));
+  assert.match(shell, /data-testid="account-privacy-card"/);
+  assert.match(shell, /Excluir conta permanentemente/);
+  assert.match(shell, /api\.delete\("\/auth\/account"/);
+  assert.match(routes, /pathname === "\/api\/auth\/account" && request\.method === "DELETE"/);
+  assert.match(routes, /user\.role === "admin"/);
+  assert.match(routes, /deleteSelfAccount\(store, user\)/);
+});

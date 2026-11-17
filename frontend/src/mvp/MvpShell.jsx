@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { Bell, ChevronRight, LogOut, MessageCircle, ShieldCheck, X } from "lucide-react";
+import { AlertTriangle, Bell, CheckCircle2, ChevronRight, LogOut, MessageCircle, ShieldCheck, Trash2, X } from "lucide-react";
 import BrandMark from "../components/BrandMark";
 import ThemeToggle from "../components/ThemeToggle";
 import { useMvpAuth } from "./AuthMvp";
@@ -331,6 +331,7 @@ export const MvpShell = ({ title, kicker, lead, flow = [], flowStep = 0, childre
         {(notificationError || refreshError) && <div className="mvp-sync-warning" role="status"><span>{notificationError || refreshError}</span><button type="button" onClick={() => { setNotificationError(""); setRefreshError(""); loadNotifications(); if (onRefresh) Promise.resolve().then(() => onRefresh()).catch(() => setRefreshError("Ainda não foi possível atualizar os dados.")); }}>Atualizar</button></div>}
         {loading ? <MvpDashboardSkeleton role={user?.role} /> : error ? <MvpLoadError message={error} onRetry={onRetry} /> : <div className="mvp-workspace-content">{children}</div>}
         <PasswordChangeCard collapsed={collapsePassword} />
+        {user?.role !== "admin" && <AccountPrivacyCard onDeleted={async () => { await signOut(); navigate("/"); }} />}
         {(user?.role === "student" || user?.role === "professional") && <ConversationLauncher conversations={conversations} unreadCount={unreadConversationCount} onOpenConversation={openConversation} renderConversation={renderConversation} />}
         <p className="mvp-foot-note">
           <ShieldCheck size={15} /> Piloto Acolhe · a instituição nunca acessa o conteúdo das conversas.
@@ -458,6 +459,42 @@ function PasswordChangeCard({ collapsed = false }) {
     {form}
   </details>;
   return <MvpCard title="Segurança da conta" subtitle="Troque a senha padrão ou atual a qualquer momento." testid="password-change-card">{form}</MvpCard>;
+}
+
+function AccountPrivacyCard({ onDeleted }) {
+  const [formState, setForm] = useState({ current_password: "", confirmation: "" });
+  const [saving, setSaving] = useState(false);
+  const [completed, setCompleted] = useState(false);
+  const submit = async event => {
+    event.preventDefault();
+    if (formState.confirmation.trim().toUpperCase() !== "EXCLUIR") {
+      toast.error("Digite EXCLUIR para confirmar.");
+      return;
+    }
+    setSaving(true);
+    try {
+      await api.delete("/auth/account", { data: { current_password: formState.current_password, confirmation: "EXCLUIR" } });
+      setCompleted(true);
+      toast.success("Conta excluída. Até logo.");
+      await onDeleted?.();
+    } catch (error) {
+      toast.error(apiError(error));
+    } finally {
+      setSaving(false);
+    }
+  };
+  if (completed) return <section className="mvp-card mvp-account-privacy-card is-complete" data-testid="account-privacy-card" role="status"><div className="mvp-account-privacy-complete"><CheckCircle2 size={22} /><div><h2>Conta excluída</h2><p>Seu acesso foi encerrado e você será desconectado de todos os dispositivos.</p></div></div></section>;
+  return <section className="mvp-card mvp-account-privacy-card" data-testid="account-privacy-card">
+    <div className="mvp-card-head"><div><h2><Trash2 size={17} /> Privacidade e dados</h2><p>Gerencie sua conta e saiba o que acontece com seus dados.</p></div><strong className="mvp-account-danger-label">Excluir conta</strong></div>
+    <div className="mvp-account-privacy-warning"><strong><AlertTriangle size={15} /> Antes de continuar</strong><p>Esta ação é permanente e encerra seu acesso ao Acolhe. Seu perfil, solicitações e conversas associadas serão removidos. Registros que precisem ser mantidos por obrigação legal poderão permanecer de forma restrita ou agregada.</p></div>
+    <ul className="mvp-account-privacy-list"><li>Você será desconectado de todos os dispositivos.</li><li>Certificados emitidos e registros agregados podem permanecer para fins de validação e auditoria.</li><li>A exclusão não apaga obrigações legais nem transforma a plataforma em prontuário clínico.</li></ul>
+    <form className="mvp-inline-form mvp-account-delete-form" onSubmit={submit}>
+      <label>Senha atual<input type="password" required value={formState.current_password} onChange={e => setForm({ ...formState, current_password: e.target.value })} autoComplete="current-password" data-testid="delete-account-password-input" /></label>
+      <label>Digite EXCLUIR para confirmar<input required value={formState.confirmation} onChange={e => setForm({ ...formState, confirmation: e.target.value })} autoComplete="off" data-testid="delete-account-confirmation-input" /></label>
+      <button type="submit" className="button quiet danger" disabled={saving} data-testid="delete-account-button">{saving ? "Excluindo…" : "Excluir conta permanentemente"}</button>
+    </form>
+    <p className="mvp-account-privacy-note"><ShieldCheck size={14} /> A instituição não acessa o conteúdo das conversas. Consulte os termos e a política de privacidade para saber os prazos de retenção aplicáveis.</p>
+  </section>;
 }
 
 export const MvpCard = ({ title, subtitle, action, children, testid, className = "", id, ariaLive }) => (
