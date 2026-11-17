@@ -607,6 +607,15 @@ test("public assets receive a compatible content security policy", async () => {
   assert.match(wrangler, /"run_worker_first": true/);
 });
 
+test("the public shell keeps bootstrap behavior compatible with CSP", async () => {
+  const html = await readFile(resolve(root, "index.html"), "utf8");
+  const bootstrap = await readFile(resolve(root, "public/bootstrap.js"), "utf8");
+  assert.match(html, /<script src="\/bootstrap\.js"><\/script>/);
+  assert.doesNotMatch(html, /<script>\s*\(/);
+  assert.match(bootstrap, /acolhe-theme/);
+  assert.match(bootstrap, /PerformanceServerTiming/);
+});
+
 test("overlay panels move focus to their close actions", async () => {
   const shell = await readFile(resolve(root, "src/mvp/MvpShell.jsx"), "utf8");
   assert.match(shell, /notificationCloseRef\.current\?\.focus\(\)/);
