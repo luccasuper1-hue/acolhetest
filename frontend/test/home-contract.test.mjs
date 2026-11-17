@@ -26,8 +26,8 @@ const staticHeaders = await readFile(resolve(root, "public", "_headers"), "utf8"
 const home = app.slice(app.indexOf("function Home()"), app.indexOf("function InfoPage"));
 
 test("home presents the current MVP rather than a rotating demo", () => {
-  assert.match(home, /Acesso ao MVP/);
-  assert.match(home, /Fluxo do MVP/);
+  assert.match(home, /Acesso ao Acolhe/);
+  assert.match(home, /Fluxo do Acolhe/);
   assert.match(home, /hero-role-\$\{role\}/);
   assert.doesNotMatch(home, /setInterval\(\(\) => setAutoIndex/);
   assert.doesNotMatch(home, /Experiência demonstrativa/);
