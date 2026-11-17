@@ -12,10 +12,12 @@ export const NotificationBell = () => {
   const [read, setRead] = useState(false);
   const ref = useRef(null);
   const buttonRef = useRef(null);
+  const panelRef = useRef(null);
   const wasOpen = useRef(false);
 
   useEffect(() => {
-    if (wasOpen.current && !open) buttonRef.current?.focus();
+    if (open) panelRef.current?.focus({ preventScroll: true });
+    if (wasOpen.current && !open) buttonRef.current?.focus({ preventScroll: true });
     wasOpen.current = open;
     if (!open) return;
     const onDown = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
@@ -32,7 +34,7 @@ export const NotificationBell = () => {
         {!read && <i className="notif-dot" aria-hidden="true"/>}
       </button>
       {open && (
-        <div id="notifications-panel" className="notif-panel" role="dialog" aria-modal="false" aria-label="Notificações" data-testid="notifications-panel">
+        <div ref={panelRef} id="notifications-panel" className="notif-panel" role="dialog" aria-modal="false" aria-label="Notificações" tabIndex="-1" data-testid="notifications-panel">
           <div className="notif-head">
             <span className="notif-title">Notificações</span>
             <span className="demo-label">DEMO</span>
