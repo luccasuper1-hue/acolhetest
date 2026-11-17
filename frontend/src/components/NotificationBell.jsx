@@ -27,7 +27,7 @@ export const NotificationBell = () => {
 
   return (
     <div className="notif" ref={ref}>
-      <button ref={buttonRef} type="button" className="notif-button" onClick={() => setOpen(!open)} aria-label="Notificações" aria-expanded={open} aria-controls="notifications-panel" data-testid="notifications-button">
+      <button ref={buttonRef} type="button" className="notif-button" onClick={() => setOpen(!open)} aria-label={read ? "Notificações" : "Notificações, há itens não lidos"} aria-expanded={open} aria-controls="notifications-panel" data-testid="notifications-button">
         <Bell size={17}/>
         {!read && <i className="notif-dot" aria-hidden="true"/>}
       </button>
@@ -37,12 +37,14 @@ export const NotificationBell = () => {
             <span className="notif-title">Notificações</span>
             <span className="demo-label">DEMO</span>
           </div>
+          <div role="list" aria-label="Lista de notificações">
           {DEMO_NOTIFICATIONS.map(({ id, Icon, text, time }) => (
-            <div className={read ? "notif-row" : "notif-row unread"} key={id}>
+            <div role="listitem" className={read ? "notif-row" : "notif-row unread"} key={id}>
               <span className="notif-icon"><Icon size={15}/></span>
               <div><p>{text}</p><span>{time}</span></div>
             </div>
           ))}
+          </div>
           <button type="button" className="notif-clear" onClick={() => setRead(true)} aria-live="polite" data-testid="notifications-mark-read">
             {read ? "Tudo lido" : "Marcar como lidas"}
           </button>
