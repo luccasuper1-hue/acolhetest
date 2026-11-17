@@ -800,6 +800,54 @@ html[data-theme="dark"] .availability-interest-inline span { color: var(--muted)
   .professional-certificate-actions { justify-content: flex-start; }
 }
 
+/* Desktop hierarchy shared by the remaining workspaces: action first,
+   context second, history and configuration last. */
+@media (min-width: 1050px) {
+  .mvp-shell[data-testid="student-area"] .mvp-main,
+  .mvp-shell[data-testid="institution-area"] .mvp-main { padding-top: 34px; }
+  .mvp-shell[data-testid="student-area"] .mvp-head,
+  .mvp-shell[data-testid="institution-area"] .mvp-head { margin-bottom: 20px; }
+  .mvp-shell[data-testid="student-area"] .mvp-workspace-content { gap: 18px 20px; }
+  .mvp-shell[data-testid="student-area"] .student-history-card { padding: 0 20px 20px; }
+  .mvp-shell[data-testid="student-area"] .student-history-card > summary { margin: 0 -20px; padding: 20px; }
+
+  .mvp-shell[data-testid="institution-area"] .mvp-workspace-content { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; gap: 18px 20px; }
+  .mvp-shell[data-testid="institution-area"] .mvp-workspace-content > .institution-next-step,
+  .mvp-shell[data-testid="institution-area"] .mvp-workspace-content > .institution-fallback-card,
+  .mvp-shell[data-testid="institution-area"] .mvp-workspace-content > .institution-metrics-details,
+  .mvp-shell[data-testid="institution-area"] .mvp-workspace-content > [data-testid="inst-impact-report-card"],
+  .mvp-shell[data-testid="institution-area"] .mvp-workspace-content > .institution-operations-grid,
+  .mvp-shell[data-testid="institution-area"] .mvp-workspace-content > .mvp-grid { grid-column: 1 / -1; }
+  .mvp-shell[data-testid="institution-area"] .mvp-workspace-content > .institution-next-step { order: 1; }
+  .mvp-shell[data-testid="institution-area"] .mvp-workspace-content > .institution-fallback-card { order: 2; }
+  .mvp-shell[data-testid="institution-area"] .mvp-workspace-content > .institution-onboarding-card { order: 3; }
+  .mvp-shell[data-testid="institution-area"] .mvp-workspace-content > .institution-primary-action { order: 4; }
+  .mvp-shell[data-testid="institution-area"] .mvp-workspace-content > .institution-student-access { order: 5; }
+  .mvp-shell[data-testid="institution-area"] .mvp-workspace-content > .institution-metrics-details { order: 6; }
+  .mvp-shell[data-testid="institution-area"] .mvp-workspace-content > [data-testid="inst-impact-report-card"] { order: 7; }
+  .mvp-shell[data-testid="institution-area"] .mvp-workspace-content > .institution-operations-grid { order: 8; }
+  .mvp-shell[data-testid="institution-area"] .mvp-workspace-content > .mvp-grid { order: 9; }
+
+  .mvp-shell[data-testid="admin-area"] .mvp-main { padding-top: 30px; }
+  .mvp-shell[data-testid="admin-area"] .mvp-head { margin-bottom: 18px; }
+  .mvp-shell[data-testid="admin-area"] .mvp-workspace-content { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(300px, .75fr); align-items: start; gap: 18px 20px; }
+  .mvp-shell[data-testid="admin-area"] .mvp-workspace-content > .admin-operations-card,
+  .mvp-shell[data-testid="admin-area"] .mvp-workspace-content > .admin-pending-leads-card,
+  .mvp-shell[data-testid="admin-area"] .mvp-workspace-content > .admin-leads-card,
+  .mvp-shell[data-testid="admin-area"] .mvp-workspace-content > .mvp-grid,
+  .mvp-shell[data-testid="admin-area"] .mvp-workspace-content > .admin-users-card { grid-column: 1 / -1; }
+  .mvp-shell[data-testid="admin-area"] .mvp-workspace-content > .admin-metrics-details { grid-column: 1; }
+  .mvp-shell[data-testid="admin-area"] .mvp-workspace-content > .admin-certificates-card { grid-column: 2; }
+  .mvp-shell[data-testid="admin-area"] .mvp-workspace-content > .admin-operations-card { order: 1; }
+  .mvp-shell[data-testid="admin-area"] .mvp-workspace-content > .admin-pending-leads-card { order: 2; }
+  .mvp-shell[data-testid="admin-area"] .mvp-workspace-content > .admin-metrics-details,
+  .mvp-shell[data-testid="admin-area"] .mvp-workspace-content > .admin-certificates-card { order: 3; }
+  .mvp-shell[data-testid="admin-area"] .mvp-workspace-content > .admin-manual-institution { grid-column: 1 / -1; order: 4; }
+  .mvp-shell[data-testid="admin-area"] .mvp-workspace-content > .admin-leads-card { order: 5; }
+  .mvp-shell[data-testid="admin-area"] .mvp-workspace-content > .mvp-grid { order: 6; }
+  .mvp-shell[data-testid="admin-area"] .mvp-workspace-content > .admin-users-card { order: 7; }
+}
+
 /* Conteúdo real: a mesma gramática do estado de carregamento, com superfícies
    arejadas, lavanda quase branca e blocos fáceis de escanear. */
 .mvp-workspace-content > .mvp-card {

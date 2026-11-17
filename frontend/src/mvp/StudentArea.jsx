@@ -282,7 +282,9 @@ export default function StudentArea() {
         <MvpEmpty testid="student-journey-empty">Você ainda não tem uma conversa agendada. Quando enviar um pedido, o profissional organizará os próximos detalhes por aqui.</MvpEmpty>
       </MvpCard>}
 
-      {history.length > 0 && <MvpCard title="Histórico e orientações" subtitle="Depois da conversa, o profissional pode registrar uma orientação." testid="student-history-card">
+      {history.length > 0 && <details className="mvp-card mvp-collapsible-card student-history-card" data-testid="student-history-card">
+        <summary className="mvp-card-head"><div><h2>Histórico e orientações</h2><p>Depois da conversa, o profissional pode registrar uma orientação.</p></div></summary>
+        <div className="mvp-collapsible-body">
         {history.map(r => (
           <div className="mvp-row" key={r.id} style={{ display: "block" }} data-testid={`student-history-${r.id}`}>
             <div className="mvp-row" style={{ borderTop: 0, padding: 0 }}>
@@ -321,7 +323,8 @@ export default function StudentArea() {
             {r.feedback && <p className="mvp-ok" style={{ marginTop: 10 }} data-testid={`feedback-sent-${r.id}`}>Feedback enviado ({r.feedback.score}/5).</p>}
           </div>
         ))}
-      </MvpCard>}
+        </div>
+      </details>}
     </MvpShell>
   );
 }
