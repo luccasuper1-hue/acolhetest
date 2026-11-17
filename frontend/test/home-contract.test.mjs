@@ -237,6 +237,16 @@ test("institution metrics expose response time and attendance without private co
   assert.doesNotMatch(routes, /reason_note.*institutionMetrics/);
 });
 
+test("institution impact report explains period and protects small samples", () => {
+  assert.match(routes, /minimum_sample_size: 5/);
+  assert.match(routes, /baseline_available: false/);
+  assert.match(routes, /responseSamples\.length >= 5/);
+  assert.match(routes, /attendanceSessions\.length >= 5/);
+  assert.match(frontendInstitution, /Relatório do piloto/);
+  assert.match(frontendInstitution, /aguardando.*casos/);
+  assert.match(frontendInstitution, /Linha de base/);
+});
+
 test("notification history stays cursor-paginated", () => {
   assert.match(core, /limit: 41/);
   assert.match(core, /rows\.slice\(0, 40\)/);

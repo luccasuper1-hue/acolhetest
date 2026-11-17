@@ -130,12 +130,18 @@ export default function InstitutionArea() {
         <MvpKpi label="Estudantes que solicitaram" value={metrics?.students_requested} testid="inst-kpi-requesting" />
         <MvpKpi label="Solicitações" value={metrics?.requests_total} testid="inst-kpi-requests" />
         <MvpKpi label="Conversas realizadas" value={metrics?.sessions_completed} testid="inst-kpi-sessions" />
-        <MvpKpi label="Tempo médio até resposta" value={metrics?.response_time_minutes_avg == null ? "—" : `${Math.round(metrics.response_time_minutes_avg)} min`} note={metrics?.responses_within_48h == null ? "aguardando dados" : `${metrics.responses_within_48h}% em até 48h`} testid="inst-kpi-response-time" />
-        <MvpKpi label="Comparecimento" value={metrics?.attendance_rate == null ? "—" : `${metrics.attendance_rate}%`} note={metrics?.sessions_no_show ? `${metrics.sessions_no_show} ausência(s)` : "sem ausências registradas"} testid="inst-kpi-attendance" />
+        <MvpKpi label="Tempo médio até resposta" value={metrics?.response_time_minutes_avg == null ? "—" : `${Math.round(metrics.response_time_minutes_avg)} min`} note={metrics?.response_time_minutes_avg == null ? `aguardando ${metrics?.minimum_sample_size ?? 5} casos` : `${metrics.responses_within_48h}% em até 48h`} testid="inst-kpi-response-time" />
+        <MvpKpi label="Comparecimento" value={metrics?.attendance_rate == null ? "—" : `${metrics.attendance_rate}%`} note={metrics?.attendance_rate == null ? `aguardando ${metrics?.minimum_sample_size ?? 5} encontros` : (metrics?.sessions_no_show ? `${metrics.sessions_no_show} ausência(s)` : "sem ausências registradas")} testid="inst-kpi-attendance" />
         <MvpKpi label="Profissionais vinculados" value={metrics?.professionals_linked} note={`${metrics?.professionals_accessed ?? 0} já acessaram`} testid="inst-kpi-professionals" />
         <MvpKpi label="Encaminhamentos" value={metrics?.referrals_total} testid="inst-kpi-referrals" />
         </div>
       </details>
+
+      <MvpCard title="Relatório do piloto" subtitle="Leitura operacional, sem avaliação clínica ou ranking de profissionais." testid="inst-impact-report-card">
+        <div className="mvp-row"><div className="mvp-row-main"><strong>Período atual</strong><span>{metrics?.metrics_period_label || "Desde o início do piloto"}</span></div><span className="mvp-tag">{metrics?.requests_total || 0} pedidos</span></div>
+        <div className="mvp-row"><div className="mvp-row-main"><strong>Linha de base</strong><span>{metrics?.baseline_available ? "Disponível para comparação" : "Ainda não registrada"}</span></div><span className="mvp-tag wait">{metrics?.baseline_available ? "PRONTA" : "PENDENTE"}</span></div>
+        <p className="mvp-note">As métricas de velocidade e comparecimento só aparecem com pelo menos {metrics?.minimum_sample_size ?? 5} casos. O período e a amostra devem acompanhar qualquer comparação antes/depois.</p>
+      </MvpCard>
 
       <div className="mvp-grid">
         <MvpCard title="Solicitações por período" subtitle="Solicitações por mês (dados do piloto)." testid="inst-usage-card">
