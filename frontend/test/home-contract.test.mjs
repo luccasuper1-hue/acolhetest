@@ -587,6 +587,11 @@ test("background refresh also catches synchronous callback throws", async () => 
   assert.match(shell, /Promise\.resolve\(\)\.then\(\(\) => onRefresh\(\)\)/);
 });
 
+test("MVP auth provider imports every React hook it uses", async () => {
+  const auth = await readFile(resolve(root, "src/mvp/AuthMvp.jsx"), "utf8");
+  assert.match(auth, /import \{ createContext, useCallback, useContext, useEffect, useMemo, useState \} from "react"/);
+});
+
 test("student and professional action controls declare button type", async () => {
   const studentSource = await readFile(resolve(root, "src/mvp/StudentArea.jsx"), "utf8");
   const professionalSource = await readFile(resolve(root, "src/mvp/ProfessionalArea.jsx"), "utf8");
