@@ -578,6 +578,8 @@ test("MVP overlays keep keyboard focus contained", async () => {
   assert.match(lock, /activeLocks === 0/);
   assert.match(lock, /document\.body\.style\.overflow = "hidden"/);
   assert.match(lock, /document\.body\.style\.overflow = previousOverflow/);
+  assert.match(lock, /let released = false/);
+  assert.match(lock, /if \(released\) return/);
   assert.match(shell, /return lockOverlayScroll\(\)/g);
 });
 
