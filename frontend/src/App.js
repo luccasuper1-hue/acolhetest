@@ -44,8 +44,14 @@ function CornerLogo() {
   const location = useLocation();
   const [open, setOpen] = useState(false);
   const panelRef = useRef(null);
+  const dialogRef = useRef(null);
+  const triggerRef = useRef(null);
+  const wasOpenRef = useRef(false);
   const isHome = location.pathname === "/";
   useEffect(() => {
+    if (open) dialogRef.current?.focus({ preventScroll: true });
+    if (wasOpenRef.current && !open) triggerRef.current?.focus({ preventScroll: true });
+    wasOpenRef.current = open;
     if (!open) return undefined;
     const handlePointerDown = event => {
       if (!panelRef.current?.contains(event.target)) setOpen(false);
@@ -64,15 +70,15 @@ function CornerLogo() {
   if (isHome) return null;
   const close = () => setOpen(false);
   return <div className={open ? "corner-quick open" : "corner-quick"} ref={panelRef}>
-    {open && <div className="corner-quick-panel" role="dialog" aria-label="Acesso rápido">
-      <div className="corner-quick-title">Acesso rápido</div>
+    {open && <div ref={dialogRef} className="corner-quick-panel" role="dialog" aria-labelledby="corner-quick-title" tabIndex="-1">
+      <div id="corner-quick-title" className="corner-quick-title">Acesso rápido</div>
       <Link to="/" onClick={close} data-testid="corner-quick-home"><span>Voltar ao início</span><ArrowRight size={15}/></Link>
       <Link to="/como-funciona" onClick={close} data-testid="corner-quick-how"><span>Como funciona</span><ArrowRight size={15}/></Link>
       <Link to="/recursos" onClick={close} data-testid="corner-quick-resources"><span>Recursos</span><ArrowRight size={15}/></Link>
       <Link to="/ajuda" onClick={close} data-testid="corner-quick-help"><span>Ajuda</span><ArrowRight size={15}/></Link>
       <Link className="corner-quick-urgent" to="/preciso-ajuda" onClick={close} data-testid="corner-quick-urgent"><span>Preciso de ajuda agora</span><ArrowRight size={15}/></Link>
     </div>}
-    <button type="button" className="corner-logo" onClick={() => setOpen(value => !value)} aria-label={open ? "Fechar acesso rápido" : "Abrir acesso rápido"} aria-expanded={open} aria-haspopup="dialog" data-testid="corner-brand-button"><span className="corner-logo-glow" aria-hidden="true"/><span className="corner-logo-float" aria-hidden="true"><span className="corner-logo-body"><span className="corner-logo-mark"><BrandMark size={30}/></span></span></span><span className="corner-logo-tooltip">Acesso rápido</span></button>
+    <button ref={triggerRef} type="button" className="corner-logo" onClick={() => setOpen(value => !value)} aria-label={open ? "Fechar acesso rápido" : "Abrir acesso rápido"} aria-expanded={open} aria-haspopup="dialog" data-testid="corner-brand-button"><span className="corner-logo-glow" aria-hidden="true"/><span className="corner-logo-float" aria-hidden="true"><span className="corner-logo-body"><span className="corner-logo-mark"><BrandMark size={30}/></span></span></span><span className="corner-logo-tooltip">Acesso rápido</span></button>
   </div>;
 }
 function Header() {
