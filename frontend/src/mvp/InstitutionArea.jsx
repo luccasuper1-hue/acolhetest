@@ -130,6 +130,8 @@ export default function InstitutionArea() {
         <MvpKpi label="Estudantes que solicitaram" value={metrics?.students_requested} testid="inst-kpi-requesting" />
         <MvpKpi label="Solicitações" value={metrics?.requests_total} testid="inst-kpi-requests" />
         <MvpKpi label="Conversas realizadas" value={metrics?.sessions_completed} testid="inst-kpi-sessions" />
+        <MvpKpi label="Tempo médio até resposta" value={metrics?.response_time_minutes_avg == null ? "—" : `${Math.round(metrics.response_time_minutes_avg)} min`} note={metrics?.responses_within_48h == null ? "aguardando dados" : `${metrics.responses_within_48h}% em até 48h`} testid="inst-kpi-response-time" />
+        <MvpKpi label="Comparecimento" value={metrics?.attendance_rate == null ? "—" : `${metrics.attendance_rate}%`} note={metrics?.sessions_no_show ? `${metrics.sessions_no_show} ausência(s)` : "sem ausências registradas"} testid="inst-kpi-attendance" />
         <MvpKpi label="Profissionais vinculados" value={metrics?.professionals_linked} note={`${metrics?.professionals_accessed ?? 0} já acessaram`} testid="inst-kpi-professionals" />
         <MvpKpi label="Encaminhamentos" value={metrics?.referrals_total} testid="inst-kpi-referrals" />
         </div>

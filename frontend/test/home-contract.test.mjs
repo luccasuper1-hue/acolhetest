@@ -6,6 +6,21 @@ import { resolve } from "node:path";
 const root = resolve(import.meta.dirname, "..");
 const app = await readFile(resolve(root, "src/App.js"), "utf8");
 const css = await readFile(resolve(root, "src/mobile.css"), "utf8");
+const mvpCss = await readFile(resolve(root, "src/mvp/mvp.css"), "utf8");
+const shell = await readFile(resolve(root, "src/mvp/MvpShell.jsx"), "utf8");
+const authMvp = await readFile(resolve(root, "src/mvp/AuthMvp.jsx"), "utf8");
+const student = await readFile(resolve(root, "src/mvp/StudentArea.jsx"), "utf8");
+const professional = await readFile(resolve(root, "src/mvp/ProfessionalArea.jsx"), "utf8");
+const register = await readFile(resolve(root, "src/mvp/RegisterPage.jsx"), "utf8");
+const certificateValidation = await readFile(resolve(root, "src/mvp/CertificateValidationPage.jsx"), "utf8");
+const admin = await readFile(resolve(root, "src/mvp/AdminArea.jsx"), "utf8");
+const frontendInstitution = await readFile(resolve(root, "src/mvp/InstitutionArea.jsx"), "utf8");
+const realtime = await readFile(resolve(root, "src/mvp/api.js"), "utf8");
+const routes = await readFile(resolve(root, "..", "cloudflare-worker", "src", "routes.ts"), "utf8");
+const core = await readFile(resolve(root, "..", "cloudflare-worker", "src", "core.ts"), "utf8");
+const workerDb = await readFile(resolve(root, "..", "cloudflare-worker", "src", "db.ts"), "utf8");
+const workerIndex = await readFile(resolve(root, "..", "cloudflare-worker", "src", "index.ts"), "utf8");
+const staticHeaders = await readFile(resolve(root, "public", "_headers"), "utf8");
 const home = app.slice(app.indexOf("function Home()"), app.indexOf("function InfoPage"));
 
 test("home presents the current MVP rather than a rotating demo", () => {
@@ -21,16 +36,49 @@ test("mobile home keeps the product card compact", () => {
   assert.match(css, /\.mvp-role-options \.demo-option/);
 });
 
+test("mobile chat follows the dynamic viewport when the keyboard opens", () => {
+  assert.match(mvpCss, /\.mvp-conversation-window \.mvp-chat-messages[^}]*max-height: 46dvh/);
+});
+
+test("chat loading failures stay visible with a retry action", () => {
+  for (const source of [student, professional]) {
+    assert.match(source, /Não foi possível carregar as mensagens/);
+    assert.match(source, /Tentar novamente/);
+    assert.match(source, /mvp-chat-error/);
+  }
+});
+
+test("chat switching clears drafts and prevents sending during history loading", () => {
+  for (const source of [student, professional]) {
+    assert.match(source, /setChatDraft\(""\)/);
+    assert.match(source, /chatBusy \|\| chatLoading/);
+  }
+});
+
+test("chat retry restores the latest read receipt state", () => {
+  assert.match(student, /const lastRead = \[\.\.\.messages\]\.reverse\(\)\.find\(message => message\.sender_role === "student" && message\.read_at\)/g);
+  assert.match(professional, /const lastRead = \[\.\.\.messages\]\.reverse\(\)\.find\(message => message\.sender_role === "professional" && message\.read_at\)/g);
+});
+
+test("pilot governance surfaces are wired", () => {
+  assert.match(app, /ajuda\/instituicoes/);
+  assert.match(app, /termos\/estudante/);
+  assert.match(app, /termos\/profissional/);
+  assert.match(app, /termos\/instituicao/);
+  assert.match(register, /consent_version: "pilot-v1"/);
+  assert.match(routes, /consentVersion = string\(payload\.consent_version\)/);
+  assert.match(workerIndex, /\/api\/health/);
+});
+
 test("primary home actions enter the MVP", () => {
   assert.match(home, /data-testid="hero-talk-button"/);
   assert.match(home, /to="\/entrar" className="button primary"/);
 });
 
-test("role cards provide context without changing authorization", async () => {
-  const login = await readFile(resolve(root, "src/mvp/LoginPage.jsx"), "utf8");
-  assert.match(home, /to={`\/entrar\?perfil=\$\{role\}`}/);
-  assert.match(login, /PROFILE_CONTEXT/);
-  assert.match(login, /HOME_BY_ROLE\[logged\.role\]/);
+test("role cards lead to the matching audience pages", () => {
+  assert.match(home, /\[\["Instituição"[^\]]+"\/instituicoes"/);
+  assert.match(home, /\["Estudante"[^\]]+"\/para-estudantes"/);
+  assert.match(home, /\["Profissional"[^\]]+"\/profissionais"/);
 });
 
 test("role cards use the product icon language", () => {
@@ -42,11 +90,59 @@ test("role cards use the product icon language", () => {
   assert.doesNotMatch(home, /["'`]⌂["'`]/);
 });
 
+test("certificate dates use the product timezone consistently", () => {
+  assert.match(certificateValidation, /formatDate\(state\.certificate\.issued_at\)/);
+  assert.match(professional, /formatDate\(printable\.issued_at\)/);
+  assert.doesNotMatch(certificateValidation, /toLocaleDateString\("pt-BR"\)/);
+  assert.doesNotMatch(professional, /new Date\(printable\.issued_at\)\.toLocaleDateString/);
+});
+
+test("administrative lead timestamps use the shared product timezone formatter", () => {
+  assert.match(admin, /formatDateTime\(lead\.created_at\)/);
+  assert.doesNotMatch(admin, /toLocaleString\("pt-BR"\)/);
+});
+
+test("appointment notification filter covers the full meeting lifecycle", () => {
+  const shellSource = shell;
+  for (const type of ["appointment_request_cancelled", "request_cancelled", "request_rescheduled", "request_expired", "request_expiring", "room_link_added"]) {
+    assert.match(shellSource, new RegExp(`\\"${type}\\"`));
+  }
+});
+
+test("certificate codes derive their year from the product timezone", () => {
+  assert.match(routes, /code: `AC-\$\{localScheduleParts\(\)\.year\}-/);
+  assert.doesNotMatch(routes, /code: `AC-\$\{new Date\(\)\.getFullYear\(\)\}-/);
+});
+
+test("professional session actions use the product timezone", () => {
+  assert.match(professional, /scheduledTimeHasStarted\(session\?\.date, session\?\.time\)/);
+  assert.doesNotMatch(professional, /new Date\(`\$\{session\.date\}T\$\{session\.time\}:00`\)/);
+});
+
+test("dashboard-backed panels avoid a duplicate notification polling loop", () => {
+  assert.match(shell, /if \(dashboardNotificationsReady \|\| onRefresh \|\| loading\) return undefined/);
+});
+
+test("admin user listings exclude authentication and invitation secrets", () => {
+  assert.match(routes, /projection: \{ password_hash: 0, invite_token: 0, invite_expires_at: 0, session_version: 0 \}/);
+  assert.match(routes, /if \(pathname === "\/api\/admin\/users"/);
+});
+
+test("admin request listings exclude free-text student notes", () => {
+  assert.match(routes, /findMany\("appointment_requests", \{\}, \{ projection: \{ note: 0, reason_note: 0 \}/);
+  assert.match(routes, /findMany\("requests", \{\}, \{ projection: \{ reason_note: 0 \}/);
+});
+
 test("MVP roles stay behind their protected areas", () => {
   assert.match(app, /path="\/aluno" element={<RequireRole role="student">/);
   assert.match(app, /path="\/profissional" element={<RequireRole role="professional">/);
   assert.match(app, /path="\/instituicao" element={<RequireRole role="institution">/);
   assert.match(app, /path="\/admin" element={<RequireRole role="admin">/);
+});
+
+test("protected areas redirect missing or mismatched roles", () => {
+  assert.ok(authMvp.includes("if (!user) return <Navigate to={`/entrar?next=${location.pathname}`"));
+  assert.ok(authMvp.includes('if (user.role !== role) return <Navigate to={HOME_BY_ROLE[user.role] || "/"}'));
 });
 
 test("legacy beta paths are kept behind the MVP entry point", () => {
@@ -69,4 +165,284 @@ test("home remains bounded to the five-block information architecture", () => {
   assert.equal((home.match(/<section className="(hero|problem-band|cta-band)/g) || []).length, 3);
   assert.match(home, /<AudienceBand\/>/);
   assert.match(home, /<FaqSection compact\/>/);
+});
+
+test("notification history and chat actions stay connected", () => {
+  assert.match(shell, /listNotifications|api\.get\(notificationPath\)/);
+  assert.match(shell, /has_more/);
+  assert.match(shell, /Carregar notificações mais antigas/);
+  assert.match(shell, /mvp-open-conversation/);
+  assert.match(shell, /setNotificationsOpen\(false\)/);
+  assert.match(shell, /mvp-notification-close/);
+  assert.match(shell, /Notificações\{displayedUnreadCount > 0/);
+  assert.match(shell, /Fechar notificações/);
+  assert.match(shell, /aria-controls="mvp-notification-items"/);
+  assert.match(shell, /role="tabpanel"/);
+  assert.match(shell, /dashboardNotificationPageLoaded/);
+  assert.match(shell, /notifications_changed/);
+  assert.match(shell, /notificationPath}\/read/);
+  assert.match(student, /dashboardNotifications=\{notifications\}/);
+  assert.match(professional, /dashboardNotifications=\{notifications\}/);
+  assert.match(shell, /onNotificationsChange\?\.\(merged\)/);
+  assert.match(shell, /notificationsRef\.current = merged/);
+  assert.match(shell, /previousLoaded\.filter\(item => !next\.some/);
+  assert.match(shell, /const optimistic = notificationsRef\.current\.map/);
+  assert.match(shell, /loadNotifications\(\)\.then\(loaded => \{ if \(loaded && notificationsOpenRef\.current\) return markNotificationsRead/);
+  assert.match(shell, /return false; \}/);
+  assert.match(shell, /notificationsOpenRef\.current/);
+});
+
+test("realtime notifications update the unread badge immediately", () => {
+  assert.match(shell, /if \(!event\.notification\.read\) setUnreadCount\(currentCount => currentCount === null \? currentCount : currentCount \+ 1\)/);
+});
+
+test("notification reads stay optimistic while the server reconciles", () => {
+  assert.match(shell, /Math\.max\(0, serverUnreadCount - pendingReadIds\.current\.size\)/);
+  assert.match(shell, /Math\.max\(0, page\.unread_count - pendingReadIds\.current\.size\)/);
+});
+
+test("realtime retries respect hidden tabs", () => {
+  assert.match(realtime, /document\.visibilityState === "hidden"/);
+  assert.match(realtime, /visibilitychange/);
+  assert.match(realtime, /Math\.min\(1000 \* \(2 \*\* attempts\), 30000\)/);
+});
+
+test("notification times use the product timezone", () => {
+  assert.match(realtime, /PRODUCT_TIME_ZONE = "America\/Fortaleza"/);
+  assert.match(realtime, /year: "numeric"/);
+  assert.match(realtime, /timeZone: PRODUCT_TIME_ZONE/);
+});
+
+test("bulk notification reads stay scoped to the current recipient", () => {
+  assert.match(routes, /\/api\/students\/me\/notifications\/read[\s\S]*recipient_user_id: user\.id/);
+  assert.match(routes, /\/api\/professionals\/me\/notifications\/read[\s\S]*recipient_user_id: user\.id/);
+  assert.match(routes, /\/api\/institutions\/me\/notifications\/read[\s\S]*recipient_user_id: user\.id/);
+  assert.match(routes, /\/api\/admin\/notifications\/read[\s\S]*recipient_user_id: admin\.id/);
+});
+
+test("institution notifications exclude retired availability events from list and unread count", () => {
+  const start = routes.indexOf('if (pathname === "/api/institutions/me/notifications"');
+  const end = routes.indexOf('if (pathname === "/api/institutions/me/notifications/read"', start);
+  assert.ok(start >= 0 && end > start);
+  assert.match(routes.slice(start, end), /excludeTypes: \["availability_published", "availability_published_for_request"\]/);
+  assert.match(core, /const unread_count = options\.includeUnreadCount[\s\S]*\.\.\.baseFilter, read: \{ \$ne: true \} \}/);
+});
+
+test("institution metrics expose response time and attendance without private content", () => {
+  assert.match(routes, /response_time_minutes_avg/);
+  assert.match(routes, /responses_within_48h/);
+  assert.match(routes, /attendance_rate/);
+  assert.match(frontendInstitution, /Tempo médio até resposta/);
+  assert.match(frontendInstitution, /Comparecimento/);
+  assert.doesNotMatch(routes, /reason_note.*institutionMetrics/);
+});
+
+test("notification history stays cursor-paginated", () => {
+  assert.match(core, /limit: 41/);
+  assert.match(core, /rows\.slice\(0, 40\)/);
+  assert.match(core, /has_more: rows\.length > items\.length/);
+  assert.match(core, /next_before: last \? `\$\{last\.created_at\}\|\$\{last\.id\}`/);
+});
+
+test("API responses enforce HTTPS with HSTS", () => {
+  assert.match(workerIndex, /strict-transport-security/);
+  assert.match(workerIndex, /max-age=31536000; includeSubDomains/);
+  assert.match(staticHeaders, /Strict-Transport-Security: max-age=31536000; includeSubDomains/);
+  assert.match(workerIndex, /x-content-type-options/);
+  assert.match(workerIndex, /x-frame-options/);
+  assert.match(workerIndex, /referrer-policy/);
+  assert.match(workerIndex, /permissions-policy/);
+});
+
+test("archiving an institution invalidates existing user sessions", () => {
+  assert.match(routes, /institution_archived/);
+  assert.match(routes, /updateMany\("users", \{ institution_id: institutionId, active: \{ \$ne: false \} \}, \{ \$inc: \{ session_version: 1 \} \}\)/);
+});
+
+test("direct request decisions refresh institution and admin panels", () => {
+  const acceptStart = routes.indexOf('if (acceptId && request.method === "POST")');
+  const declineStart = routes.indexOf('if (declineId && request.method === "POST")');
+  assert.ok(acceptStart >= 0 && declineStart > acceptStart);
+  const declineEnd = routes.indexOf('if (roomId && request.method === "POST")', declineStart);
+  const decisionRoutes = routes.slice(acceptStart, declineEnd);
+  assert.equal((decisionRoutes.match(/refreshPanels\(env, store, professional\.institution_id, "institution"\)/g) || []).length, 2);
+  assert.equal((decisionRoutes.match(/refreshPanels\(env, store, professional\.institution_id, "admin"\)/g) || []).length, 2);
+  assert.match(decisionRoutes, /refreshStudentPanels\(env, store, professional\.institution_id\)/);
+});
+
+test("appointment confirmation refreshes the professional panel", () => {
+  assert.match(routes, /async function refreshProfessionalPanel/);
+  const start = routes.indexOf('const appointmentConfirmId = pathParameter');
+  const end = routes.indexOf('if (pathname === "/api/students/me/availability-interest"', start);
+  assert.match(routes.slice(start, end), /refreshProfessionalPanel\(env, store, record\.professional_id\)/);
+});
+
+test("expired requests refresh every affected panel scope", () => {
+  const start = routes.indexOf("async function expirePendingRequests");
+  const end = routes.indexOf("function sessionReminderNotifications", start);
+  const block = routes.slice(start, end);
+  assert.match(block, /scope: "professional"/);
+  assert.match(block, /refreshPanels\(env, store, institutionId, "institution"\)/);
+  assert.match(block, /refreshPanels\(env, store, institutionId, "admin"\)/);
+});
+
+test("appointment cancellation notifies the professional", () => {
+  const start = routes.indexOf('const appointmentCancelId = pathParameter');
+  const end = routes.indexOf('const appointmentConfirmId = pathParameter', start);
+  const block = routes.slice(start, end);
+  assert.match(block, /appointment_request_cancelled/);
+  assert.match(block, /notifyUser\(env, String\(professional\.user_id\)/);
+});
+
+test("accepted professional invitations refresh the admin panel", () => {
+  const start = routes.indexOf('const acceptToken = pathParameter');
+  const end = routes.indexOf('if (pathname === "/api/auth/forgot-password"', start);
+  const block = routes.slice(start, end);
+  assert.match(block, /professional_invite_accepted/);
+  assert.match(block, /refreshPanels\(env, store, String\(user\.institution_id\), "admin"\)/);
+});
+
+test("schedule comparisons use the product timezone", () => {
+  assert.match(routes, /APP_TIME_ZONE = "America\/Fortaleza"/);
+  assert.match(routes, /scheduleTimestamp/);
+  assert.match(routes, /localCurrentTime/);
+});
+
+test("completed sessions accept past calendar dates", () => {
+  assert.match(routes, /validDateShape\(session\.date\).*session\.date < today/);
+});
+
+test("certificate visibility and revocation stay role-scoped", () => {
+  assert.match(routes, /certificates\", \{ professional_id: \{ \$in: professionalIds \} \}/);
+  assert.match(routes, /pathParameter\(pathname, "\/api\/admin\/certificates\/", "\/revoke"\)/);
+  assert.match(routes, /findOne\("certificates", \{ code: certificateCode, status: "valid" \}\)/);
+  assert.doesNotMatch(frontendInstitution, /admin\/certificates/);
+});
+
+test("login distinguishes disabled accounts from archived institutions", () => {
+  const start = routes.indexOf("async function login");
+  const end = routes.indexOf("async function authRoutes", start);
+  const block = routes.slice(start, end);
+  assert.match(block, /user\.active === false/);
+  assert.match(block, /loginInstitution\?\.active === false/);
+  assert.match(block, /Acesso desativado/);
+  assert.match(block, /Instituição arquivada/);
+});
+
+test("archived institutions cannot activate pending professional invites", () => {
+  const inviteStart = routes.indexOf('const inviteToken = pathParameter(pathname, "/api/auth/invite/")');
+  const acceptStart = routes.indexOf('const acceptToken = pathParameter(pathname, "/api/auth/invite/", "/accept")');
+  assert.ok(inviteStart >= 0 && acceptStart > inviteStart);
+  const inviteBlock = routes.slice(inviteStart, acceptStart);
+  const acceptBlock = routes.slice(acceptStart, routes.indexOf('if (pathname === "/api/auth/forgot-password"', acceptStart));
+  assert.match(inviteBlock, /institution\?\.active === false\) return fail\("Instituição arquivada/);
+  assert.match(acceptBlock, /inviteInstitution\?\.active === false\) return fail\("Instituição arquivada/);
+});
+
+test("authentication responses minimize institution data by role", () => {
+  assert.match(core, /export const publicInstitution = \(institution: Doc \| null\)/);
+  assert.match(routes, /institution: publicInstitution\(institution\)/);
+  assert.match(routes, /user\.role === "institution" \? loginInstitution : publicInstitution\(loginInstitution\)/);
+  assert.match(routes, /user\.role === "institution" \? institution : publicInstitution\(institution\)/);
+});
+
+test("student and professional profile responses use the same institution contract", () => {
+  assert.match(routes, /pathname === "\/api\/students\/me"[\s\S]*institution: publicInstitution\(/);
+  assert.match(routes, /pathname === "\/api\/professionals\/me"[\s\S]*institution: publicInstitution\(/);
+});
+
+test("pilot reset tokens require an explicit non-production environment", () => {
+  assert.match(routes, /PILOT_RETURN_RESET_TOKEN === "true" && Boolean\(env\.APP_ENV\) && env\.APP_ENV !== "production"/);
+});
+
+test("archived institutions are rejected for existing sessions", () => {
+  assert.match(core, /if \(user\.role !== "admin"\)/);
+  assert.match(core, /Instituição arquivada\. Fale com a administração\./);
+});
+
+test("non-admin accounts require a valid institution link", () => {
+  assert.match(core, /Instituição não vinculada\. Fale com a administração\./);
+  assert.match(routes, /user\.role !== "admin" && !loginInstitution/);
+});
+
+test("certificates keep a manual validation code alongside the QR shortcut", () => {
+  assert.match(professional, /Código: \$\{printable\.code\}/);
+  assert.match(professional, /class="qr-code"/);
+});
+
+test("lead submissions validate delivery configuration before persisting", () => {
+  const guard = 'if (!env.RESEND_API_KEY || !env.LEAD_EMAIL_TO) return fail("Envio de contatos ainda não está configurado", 503);';
+  assert.ok(routes.indexOf(guard) >= 0);
+  assert.ok(routes.indexOf(guard) < routes.indexOf('await db(env).insert("leads", lead)'));
+});
+
+test("persisted leads do not fail because secondary email delivery is unavailable", () => {
+  assert.match(routes, /notification_pending: true/);
+  assert.doesNotMatch(routes, /return fail\("Não foi possível enviar o contato agora", 502\)/);
+});
+
+test("external email integrations have a bounded timeout", () => {
+  assert.match(routes, /AbortSignal\.timeout\(8_000\)/);
+  assert.doesNotMatch(routes, /await fetch\("https:\/\/(?:api\.resend\.com|gmail\.googleapis\.com|oauth2\.googleapis\.com)/);
+});
+
+test("realtime broadcasts have a bounded timeout", () => {
+  assert.match(core, /realtime\.internal\/realtime\/broadcast[\s\S]*AbortSignal\.timeout\(3_000\)/);
+});
+
+test("dashboard notification badges use the authoritative unread count", () => {
+  assert.match(routes, /notification_unread_count: notificationPage\.unread_count \|\| 0/);
+  assert.match(shell, /dashboardNotificationUnreadCount/);
+  assert.match(student, /notificationUnreadCount/);
+  assert.match(professional, /notificationUnreadCount/);
+});
+
+test("chat read receipts are broadcast only after persistence", () => {
+  assert.match(workerDb, /let persisted = false/);
+  assert.match(workerDb, /persisted = true/);
+  assert.match(workerDb, /if \(persisted\) this\.broadcast\(\{ sessionId: metadata\.sessionId, event: \{ type: "message_read"/);
+});
+
+test("chat and notification requests have a bounded client timeout", () => {
+  assert.match(realtime, /timeout: 15_000/);
+});
+
+test("realtime websocket upgrades have a bounded server timeout", () => {
+  assert.match(workerIndex, /realtime\.internal\/realtime\/socket[\s\S]*AbortSignal\.timeout\(5_000\)/);
+});
+
+test("network timeouts use a user-facing message", () => {
+  assert.match(realtime, /A conexão demorou demais\. Tente novamente\./);
+});
+
+test("chat fallback polling pauses while the tab is hidden", () => {
+  assert.match(student, /refreshWhenVisible = \(\) => \{ if \(document\.visibilityState === "visible"\) refreshChat\(\); \}/);
+  assert.match(professional, /refreshWhenVisible = \(\) => \{ if \(document\.visibilityState === "visible"\) refreshChat\(\); \}/);
+});
+
+test("opening a chat leaves message loading to the session effect", () => {
+  assert.match(student, /setChatMessages\(\[\]\);[\s\S]*?setChatSession\(sessionId\);/);
+  assert.match(professional, /setChatMessages\(\[\]\);[\s\S]*?setChatSession\(sessionId\);/);
+  assert.match(student, /const refreshChat = async \(\) =>[\s\S]*?refreshChat\(\);/);
+  assert.match(professional, /const refreshChat = async \(\) =>[\s\S]*?refreshChat\(\);/);
+  assert.match(student, /Carregando mensagens…/);
+  assert.match(professional, /Carregando mensagens…/);
+  assert.match(student, /let active = true;[\s\S]*?if \(!active\) return;[\s\S]*?active = false/);
+  assert.match(professional, /let active = true;[\s\S]*?if \(!active\) return;[\s\S]*?active = false/);
+  assert.match(student, /\[chatMessages, chatRealtimeConnected, chatSession\]/);
+  assert.match(professional, /\[chatMessages, chatRealtimeConnected, chatSession\]/);
+  assert.match(student, /setChatOnline\(false\);[\s\S]*?setChatTyping\(false\);[\s\S]*?setChatReadAt\(null\);/);
+  assert.match(professional, /setChatOnline\(false\);[\s\S]*?setChatTyping\(false\);[\s\S]*?setChatReadAt\(null\);/);
+  assert.match(student, /chatSessionRef\.current === sessionId/);
+  assert.match(professional, /chatSessionRef\.current === sessionId/);
+  assert.match(student, /if \(!connected\) \{[\s\S]*?setChatOnline\(false\);[\s\S]*?setChatTyping\(false\); \}/);
+  assert.match(professional, /if \(!connected\) \{[\s\S]*?setChatOnline\(false\);[\s\S]*?setChatTyping\(false\); \}/);
+  assert.match(student, /lastReadSentRef\.current !== readKey/);
+  assert.match(professional, /lastReadSentRef\.current !== readKey/);
+});
+
+test("dashboard refresh stays centralized in the MVP shell", () => {
+  assert.doesNotMatch(student, /setInterval\(refreshWhenVisible, 300000\)/);
+  assert.doesNotMatch(professional, /setInterval\(refreshWhenVisible, 300000\)/);
+  assert.match(shell, /window\.setInterval\(refreshWhenVisible, 300_000\)/);
 });
