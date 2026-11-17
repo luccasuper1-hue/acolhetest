@@ -1295,6 +1295,19 @@ html.intro-complete .hero-product.reveal {
   .home-route .hero-copy > *, .home-route .hero-product .product-window, .home-route .hero-product .product-caption { animation: none; }
 }
 
+/* Lote mobile 07 — páginas públicas informativas */
+@media (max-width: 430px) {
+  .privacy-band .privacy-grid { margin-top: 22px; }
+  .privacy-card { min-width: 0; gap: 12px; padding: 20px 18px; }
+  .privacy-card p, .info-point p, .compare-card li { overflow-wrap: anywhere; }
+  .resources-section.section { padding-top: 40px; }
+  .resource-card > button { min-height: 56px; }
+  .resource-card h2 { font-size: 19px; }
+  .help-faq.section { padding-top: 42px; }
+  .compare-card, .emergency-card { min-width: 0; overflow-wrap: anywhere; }
+  .footer-group a { min-height: 44px; display: inline-flex; align-items: center; }
+}
+
 /* Tipografia: quebras equilibradas */
 .hero h1, .section h2, .info-hero h1, .flow-heading h1, .notfound-copy h1, .agenda-head h1, .onboarding-copy h2, .why-lead, .brand-quote { text-wrap: balance; }
 .hero-lead, .section-intro { text-wrap: pretty; }
