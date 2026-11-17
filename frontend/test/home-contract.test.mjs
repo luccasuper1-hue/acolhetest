@@ -576,6 +576,12 @@ test("sync retry tolerates panels without a refresh callback", async () => {
   assert.doesNotMatch(shell, /onRefresh\?\.\(\)\.catch/);
 });
 
+test("background refresh tolerates synchronous refresh callbacks", async () => {
+  const shell = await readFile(resolve(root, "src/mvp/MvpShell.jsx"), "utf8");
+  assert.match(shell, /Promise\.resolve\(onRefresh\(\)\)\.catch/);
+  assert.match(shell, /Promise\.resolve\(onRefresh\(\)\)\.then/);
+});
+
 test("student and professional action controls declare button type", async () => {
   const studentSource = await readFile(resolve(root, "src/mvp/StudentArea.jsx"), "utf8");
   const professionalSource = await readFile(resolve(root, "src/mvp/ProfessionalArea.jsx"), "utf8");

@@ -143,7 +143,7 @@ export const MvpShell = ({ title, kicker, lead, flow = [], flowStep = 0, childre
     if (!onRefresh || !user?.role) return;
     if (realtimeRefreshTimer.current) window.clearTimeout(realtimeRefreshTimer.current);
     realtimeRefreshTimer.current = window.setTimeout(() => {
-      onRefresh().catch(() => setRefreshError("Os dados podem estar desatualizados. Tente atualizar novamente."));
+      Promise.resolve(onRefresh()).catch(() => setRefreshError("Os dados podem estar desatualizados. Tente atualizar novamente."));
       realtimeRefreshTimer.current = null;
     }, 100);
   }, [onRefresh, user?.role]);
@@ -180,7 +180,7 @@ export const MvpShell = ({ title, kicker, lead, flow = [], flowStep = 0, childre
   }, [onNotificationsChange, refreshAfterRealtimeLoss, refreshFromRealtime, user?.id]);
   useEffect(() => {
     if (!onRefresh || !user?.role) return undefined;
-    const refreshWhenVisible = () => { if (document.visibilityState === "visible") onRefresh().then(() => setRefreshError("")).catch(() => setRefreshError("Os dados podem estar desatualizados. Tente atualizar novamente.")); };
+    const refreshWhenVisible = () => { if (document.visibilityState === "visible") Promise.resolve(onRefresh()).then(() => setRefreshError("")).catch(() => setRefreshError("Os dados podem estar desatualizados. Tente atualizar novamente.")); };
     const timer = window.setInterval(refreshWhenVisible, 300_000);
     document.addEventListener("visibilitychange", refreshWhenVisible);
     return () => { window.clearInterval(timer); document.removeEventListener("visibilitychange", refreshWhenVisible); };
