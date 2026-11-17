@@ -158,6 +158,7 @@ export const MvpShell = ({ title, kicker, lead, flow = [], flowStep = 0, childre
   }, [onRefresh, user?.role]);
   const refreshAfterRealtimeLoss = useCallback(status => {
     if (status !== "error" && status !== "closed") return;
+    if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
     const nowMs = Date.now();
     if (nowMs - realtimeFallbackAt.current < 15_000) return;
     realtimeFallbackAt.current = nowMs;

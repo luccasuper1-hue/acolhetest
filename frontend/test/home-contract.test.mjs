@@ -684,6 +684,12 @@ test("backend notification fan-out deduplicates recipients", async () => {
   assert.match(routes, /const userIds = \[\.\.\.new Set\(students\.map\(student => String\(student\.user_id \|\| ""\)\)/);
 });
 
+test("intentional hidden-tab realtime pauses do not trigger fallback polling", async () => {
+  const shell = await readFile(resolve(root, "src/mvp/MvpShell.jsx"), "utf8");
+  assert.match(shell, /if \(typeof document !== "undefined" && document\.visibilityState === "hidden"\) return;/);
+  assert.match(shell, /if \(status !== "error" && status !== "closed"\) return;[\s\S]*document\.visibilityState/);
+});
+
 test("all dashboard loaders import the ref hook used for request ordering", async () => {
   const files = ["src/mvp/StudentArea.jsx", "src/mvp/ProfessionalArea.jsx", "src/mvp/InstitutionArea.jsx", "src/mvp/AdminArea.jsx"];
   for (const file of files) {
