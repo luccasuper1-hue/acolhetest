@@ -329,6 +329,8 @@ test("capacity records carry duration and reject overlapping direct proposals", 
   assert.match(routes, /duration_minutes: duration/);
   assert.match(routes, /sameDaySlots, sameDaySessions, sameDayProposals/);
   assert.match(routes, /se sobrepõe a outro compromisso/);
+  assert.match(workerDb, /async reserveCapacity\(slot: RecordDoc\)/);
+  assert.match(workerDb, /this\.ctx\.blockConcurrencyWhile/);
 });
 
 test("minor approval stays institution-scoped and rolls back when audit fails", () => {
@@ -337,8 +339,9 @@ test("minor approval stays institution-scoped and rolls back when audit fails", 
   const block = routes.slice(start, end);
   assert.match(block, /institution_id: institution\.id/);
   assert.match(block, /guardian_review_status: \"pending_institution_review\"/);
-  assert.match(block, /minor_registration_approved/);
-  assert.match(block, /active: false/);
+  assert.match(block, /approveMinorRegistration\(minorApprovalId, institution\.id, user\.id\)/);
+  assert.match(workerDb, /async approveMinorRegistration\(userId: string, institutionId: string, actorId: string\)/);
+  assert.match(workerDb, /withTransaction\(async \(\) =>/);
 });
 
 test("appointment cancellation notifies the professional", () => {

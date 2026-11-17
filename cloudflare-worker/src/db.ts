@@ -5,6 +5,14 @@ import type { Env } from "./index";
 // Documents are schemaless in the existing Atlas collections. Route-level
 // validation narrows external input before it reaches this boundary.
 export type RecordDoc = Record<string, any>;
+const minutesFromTime = (value: unknown) => typeof value === "string" && /^\d{2}:\d{2}$/.test(value) ? Number(value.slice(0, 2)) * 60 + Number(value.slice(3, 5)) : null;
+const durationMinutes = (record: RecordDoc) => Number.isInteger(Number(record.duration_minutes)) && Number(record.duration_minutes) >= 15 ? Number(record.duration_minutes) : 30;
+const overlaps = (date: string, time: string, duration: number, record: RecordDoc) => {
+  if (String(record.date) !== date) return false;
+  const start = minutesFromTime(time), other = minutesFromTime(record.time);
+  if (start === null || other === null) return false;
+  return start < other + durationMinutes(record) && other < start + duration;
+};
 
 /** Keeps Atlas' TCP connection alive in one Durable Object. */
 export class MongoGateway extends DurableObject<Env> {
@@ -213,9 +221,50 @@ export class MongoGateway extends DurableObject<Env> {
       projection: { _id: 0, ...projection }, returnDocument: "before",
     })) as RecordDoc | null;
   }
+
+  /** Atomically checks every capacity source and reserves a new direct slot. */
+  async reserveCapacity(slot: RecordDoc): Promise<{ ok: boolean; slot?: RecordDoc }> {
+    return this.ctx.blockConcurrencyWhile(async () => {
+      const database = await this.db();
+      const session = this.client.startSession();
+      try {
+        return await session.withTransaction(async () => {
+          const duration = durationMinutes(slot);
+          // MongoDB transactions do not support parallel operations on one
+          // session; keep the reads serial inside the DO lock.
+          const availability = await database.collection<RecordDoc>("availability").find({ professional_id: slot.professional_id, date: slot.date, status: { $in: ["open", "reserved"] } }, { projection: { _id: 0, date: 1, time: 1, duration_minutes: 1 }, session }).toArray();
+          const sessions = await database.collection<RecordDoc>("sessions").find({ professional_id: slot.professional_id, date: slot.date, status: "scheduled" }, { projection: { _id: 0, date: 1, time: 1, duration_minutes: 1 }, session }).toArray();
+          const proposals = await database.collection<RecordDoc>("appointment_requests").find({ professional_id: slot.professional_id, date: slot.date, status: { $in: ["proposed", "accepted"] } }, { projection: { _id: 0, date: 1, time: 1, duration_minutes: 1 }, session }).toArray();
+          if ([...availability, ...sessions, ...proposals].some(record => overlaps(String(slot.date), String(slot.time), duration, record))) return { ok: false };
+          await database.collection<RecordDoc>("availability").insertOne(slot, { session });
+          return { ok: true, slot };
+        }, { readConcern: { level: "snapshot" }, writeConcern: { w: "majority" } });
+      } finally { await session.endSession(); }
+    });
+  }
+
+  /** Approves a child account and its audit event in one Atlas transaction. */
+  async approveMinorRegistration(userId: string, institutionId: string, actorId: string): Promise<boolean> {
+    return this.ctx.blockConcurrencyWhile(async () => {
+      const database = await this.db();
+      const session = this.client.startSession();
+      try {
+        return await session.withTransaction(async () => {
+          const result = await database.collection<RecordDoc>("users").updateOne(
+            { id: userId, institution_id: institutionId, role: "student", age_band: "child", guardian_review_status: "pending_institution_review" },
+            { $set: { active: true, guardian_review_status: "approved", guardian_reviewed_at: new Date().toISOString(), guardian_reviewed_by: actorId } },
+            { session },
+          );
+          if (!result.modifiedCount) return false;
+          await database.collection<RecordDoc>("events").insertOne({ id: crypto.randomUUID(), type: "minor_registration_approved", user_id: actorId, role: "institution", institution_id: institutionId, meta: { student_user_id: userId }, created_at: new Date().toISOString() }, { session });
+          return true;
+        }, { readConcern: { level: "snapshot" }, writeConcern: { w: "majority" } });
+      } finally { await session.endSession(); }
+    });
+  }
 }
 
-export type Mongo = Pick<MongoGateway, "findOne" | "findMany" | "insert" | "update" | "updateMany" | "remove" | "deleteAccount" | "count" | "distinct" | "findOneAndUpdate">;
+export type Mongo = Pick<MongoGateway, "findOne" | "findMany" | "insert" | "update" | "updateMany" | "remove" | "deleteAccount" | "count" | "distinct" | "findOneAndUpdate" | "reserveCapacity" | "approveMinorRegistration">;
 
 export function gateway(env: Env): Mongo {
   return env.MONGO_GATEWAY.get(env.MONGO_GATEWAY.idFromName("acolhe-mongodb")) as unknown as Mongo;
