@@ -825,7 +825,11 @@ html[data-theme="dark"] .availability-interest-inline span { color: var(--muted)
   .mvp-shell[data-testid="institution-area"] .mvp-workspace-content > .institution-fallback-card { order: 2; }
   .mvp-shell[data-testid="institution-area"] .mvp-workspace-content > .institution-onboarding-card { order: 3; }
   .mvp-shell[data-testid="institution-area"] .mvp-workspace-content > .institution-primary-action { order: 4; }
-  .mvp-shell[data-testid="institution-area"] .mvp-workspace-content > .institution-student-access { order: 5; }
+  .mvp-shell[data-testid="institution-area"] .mvp-workspace-content > .institution-student-access {
+    grid-column: 1 / -1;
+    max-width: none;
+    order: 5;
+  }
   .mvp-shell[data-testid="institution-area"] .mvp-workspace-content > .institution-metrics-details { order: 6; }
   .mvp-shell[data-testid="institution-area"] .mvp-workspace-content > [data-testid="inst-impact-report-card"] { order: 7; }
   .mvp-shell[data-testid="institution-area"] .mvp-workspace-content > .institution-operations-grid { order: 8; }
