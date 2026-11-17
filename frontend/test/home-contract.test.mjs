@@ -614,6 +614,8 @@ test("interactive notification surfaces import their React hooks", async () => {
   assert.match(command, /aria-label="Buscar páginas e profissionais"/);
   assert.match(bell, /import \{ useEffect, useId, useRef, useState \} from "react"/);
   assert.match(bell, /role="dialog"/);
+  assert.match(bell, /import \{ lockOverlayScroll \} from "\.\.\/overlayScrollLock"/);
+  assert.match(bell, /const unlockScroll = lockOverlayScroll\(\)/);
   assert.match(command, /import \{ lockOverlayScroll \} from "\.\.\/overlayScrollLock"/);
   assert.match(command, /const unlockScroll = lockOverlayScroll\(\)/);
   assert.match(onboarding, /import \{ lockOverlayScroll \} from "\.\.\/overlayScrollLock"/);

@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { Bell, CalendarDays, Check, Sparkles } from "lucide-react";
+import { lockOverlayScroll } from "../overlayScrollLock";
 
 const DEMO_NOTIFICATIONS = [
   { id: 1, Icon: Check, text: "Seu horário foi confirmado.", time: "Agora mesmo" },
@@ -31,8 +32,9 @@ export const NotificationBell = () => {
 
   useEffect(() => {
     if (!open) return undefined;
+    const unlockScroll = lockOverlayScroll();
     const panel = panelRef.current;
-    if (!panel) return undefined;
+    if (!panel) return unlockScroll;
     const handleKeyDown = event => {
       if (event.key !== "Tab") return;
       const items = [...panel.querySelectorAll("button:not([disabled]), a[href], input, select, textarea")];
@@ -43,7 +45,7 @@ export const NotificationBell = () => {
       else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
     };
     panel.addEventListener("keydown", handleKeyDown);
-    return () => panel.removeEventListener("keydown", handleKeyDown);
+    return () => { panel.removeEventListener("keydown", handleKeyDown); unlockScroll(); };
   }, [open]);
 
   return (
