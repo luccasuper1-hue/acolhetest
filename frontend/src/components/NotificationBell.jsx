@@ -29,9 +29,26 @@ export const NotificationBell = () => {
     return () => { document.removeEventListener("mousedown", onDown); document.removeEventListener("keydown", onKey); };
   }, [open]);
 
+  useEffect(() => {
+    if (!open) return undefined;
+    const panel = panelRef.current;
+    if (!panel) return undefined;
+    const handleKeyDown = event => {
+      if (event.key !== "Tab") return;
+      const items = [...panel.querySelectorAll("button:not([disabled]), a[href], input, select, textarea")];
+      if (!items.length) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    };
+    panel.addEventListener("keydown", handleKeyDown);
+    return () => panel.removeEventListener("keydown", handleKeyDown);
+  }, [open]);
+
   return (
     <div className="notif" ref={ref}>
-      <button ref={buttonRef} type="button" className="notif-button" onClick={() => setOpen(value => !value)} aria-label={read ? "Notificações" : "Notificações, há itens não lidos"} aria-expanded={open} aria-controls={panelId} data-testid="notifications-button">
+      <button ref={buttonRef} type="button" className="notif-button" onClick={() => setOpen(value => !value)} aria-label={read ? "Notificações" : "Notificações, há itens não lidos"} aria-haspopup="dialog" aria-expanded={open} aria-controls={panelId} data-testid="notifications-button">
         <Bell size={17}/>
         {!read && <i className="notif-dot" aria-hidden="true"/>}
       </button>
