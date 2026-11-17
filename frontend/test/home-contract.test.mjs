@@ -583,6 +583,14 @@ test("admin mutations guard against duplicate submissions", async () => {
   assert.match(admin, /busyActionRef\.current = false/);
 });
 
+test("institution mutations guard against duplicate submissions", async () => {
+  const institution = await readFile(resolve(root, "src/mvp/InstitutionArea.jsx"), "utf8");
+  assert.match(institution, /const mutationBusyRef = useRef\(false\)/);
+  assert.ok((institution.match(/mutationBusyRef\.current\) return/g) || []).length >= 4);
+  assert.ok((institution.match(/mutationBusyRef\.current = true/g) || []).length >= 5);
+  assert.ok((institution.match(/mutationBusyRef\.current = false/g) || []).length >= 5);
+});
+
 test("overlay panels move focus to their close actions", async () => {
   const shell = await readFile(resolve(root, "src/mvp/MvpShell.jsx"), "utf8");
   assert.match(shell, /notificationCloseRef\.current\?\.focus\(\)/);

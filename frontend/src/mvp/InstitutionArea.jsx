@@ -20,6 +20,7 @@ export default function InstitutionArea() {
   const [profileBusy, setProfileBusy] = useState(false);
   const [fallbackBusy, setFallbackBusy] = useState(null);
   const [baselineBusy, setBaselineBusy] = useState(false);
+  const mutationBusyRef = useRef(false);
   const loadRequestRef = useRef(0);
 
   const load = useCallback(async () => {
@@ -41,7 +42,8 @@ export default function InstitutionArea() {
 
   const submitInvite = async e => {
     e.preventDefault();
-    if (inviteBusy) return;
+    if (inviteBusy || mutationBusyRef.current) return;
+    mutationBusyRef.current = true;
     setInviteBusy(true);
     try {
       const { data } = await api.post("/institutions/me/professionals", { ...invite, specialty: invite.specialty || null });
@@ -50,19 +52,20 @@ export default function InstitutionArea() {
       setInvite({ name: "", email: "", link_type: "institution", specialty: "" });
       await load();
     } catch (err) { toast.error(apiError(err)); }
-    finally { setInviteBusy(false); }
+    finally { mutationBusyRef.current = false; setInviteBusy(false); }
   };
 
   const saveProfile = async e => {
     e.preventDefault();
-    if (profileBusy) return;
+    if (profileBusy || mutationBusyRef.current) return;
+    mutationBusyRef.current = true;
     setProfileBusy(true);
     try {
       await api.put("/institutions/me", { ...profile, contact_email: profile.contact_email || null, support_note: profile.support_note || null });
       toast.success("Informações atualizadas.");
       await load();
     } catch (err) { toast.error(apiError(err)); }
-    finally { setProfileBusy(false); }
+    finally { mutationBusyRef.current = false; setProfileBusy(false); }
   };
 
   const onboardingSteps = [
@@ -74,24 +77,29 @@ export default function InstitutionArea() {
   ];
   const completedOnboarding = new Set(institution?.onboarding_steps || []);
   const toggleOnboarding = async step => {
+    if (mutationBusyRef.current) return;
+    mutationBusyRef.current = true;
     const next = new Set(completedOnboarding);
     if (next.has(step)) next.delete(step); else next.add(step);
     try { await api.put("/institutions/me", { onboarding_steps: [...next] }); setInstitution(current => ({ ...current, onboarding_steps: [...next] })); }
     catch (err) { toast.error(apiError(err)); }
+    finally { mutationBusyRef.current = false; }
   };
   const reviewFallback = async (requestId, action) => {
-    if (fallbackBusy) return;
+    if (fallbackBusy || mutationBusyRef.current) return;
+    mutationBusyRef.current = true;
     setFallbackBusy(`${requestId}:${action}`);
     try { await api.post(`/institutions/me/requests/${encodeURIComponent(requestId)}/fallback`, { action }); toast.success("Próximo passo registrado."); await load(); }
     catch (err) { toast.error(apiError(err)); }
-    finally { setFallbackBusy(null); }
+    finally { mutationBusyRef.current = false; setFallbackBusy(null); }
   };
   const captureBaseline = async () => {
-    if (baselineBusy) return;
+    if (baselineBusy || mutationBusyRef.current) return;
+    mutationBusyRef.current = true;
     setBaselineBusy(true);
     try { const { data } = await api.post("/institutions/me/impact/baseline", {}); setImpactReport(data); toast.success("Linha de base registrada."); await load(); }
     catch (err) { toast.error(apiError(err)); }
-    finally { setBaselineBusy(false); }
+    finally { mutationBusyRef.current = false; setBaselineBusy(false); }
   };
   const exportImpactReport = () => {
     if (!impactReport?.metrics?.length) return;
