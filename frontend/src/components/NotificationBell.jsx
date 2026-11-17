@@ -28,7 +28,7 @@ export const NotificationBell = () => {
         {!read && <i className="notif-dot" aria-hidden="true"/>}
       </button>
       {open && (
-        <div className="notif-panel" data-testid="notifications-panel">
+        <div className="notif-panel" role="dialog" aria-modal="false" aria-label="Notificações" data-testid="notifications-panel">
           <div className="notif-head">
             <span className="notif-title">Notificações</span>
             <span className="demo-label">DEMO</span>
@@ -39,7 +39,7 @@ export const NotificationBell = () => {
               <div><p>{text}</p><span>{time}</span></div>
             </div>
           ))}
-          <button type="button" className="notif-clear" onClick={() => setRead(true)} data-testid="notifications-mark-read">
+          <button type="button" className="notif-clear" onClick={() => setRead(true)} aria-live="polite" data-testid="notifications-mark-read">
             {read ? "Tudo lido" : "Marcar como lidas"}
           </button>
         </div>

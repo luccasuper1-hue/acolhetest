@@ -560,6 +560,16 @@ test("overlay panels restore focus to their launch controls", async () => {
   assert.match(shell, /ref=\{conversationTriggerRef\}/);
 });
 
+test("interactive notification surfaces import their React hooks", async () => {
+  const command = await readFile(resolve(root, "src/components/CommandPalette.jsx"), "utf8");
+  const bell = await readFile(resolve(root, "src/components/NotificationBell.jsx"), "utf8");
+  assert.match(command, /import \{ useEffect, useMemo, useState \} from "react"/);
+  assert.match(command, /aria-modal="true"/);
+  assert.match(command, /aria-label="Buscar páginas e profissionais"/);
+  assert.match(bell, /import \{ useEffect, useRef, useState \} from "react"/);
+  assert.match(bell, /role="dialog"/);
+});
+
 test("student and professional action controls declare button type", async () => {
   const studentSource = await readFile(resolve(root, "src/mvp/StudentArea.jsx"), "utf8");
   const professionalSource = await readFile(resolve(root, "src/mvp/ProfessionalArea.jsx"), "utf8");

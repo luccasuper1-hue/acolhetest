@@ -45,10 +45,11 @@ export const CommandPalette = () => {
 
   return (
     <div className="command-overlay" onClick={() => setOpen(false)} data-testid="command-palette">
-      <div className="command-panel" onClick={e => e.stopPropagation()} role="dialog" aria-label="Busca rápida">
+      <div className="command-panel" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Busca rápida">
         <div className="command-input">
           <Search size={17}/>
           <input
+            aria-label="Buscar páginas e profissionais"
             autoFocus
             value={query}
             onChange={e => setQuery(e.target.value)}
