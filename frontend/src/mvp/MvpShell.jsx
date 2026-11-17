@@ -484,8 +484,9 @@ function AccountPrivacyCard({ onDeleted }) {
     }
   };
   if (completed) return <section className="mvp-card mvp-account-privacy-card is-complete" data-testid="account-privacy-card" role="status"><div className="mvp-account-privacy-complete"><CheckCircle2 size={22} /><div><h2>Conta excluída</h2><p>Seu acesso foi encerrado e você será desconectado de todos os dispositivos.</p></div></div></section>;
-  return <section className="mvp-card mvp-account-privacy-card" data-testid="account-privacy-card">
-    <div className="mvp-card-head"><div><h2><Trash2 size={17} /> Privacidade e dados</h2><p>Gerencie sua conta e saiba o que acontece com seus dados.</p></div><strong className="mvp-account-danger-label">Excluir conta</strong></div>
+  return <details className="mvp-account-privacy-card" data-testid="account-privacy-card">
+    <summary><span><Trash2 size={17} /> Privacidade e dados</span><strong className="mvp-account-danger-label">Excluir conta</strong></summary>
+    <div className="mvp-account-privacy-body"><p className="mvp-account-privacy-intro">Gerencie sua conta e saiba o que acontece com seus dados.</p>
     <div className="mvp-account-privacy-warning"><strong><AlertTriangle size={15} /> Antes de continuar</strong><p>Esta ação é permanente e encerra seu acesso ao Acolhe. Seu perfil, solicitações e conversas associadas serão removidos. Registros que precisem ser mantidos por obrigação legal poderão permanecer de forma restrita ou agregada.</p></div>
     <ul className="mvp-account-privacy-list"><li>Você será desconectado de todos os dispositivos.</li><li>O acesso e os dados operacionais são removidos nesta solicitação; cópias de backup seguem o ciclo de retenção da operação.</li><li>Certificados emitidos e registros agregados podem permanecer para fins de validação e auditoria.</li><li>A exclusão não apaga obrigações legais nem transforma a plataforma em prontuário clínico.</li></ul>
     <form className="mvp-inline-form mvp-account-delete-form" onSubmit={submit}>
@@ -493,8 +494,8 @@ function AccountPrivacyCard({ onDeleted }) {
       <label>Digite EXCLUIR para confirmar<input required value={formState.confirmation} onChange={e => setForm({ ...formState, confirmation: e.target.value })} autoComplete="off" data-testid="delete-account-confirmation-input" /></label>
       <button type="submit" className="button quiet danger" disabled={saving} data-testid="delete-account-button">{saving ? "Excluindo…" : "Excluir conta permanentemente"}</button>
     </form>
-    <p className="mvp-account-privacy-note"><ShieldCheck size={14} /> A instituição não acessa o conteúdo das conversas. Consulte os termos e a política de privacidade para saber os prazos de retenção aplicáveis.</p>
-  </section>;
+    <p className="mvp-account-privacy-note"><ShieldCheck size={14} /> A instituição não acessa o conteúdo das conversas. Consulte os termos e a política de privacidade para saber os prazos de retenção aplicáveis.</p></div>
+  </details>;
 }
 
 export const MvpCard = ({ title, subtitle, action, children, testid, className = "", id, ariaLive }) => (

@@ -280,7 +280,9 @@ export default function ProfessionalArea() {
         <MvpEmpty>Nenhuma solicitação ou conversa para acompanhar ainda.</MvpEmpty>
       </MvpCard>}
 
-      {completed.length > 0 && <MvpCard title="Conversas realizadas e encaminhamentos" subtitle="Registro operacional simples — sem prontuário clínico." testid="pro-completed-card" className="professional-completed-card">
+      {completed.length > 0 && <details className="mvp-card mvp-collapsible-card professional-completed-card" data-testid="pro-completed-card">
+        <summary className="mvp-card-head"><div><h2>Conversas realizadas e encaminhamentos</h2><p>Registro operacional simples — sem prontuário clínico.</p></div></summary>
+        <div className="mvp-collapsible-body">
         {completed.map(s => (
           <div className="mvp-row" key={s.id} style={{ display: "block" }} data-testid={`pro-completed-${s.id}`}>
             <div className="mvp-row" style={{ borderTop: 0, padding: 0 }}>
@@ -311,7 +313,8 @@ export default function ProfessionalArea() {
             </div>
           </div>
         ))}
-      </MvpCard>}
+        </div>
+      </details>}
     </MvpShell>
   );
 }
