@@ -2,7 +2,7 @@ import { ArrowRight, Check, ShieldCheck } from "lucide-react";
 import { createPortal } from "react-dom";
 import AcolheMark from "./AcolheMark";
 import JourneyFlow from "./JourneyFlow";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const STEPS = [
   {
@@ -35,10 +35,28 @@ const SAMPLE_TOPICS = ["Ansiedade", "Pressão escolar", "Quero apenas conversar"
 
 export const Onboarding = ({ onFinish, onExplore }) => {
   const [index, setIndex] = useState(0);
+  const dialogRef = useRef(null);
   const step = STEPS[index];
   const last = index === STEPS.length - 1;
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return undefined;
+    const first = dialog.querySelector("button:not([disabled])");
+    first?.focus();
+    const handleKeyDown = event => {
+      if (event.key !== "Tab") return;
+      const items = [...dialog.querySelectorAll("button:not([disabled])")];
+      if (!items.length) return;
+      const firstItem = items[0];
+      const lastItem = items[items.length - 1];
+      if (event.shiftKey && document.activeElement === firstItem) { event.preventDefault(); lastItem.focus(); }
+      else if (!event.shiftKey && document.activeElement === lastItem) { event.preventDefault(); firstItem.focus(); }
+    };
+    dialog.addEventListener("keydown", handleKeyDown);
+    return () => dialog.removeEventListener("keydown", handleKeyDown);
+  }, [index]);
   return createPortal(
-    <div className="onboarding" role="dialog" aria-modal="true" aria-label="Apresentação do Acolhe" data-testid="onboarding-overlay">
+    <div ref={dialogRef} className="onboarding" role="dialog" aria-modal="true" aria-label="Apresentação do Acolhe" data-testid="onboarding-overlay">
       <div className="onboarding-card" key={index}>
         <div className="onboarding-top">
           <span className="onboarding-badge"><ShieldCheck size={13}/> Piloto institucional</span>
