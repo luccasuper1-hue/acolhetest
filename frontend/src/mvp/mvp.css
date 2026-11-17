@@ -1084,6 +1084,18 @@ html[data-theme="dark"] .mvp-shell[data-testid="admin-area"] .admin-operations-c
   .mvp-topbar-right > .button { padding-inline: 10px; }
   .mvp-kpis, .mvp-shell[data-testid="admin-area"] .mvp-kpis { grid-template-columns: 1fr; }
   .appointment-custom-choice { grid-template-columns: 1fr; }
+  /* Lote mobile 02: give the narrowest screens their own single-column
+     treatment for dense controls instead of forcing tiny side-by-side fields. */
+  .recurring-fields { grid-template-columns: 1fr; }
+  .availability-mode-switch { width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .availability-mode-switch button { min-width: 0; padding-inline: 8px; }
+  .mvp-scale { gap: 6px; width: 100%; }
+  .mvp-scale button { width: auto; min-width: 0; flex: 1 1 36px; }
+  .professional-certificate-actions { display: grid; grid-template-columns: 1fr; width: 100%; }
+  .professional-certificate-actions .button { width: 100%; min-width: 0; justify-content: center; }
+  .professional-room-link .mvp-inline-form { display: grid; grid-template-columns: 1fr; }
+  .professional-sessions-card .professional-session-row .mvp-row-actions { grid-template-columns: 1fr; }
+  .mvp-card[data-testid="password-change-card"] .mvp-inline-form button { width: 100%; justify-content: center; }
 }
 
 /* Refinamento desta rodada: admin mais escaneável e estados vazios orientativos. */
