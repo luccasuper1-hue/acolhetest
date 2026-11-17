@@ -2145,3 +2145,35 @@ html[data-theme="dark"] .mvp-shell[data-testid="student-area"] .student-active-a
   line-height: 1.4;
 }
 
+/* Lote mobile 08 — o composer permanece separado do histórico mesmo quando
+   a viewport muda com o teclado virtual ou com a barra do navegador. */
+@media (max-width: 640px) {
+  .mvp-conversation-window {
+    isolation: isolate;
+    overflow: hidden;
+  }
+  .mvp-conversation-window .mvp-floating-chat {
+    min-height: 0;
+    overflow: hidden;
+  }
+  .mvp-conversation-window .mvp-chat-messages {
+    flex: 1 1 0;
+    min-height: 0;
+    overscroll-behavior: contain;
+  }
+  .mvp-conversation-window .mvp-chat-compose {
+    position: relative;
+    z-index: 2;
+    flex: 0 0 auto;
+  }
+  .mvp-conversation-window .mvp-floating-chat-close {
+    position: relative;
+    z-index: 2;
+    flex: 0 0 auto;
+  }
+  .mvp-notification-panel,
+  .mvp-notification-panel.is-expanded {
+    scrollbar-gutter: stable both-edges;
+  }
+}
+
