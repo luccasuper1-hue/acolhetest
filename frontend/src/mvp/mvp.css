@@ -787,7 +787,7 @@ html[data-theme="dark"] .availability-interest-inline span { color: var(--muted)
 @media (min-width: 1050px) {
   .mvp-shell[data-testid="professional-area"] .mvp-main { padding-top: 34px; }
   .mvp-shell[data-testid="professional-area"] .mvp-head { margin-bottom: 20px; }
-  .mvp-shell[data-testid="professional-area"] .mvp-workspace-content { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 0.38fr); align-items: start; gap: 18px 20px; }
+  .mvp-shell[data-testid="professional-area"] .mvp-workspace-content { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 0.38fr); grid-auto-flow: row dense; align-items: start; gap: 18px 20px; }
   .mvp-shell[data-testid="professional-area"] .mvp-workspace-content > .professional-requests-card,
   .mvp-shell[data-testid="professional-area"] .mvp-workspace-content > .professional-sessions-card { grid-column: 1 / -1; }
   .mvp-shell[data-testid="professional-area"] .mvp-workspace-content > .professional-certificate-card { grid-column: 2; padding: 20px 22px !important; }
