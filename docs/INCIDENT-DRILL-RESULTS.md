@@ -16,8 +16,8 @@ Este registro separa o que foi simulado no código do que ainda depende de um am
 
 ## Evidências técnicas
 
-- Suíte frontend: 106 testes aprovados na revalidação atual.
-- Worker publicado na versão `1fd5e23a-d9d1-4cfc-bbd2-9700c25ad1e4`.
+- Suíte frontend: 107 testes aprovados na revalidação atual.
+- Worker publicado na versão `f84431df-6a38-40ba-b457-709cfa064ff7`.
 - Checagem TypeScript do Worker: aprovada.
 - Build de produção: aprovado.
 - Healthcheck público: HTTP 200.

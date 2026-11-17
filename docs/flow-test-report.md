@@ -3,7 +3,7 @@
 Data: 14/11/2026  
 Ambiente: `acolhetest.luccasuper1.workers.dev`
 
-Última revalidação operacional: 17/11/2026 · Worker `1fd5e23a-d9d1-4cfc-bbd2-9700c25ad1e4` · suíte frontend: 106 testes aprovados.
+Última revalidação operacional: 17/11/2026 · Worker `f84431df-6a38-40ba-b457-709cfa064ff7` · suíte frontend: 107 testes aprovados.
 
 ## Cobertura executada
 
