@@ -230,14 +230,14 @@ async function notifyUser(env: Env, recipientUserId: string, type: string, title
 
 async function notifyInstitutionManagers(env: Env, store: ReturnType<typeof db>, institutionId: string, type: string, title: string, body: string, meta: Doc = {}) {
   const managers = await store.findMany("users", { role: "institution", institution_id: institutionId, active: { $ne: false } }, { projection: { id: 1, email: 1 }, limit: 20 });
-  const ids = managers.map(manager => String(manager.id)).filter(Boolean);
+  const ids = [...new Set(managers.map(manager => String(manager.id)).filter(Boolean))];
   await createNotifications(env, ids, type, title, body, meta);
   await Promise.all(managers.filter(manager => manager.email).map(manager => sendNotificationEmail(env, String(manager.email), title, body)));
 }
 
 async function notifyAdmins(env: Env, store: ReturnType<typeof db>, type: string, title: string, body: string, meta: Doc = {}) {
   const admins = await store.findMany("users", { role: "admin", active: { $ne: false } }, { projection: { id: 1, email: 1 }, limit: 50 });
-  const ids = admins.map(admin => String(admin.id)).filter(Boolean);
+  const ids = [...new Set(admins.map(admin => String(admin.id)).filter(Boolean))];
   await createNotifications(env, ids, type, title, body, meta);
   await Promise.all(admins.filter(admin => admin.email).map(admin => sendNotificationEmail(env, String(admin.email), title, body)));
 }
@@ -246,13 +246,13 @@ async function refreshPanels(env: Env, store: ReturnType<typeof db>, institution
   const users = scope === "institution"
     ? await store.findMany("users", { role: "institution", institution_id: institutionId, active: { $ne: false } }, { projection: { id: 1 }, limit: 20 })
     : await store.findMany("users", { role: "admin", active: { $ne: false } }, { projection: { id: 1 }, limit: 50 });
-  const userIds = users.map(account => String(account.id)).filter(Boolean);
+  const userIds = [...new Set(users.map(account => String(account.id)).filter(Boolean))];
   if (userIds.length) await broadcastRealtime(env, { userIds, event: { type: "data_changed", scope } });
 }
 
 async function refreshStudentPanels(env: Env, store: ReturnType<typeof db>, institutionId: string) {
   const students = await store.findMany("students", { institution_id: institutionId }, { projection: { user_id: 1 }, limit: 500 });
-  const userIds = students.map(student => String(student.user_id)).filter(Boolean);
+  const userIds = [...new Set(students.map(student => String(student.user_id)).filter(Boolean))];
   if (userIds.length) await broadcastRealtime(env, { userIds, event: { type: "data_changed", scope: "student" } });
 }
 
@@ -264,7 +264,8 @@ async function refreshProfessionalPanel(env: Env, store: ReturnType<typeof db>, 
 async function notifyWaitingStudents(env: Env, store: ReturnType<typeof db>, institutionId: string, count: number) {
   const interests = await store.findMany("availability_interests", { institution_id: institutionId, status: "waiting" }, { projection: { student_id: 1 }, limit: 500 });
   const students = interests.length ? await store.findMany("students", { id: { $in: interests.map(interest => interest.student_id) } }, { projection: { user_id: 1 }, limit: 500 }) : [];
-  await Promise.all(students.filter(student => student.user_id).map(student => notifyUser(env, String(student.user_id), "availability_published_for_request", "Novos horários organizados", `${count} novo${count === 1 ? "" : "s"} horário${count === 1 ? " foi" : "s foram"} organizado${count === 1 ? "" : "s"} por um profissional. Se quiser conversar, envie um pedido diretamente pelo painel.`)));
+  const userIds = [...new Set(students.map(student => String(student.user_id || "")).filter(Boolean))];
+  await Promise.all(userIds.map(userId => notifyUser(env, userId, "availability_published_for_request", "Novos horários organizados", `${count} novo${count === 1 ? "" : "s"} horário${count === 1 ? " foi" : "s foram"} organizado${count === 1 ? "" : "s"} por um profissional. Se quiser conversar, envie um pedido diretamente pelo painel.`)));
 }
 
 async function sendLead(request: Request, env: Env, kind: "institution" | "professional") {
