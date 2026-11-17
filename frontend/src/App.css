@@ -1103,7 +1103,7 @@ html.intro-complete .hero-product.reveal {
 .onboarding-card {
   width: 100%; max-width: 880px; background: var(--surface); border: 1px solid var(--line);
   border-radius: 34px; padding: 30px 34px 26px; box-shadow: var(--shadow-lg);
-  animation: cardIn 420ms var(--ease) both;
+  animation: cardIn 420ms var(--ease) both; overscroll-behavior: contain;
 }
 @keyframes cardIn { from { opacity: 0; transform: translateY(18px) scale(.985); } to { opacity: 1; transform: none; } }
 .onboarding-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
@@ -1392,7 +1392,7 @@ html.intro-on .hero h1 em { display: inline-block; animation: emIn 900ms var(--e
 
 /* Busca global (Cmd/Ctrl + K) */
 .command-overlay { position: fixed; inset: 0; z-index: 100; display: grid; place-items: start center; padding: 12vh 20px 20px; background: rgba(38,28,58,.4); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); animation: fadeIn 200ms var(--ease) both; }
-.command-panel { width: 100%; max-width: 560px; background: var(--surface); border: 1px solid var(--line); border-radius: 26px; box-shadow: var(--shadow-lg); overflow: hidden; animation: cardIn 300ms var(--ease) both; }
+.command-panel { width: 100%; max-width: 560px; background: var(--surface); border: 1px solid var(--line); border-radius: 26px; box-shadow: var(--shadow-lg); overflow: hidden; overscroll-behavior: contain; animation: cardIn 300ms var(--ease) both; }
 .command-input { display: flex; align-items: center; gap: 12px; padding: 20px 22px; border-bottom: 1px solid var(--line); color: var(--purple); }
 .command-input input { flex: 1; border: 0; background: transparent; font-size: 15px; color: var(--ink); outline: none; }
 .command-input input::placeholder { color: var(--faint); }

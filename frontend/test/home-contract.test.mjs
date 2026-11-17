@@ -620,6 +620,12 @@ test("interactive notification surfaces import their React hooks", async () => {
   assert.match(onboarding, /const unlockScroll = lockOverlayScroll\(\)/);
 });
 
+test("modal surfaces contain mobile scroll chaining", async () => {
+  const css = await readFile(resolve(root, "src/App.css"), "utf8");
+  assert.match(css, /\.onboarding-card \{[\s\S]*overscroll-behavior: contain/);
+  assert.match(css, /\.command-panel \{[\s\S]*overscroll-behavior: contain/);
+});
+
 test("sync retry tolerates panels without a refresh callback", async () => {
   const shell = await readFile(resolve(root, "src/mvp/MvpShell.jsx"), "utf8");
   assert.match(shell, /if \(onRefresh\) Promise\.resolve\(\)\.then\(\(\) => onRefresh\(\)\)\.catch/);
