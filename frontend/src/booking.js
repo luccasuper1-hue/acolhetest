@@ -15,7 +15,10 @@ const load = () => {
 
 export function BookingProvider({ children }) {
   const [state, setState] = useState(load);
-  useEffect(() => { localStorage.setItem(KEY, JSON.stringify(state)); }, [state]);
+  useEffect(() => {
+    try { localStorage.setItem(KEY, JSON.stringify(state)); }
+    catch (e) { /* armazenamento indisponível — a jornada segue em memória */ }
+  }, [state]);
   const update = patch => setState(prev => ({ ...prev, ...patch }));
   const reset = () => setState(EMPTY);
   const value = useMemo(() => ({ ...state, update, reset }), [state]);

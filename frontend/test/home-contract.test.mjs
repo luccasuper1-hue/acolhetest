@@ -592,6 +592,12 @@ test("MVP auth provider imports every React hook it uses", async () => {
   assert.match(auth, /import \{ createContext, useCallback, useContext, useEffect, useMemo, useState \} from "react"/);
 });
 
+test("booking persistence tolerates unavailable local storage", async () => {
+  const booking = await readFile(resolve(root, "src/booking.js"), "utf8");
+  assert.match(booking, /try \{ localStorage\.setItem\(KEY, JSON\.stringify\(state\)\); \}/);
+  assert.match(booking, /catch \(e\) \{ \/\* armazenamento indisponível/);
+});
+
 test("student and professional action controls declare button type", async () => {
   const studentSource = await readFile(resolve(root, "src/mvp/StudentArea.jsx"), "utf8");
   const professionalSource = await readFile(resolve(root, "src/mvp/ProfessionalArea.jsx"), "utf8");
