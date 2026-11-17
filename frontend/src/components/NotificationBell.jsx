@@ -34,9 +34,9 @@ export const NotificationBell = () => {
         {!read && <i className="notif-dot" aria-hidden="true"/>}
       </button>
       {open && (
-        <div ref={panelRef} id="notifications-panel" className="notif-panel" role="dialog" aria-modal="false" aria-label="Notificações" tabIndex="-1" data-testid="notifications-panel">
+        <div ref={panelRef} id="notifications-panel" className="notif-panel" role="dialog" aria-modal="false" aria-labelledby="notifications-title" tabIndex="-1" data-testid="notifications-panel">
           <div className="notif-head">
-            <span className="notif-title">Notificações</span>
+            <span id="notifications-title" className="notif-title">Notificações</span>
             <span className="demo-label">DEMO</span>
           </div>
           <span className="sr-only" role="status" aria-live="polite">{read ? "Todas as notificações estão lidas." : "Há notificações não lidas."}</span>
