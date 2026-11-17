@@ -228,7 +228,7 @@ export default function ProfessionalArea() {
         </div>)}
       </MvpCard>}
 
-      {pending.length > 0 && <MvpCard id="professional-requests" title="Solicitações recebidas" subtitle="Motivo geral informado pelo estudante — sem triagem clínica." testid="pro-requests-card" className="professional-requests-card">
+      {pending.length > 0 && <MvpCard id="professional-pending-requests" title="Solicitações recebidas" subtitle="Motivo geral informado pelo estudante — sem triagem clínica." testid="pro-requests-card" className="professional-requests-card">
         {pending.map(r => (
           <div className="mvp-row" key={r.id} data-testid={`pro-request-${r.id}`}>
             <div className="mvp-row-main">
