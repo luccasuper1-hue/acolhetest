@@ -134,9 +134,9 @@ export default function AdminArea() {
           <div className="mvp-row" key={lead.id} data-testid={`admin-pending-lead-${lead.id}`}>
             <div className="mvp-row-main"><strong>{lead.kind === "institution" ? lead.institution : lead.name}</strong><span>{lead.kind === "institution" ? `${lead.name} · ${lead.email}` : `${lead.profession} · ${lead.email}`}</span></div>
             <div className="mvp-row-actions">
-              {lead.kind === "institution" && <button className="button small secondary" disabled={Boolean(busyAction)} onClick={() => updateLead(lead.id, "approved")}><Check size={14}/> Aprovar instituição</button>}
-              {lead.kind === "professional" && <button className="button small secondary" disabled={Boolean(busyAction)} onClick={() => updateLead(lead.id, "contacted")}><Mail size={14}/> Marcar contatado</button>}
-              <button className="button small quiet" disabled={Boolean(busyAction)} onClick={() => updateLead(lead.id, "rejected")}><Ban size={14}/> Rejeitar</button>
+              {lead.kind === "institution" && <button type="button" className="button small secondary" disabled={Boolean(busyAction)} onClick={() => updateLead(lead.id, "approved")}><Check size={14}/> Aprovar instituição</button>}
+              {lead.kind === "professional" && <button type="button" className="button small secondary" disabled={Boolean(busyAction)} onClick={() => updateLead(lead.id, "contacted")}><Mail size={14}/> Marcar contatado</button>}
+              <button type="button" className="button small quiet" disabled={Boolean(busyAction)} onClick={() => updateLead(lead.id, "rejected")}><Ban size={14}/> Rejeitar</button>
             </div>
           </div>
         ))}
@@ -169,7 +169,7 @@ export default function AdminArea() {
             </div>
             <div className="mvp-row-actions">
               <span className={`mvp-tag ${certificate.status === "valid" ? "ok" : "off"}`}>{certificate.status === "valid" ? "Válido" : "Revogado"}</span>
-              {certificate.status === "valid" && <button className="button small quiet danger" disabled={Boolean(busyAction)} onClick={() => revokeCertificate(certificate)} data-testid={`admin-revoke-certificate-${certificate.id}`}><Ban size={14}/> Revogar</button>}
+              {certificate.status === "valid" && <button type="button" className="button small quiet danger" disabled={Boolean(busyAction)} onClick={() => revokeCertificate(certificate)} data-testid={`admin-revoke-certificate-${certificate.id}`}><Ban size={14}/> Revogar</button>}
             </div>
           </div>
         ))}
@@ -210,13 +210,13 @@ export default function AdminArea() {
               <span className={`mvp-tag ${lead.status === "approved" || lead.status === "contacted" ? "ok" : lead.status === "archived" || lead.status === "rejected" ? "off" : ""}`}>
                 {(lead.kind === "professional" && lead.status === "pending") ? "Interessado" : ({ pending: "Pendente", approved: "Aprovado", contacted: "Contatado", rejected: "Rejeitado", archived: "Arquivado" })[lead.status] || lead.status}
               </span>
-              {lead.status === "pending" && lead.kind === "institution" && <button className="button small quiet" onClick={() => updateLead(lead.id, "approved")}><Check size={14}/> Aprovar instituição</button>}
-              {lead.status === "pending" && lead.kind === "professional" && <button className="button small quiet" onClick={() => updateLead(lead.id, "contacted")}><Mail size={14}/> Marcar como contatado</button>}
-              {lead.status === "approved" && <button className="button small quiet" onClick={() => updateLead(lead.id, "contacted")}><Mail size={14}/> Marcar como contatado</button>}
-              {(lead.status === "archived" || lead.status === "rejected") && <button className="button small quiet" onClick={() => updateLead(lead.id, "pending")}><RotateCcw size={14}/> Reativar</button>}
-              {lead.status === "pending" && <button className="button small quiet" onClick={() => updateLead(lead.id, "rejected")}><Ban size={14}/> Rejeitar</button>}
-              {lead.status !== "archived" && lead.status !== "rejected" && <button className="button small quiet" onClick={() => updateLead(lead.id, "archived")}><Archive size={14}/> Arquivar</button>}
-              <button className="button small quiet danger" onClick={() => removeLead(lead)}><Trash2 size={14}/> Excluir</button>
+              {lead.status === "pending" && lead.kind === "institution" && <button type="button" className="button small quiet" onClick={() => updateLead(lead.id, "approved")}><Check size={14}/> Aprovar instituição</button>}
+              {lead.status === "pending" && lead.kind === "professional" && <button type="button" className="button small quiet" onClick={() => updateLead(lead.id, "contacted")}><Mail size={14}/> Marcar como contatado</button>}
+              {lead.status === "approved" && <button type="button" className="button small quiet" onClick={() => updateLead(lead.id, "contacted")}><Mail size={14}/> Marcar como contatado</button>}
+              {(lead.status === "archived" || lead.status === "rejected") && <button type="button" className="button small quiet" onClick={() => updateLead(lead.id, "pending")}><RotateCcw size={14}/> Reativar</button>}
+              {lead.status === "pending" && <button type="button" className="button small quiet" onClick={() => updateLead(lead.id, "rejected")}><Ban size={14}/> Rejeitar</button>}
+              {lead.status !== "archived" && lead.status !== "rejected" && <button type="button" className="button small quiet" onClick={() => updateLead(lead.id, "archived")}><Archive size={14}/> Arquivar</button>}
+              <button type="button" className="button small quiet danger" onClick={() => removeLead(lead)}><Trash2 size={14}/> Excluir</button>
             </div>
           </div>
         ))}
@@ -230,7 +230,7 @@ export default function AdminArea() {
               <div className="mvp-row-main"><strong>{i.name}</strong><span>Código {i.code} · {i.students} estudantes · {i.professionals} profissionais</span></div>
               <div className="mvp-row-actions">
                 <span className="mvp-tag">{i.plan || "piloto"}</span>
-                <button className="button small quiet danger" onClick={() => archiveInstitution(i)} data-testid={`admin-archive-institution-${i.id}`}><Archive size={14}/> Arquivar</button>
+                <button type="button" className="button small quiet danger" onClick={() => archiveInstitution(i)} data-testid={`admin-archive-institution-${i.id}`}><Archive size={14}/> Arquivar</button>
               </div>
             </div>
           ))}
@@ -244,7 +244,7 @@ export default function AdminArea() {
               <div className="mvp-row-main"><strong>{i.name}</strong><span>Código {i.code} · {i.students} estudantes · {i.professionals} profissionais</span></div>
               <div className="mvp-row-actions">
                 <span className="mvp-tag off">Arquivada</span>
-                <button className="button small quiet" onClick={() => restoreInstitution(i)} data-testid={`admin-restore-institution-${i.id}`}><RotateCcw size={14}/> Reativar</button>
+                <button type="button" className="button small quiet" onClick={() => restoreInstitution(i)} data-testid={`admin-restore-institution-${i.id}`}><RotateCcw size={14}/> Reativar</button>
               </div>
             </div>
           ))}
@@ -278,10 +278,10 @@ export default function AdminArea() {
               <span className={`mvp-tag ${u.active ? "ok" : "off"}`}>{u.active ? "Ativo" : "Inativo"}</span>
               {u.role !== "admin" && (
                 <>
-                  <button className="button small quiet" onClick={() => toggle(u.id)} data-testid={`admin-toggle-${u.id}`}>
+                  <button type="button" className="button small quiet" onClick={() => toggle(u.id)} data-testid={`admin-toggle-${u.id}`}>
                     {u.active ? "Desativar" : "Reativar"}
                   </button>
-                  <button className="button small quiet danger" onClick={() => removeUser(u)} data-testid={`admin-delete-${u.id}`}>
+                  <button type="button" className="button small quiet danger" onClick={() => removeUser(u)} data-testid={`admin-delete-${u.id}`}>
                     <Trash2 size={14}/> Excluir permanentemente
                   </button>
                 </>

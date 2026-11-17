@@ -516,3 +516,15 @@ test("standalone controls declare button type", async () => {
   assert.doesNotMatch(onboarding, /<button className=/);
   assert.match(palette, /<button type="button"/);
 });
+
+test("admin lead and certificate actions cannot submit unrelated forms", async () => {
+  const adminSource = await readFile(resolve(root, "src/mvp/AdminArea.jsx"), "utf8");
+    assert.doesNotMatch(adminSource, /<button className="button small/);
+  assert.match(adminSource, /<button type="button" className="button small/);
+});
+
+test("route changes reset the page scroll position", async () => {
+  const appSource = await readFile(resolve(root, "src/App.js"), "utf8");
+  assert.match(appSource, /useLayoutEffect\(\(\) => \{[\s\S]*?window\.scrollTo\(\{ top: 0, left: 0, behavior: "auto" \}\)/);
+  assert.match(appSource, /\}, \[location\.pathname, location\.search\]\);/);
+});

@@ -127,7 +127,7 @@ function PilotAccessLink() {
 function SkipLink() { useEffect(() => { const main = document.querySelector("main"); if (main) main.id = "main-content"; const nav = document.querySelector('[data-testid="main-navigation"]'); if (nav) nav.id = "main-navigation"; }, []); return <a className="skip-link" href="#main-content" data-testid="skip-link">Ir para o conteúdo</a>; }
 function Footer() { return <footer className="footer"><div className="footer-main"><div><Logo/><p>Um primeiro passo para cuidar de você.</p><span className="footer-badge">Piloto institucional</span></div><div className="footer-links"><div className="footer-group"><span className="footer-group-title">Conhecer</span><Link to="/como-funciona" data-testid="footer-how">Como funciona</Link><Link to="/para-estudantes" data-testid="footer-students">Para estudantes</Link><Link to="/profissionais" data-testid="footer-pros">Para profissionais</Link><Link to="/instituicoes" data-testid="footer-schools">Para instituições</Link></div><div className="footer-group"><span className="footer-group-title">Apoio e segurança</span><Link to="/recursos" data-testid="footer-resources">Recursos</Link><Link to="/ajuda" data-testid="footer-help">Ajuda</Link><Link to="/ajuda/instituicoes" data-testid="footer-institution-guide">Guia para instituições</Link><Link to="/preciso-ajuda" data-testid="footer-emergency">Preciso de ajuda agora</Link></div><div className="footer-group"><span className="footer-group-title">Informações</span><Link to="/privacidade" data-testid="footer-privacy">Privacidade</Link><Link to="/termos" data-testid="footer-terms">Termos</Link></div></div></div><div className="footer-bottom"><span>Atendimento conforme a equipe vinculada · não é serviço de emergência.</span><span>© Acolhe · 2026</span></div></footer>; }
 function MarketingLayout({ children }) { return <><Header/>{children}<Footer/><CornerLogo/></>; }
-function CategoryCard({ item, onClick }) { return <button className={`category-card ${item.color}`} onClick={onClick} data-testid={`category-${item.id}`}><span className="category-icon">{item.icon}</span><span>{item.label}</span><ArrowRight size={15}/></button>; }
+function CategoryCard({ item, onClick }) { return <button type="button" className={`category-card ${item.color}`} onClick={onClick} data-testid={`category-${item.id}`}><span className="category-icon">{item.icon}</span><span>{item.label}</span><ArrowRight size={15}/></button>; }
 
 function Home() {
   const navigate = useNavigate();
@@ -394,6 +394,12 @@ function AppRoutes() {
   const hasLeftHome = useRef(false);
   const [homeReturn, setHomeReturn] = useState(false);
   const isHome = location.pathname === "/";
+
+  useLayoutEffect(() => {
+    // Each route is a new screen: start it at the beginning instead of
+    // carrying the previous page's scroll position into the next view.
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [location.pathname, location.search]);
 
   useEffect(() => {
     if (!isHome) {
