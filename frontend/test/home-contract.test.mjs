@@ -552,6 +552,14 @@ test("overlay panels move focus to their close actions", async () => {
   assert.match(shell, /ref=\{conversationCloseRef\}/);
 });
 
+test("overlay panels restore focus to their launch controls", async () => {
+  const shell = await readFile(resolve(root, "src/mvp/MvpShell.jsx"), "utf8");
+  assert.match(shell, /notificationTriggerRef\.current\?\.focus\(\)/);
+  assert.match(shell, /conversationTriggerRef\.current\?\.focus\(\)/);
+  assert.match(shell, /ref=\{notificationTriggerRef\}/);
+  assert.match(shell, /ref=\{conversationTriggerRef\}/);
+});
+
 test("student and professional action controls declare button type", async () => {
   const studentSource = await readFile(resolve(root, "src/mvp/StudentArea.jsx"), "utf8");
   const professionalSource = await readFile(resolve(root, "src/mvp/ProfessionalArea.jsx"), "utf8");

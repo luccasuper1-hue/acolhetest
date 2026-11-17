@@ -31,7 +31,11 @@ export const MvpShell = ({ title, kicker, lead, flow = [], flowStep = 0, childre
   const notificationsOpenRef = useRef(false);
   const notificationRef = useRef(null);
   const notificationCloseRef = useRef(null);
+  const notificationTriggerRef = useRef(null);
   const conversationCloseRef = useRef(null);
+  const conversationTriggerRef = useRef(null);
+  const previousConversationOpen = useRef(false);
+  const previousNotificationsOpen = useRef(false);
   const realtimeRefreshTimer = useRef(null);
   const realtimeFallbackAt = useRef(0);
   const dashboardNotificationPageLoaded = useRef(false);
@@ -47,6 +51,10 @@ export const MvpShell = ({ title, kicker, lead, flow = [], flowStep = 0, childre
   useEffect(() => { notificationsRef.current = notifications; }, [notifications]);
   useEffect(() => { notificationsOpenRef.current = notificationsOpen; }, [notificationsOpen]);
   useEffect(() => { if (notificationsOpen) notificationCloseRef.current?.focus(); }, [notificationsOpen]);
+  useEffect(() => {
+    if (previousNotificationsOpen.current && !notificationsOpen) notificationTriggerRef.current?.focus();
+    previousNotificationsOpen.current = notificationsOpen;
+  }, [notificationsOpen]);
   const loadNotifications = useCallback(async () => {
     if (!user?.role) return;
     setNotificationsLoading(true);
@@ -259,7 +267,7 @@ export const MvpShell = ({ title, kicker, lead, flow = [], flowStep = 0, childre
           <span className="mvp-pill" data-testid="mvp-pilot-badge">Dados do piloto</span>
           <span className="mvp-role" data-testid="mvp-role-badge">{ROLE_LABEL[user?.role]}</span>
           {user?.role && <div className="mvp-notifications" ref={notificationRef}>
-            <button className={`mvp-notification-button ${displayedUnreadCount ? "has-unread" : ""}`} type="button" aria-label={`Notificações${displayedUnreadCount ? `, ${displayedUnreadCount} não lidas` : ""}`} aria-expanded={notificationsOpen} aria-controls="mvp-notification-panel" title="Notificações" onClick={toggleNotifications} data-testid="mvp-notifications-button"><Bell size={17} />{displayedUnreadCount > 0 && <span className="mvp-notification-badge">{Math.min(displayedUnreadCount, 9)}{displayedUnreadCount > 9 ? "+" : ""}</span>}</button>
+            <button ref={notificationTriggerRef} className={`mvp-notification-button ${displayedUnreadCount ? "has-unread" : ""}`} type="button" aria-label={`Notificações${displayedUnreadCount ? `, ${displayedUnreadCount} não lidas` : ""}`} aria-expanded={notificationsOpen} aria-controls="mvp-notification-panel" title="Notificações" onClick={toggleNotifications} data-testid="mvp-notifications-button"><Bell size={17} />{displayedUnreadCount > 0 && <span className="mvp-notification-badge">{Math.min(displayedUnreadCount, 9)}{displayedUnreadCount > 9 ? "+" : ""}</span>}</button>
             {notificationsOpen && <div className="mvp-notification-panel is-expanded" id="mvp-notification-panel" role="dialog" aria-labelledby="mvp-notification-title" aria-live="polite" aria-busy={notificationsLoading}>
               <div className="mvp-notification-panel-head"><strong id="mvp-notification-title">Notificações{displayedUnreadCount > 0 ? ` (${displayedUnreadCount})` : ""}</strong><button ref={notificationCloseRef} type="button" className="mvp-notification-close" onClick={() => setNotificationsOpen(false)} aria-label="Fechar notificações"><X size={15} /></button></div>
               {typeof window !== "undefined" && "Notification" in window && Notification.permission !== "granted" && <button type="button" className="mvp-notification-enable" onClick={enableBrowserNotifications}>Ativar avisos na tela</button>}
@@ -346,6 +354,10 @@ function ConversationLauncher({ conversations, unreadCount, onOpenConversation, 
     return () => { document.removeEventListener("pointerdown", closeOnOutsideClick); document.removeEventListener("keydown", closeOnEscape); };
   }, [open]);
   useEffect(() => { if (open) conversationCloseRef.current?.focus(); }, [open]);
+  useEffect(() => {
+    if (previousConversationOpen.current && !open) conversationTriggerRef.current?.focus();
+    previousConversationOpen.current = open;
+  }, [open]);
   return <div ref={launcherRef} className={`mvp-conversation-launcher ${open ? "open" : ""}`}>
     {open && <div className="mvp-conversation-panel" id="mvp-conversation-panel" role="dialog" aria-label="Mensagens" aria-modal="false">
       {selectedId && selected && renderConversation ? <div className="mvp-conversation-window">
@@ -362,7 +374,7 @@ function ConversationLauncher({ conversations, unreadCount, onOpenConversation, 
         <ChevronRight size={16} />
       </button>) : <p className="mvp-conversation-empty">Nenhuma conversa ativa ainda.</p>}</>}
     </div>}
-    {!selectedId && <button type="button" className="mvp-conversation-trigger" onClick={() => setOpen(value => !value)} aria-expanded={open} aria-controls="mvp-conversation-panel" aria-label="Mensagens">
+    {!selectedId && <button ref={conversationTriggerRef} type="button" className="mvp-conversation-trigger" onClick={() => setOpen(value => !value)} aria-expanded={open} aria-controls="mvp-conversation-panel" aria-label="Mensagens">
       <MessageCircle size={17} /><span>Mensagens</span>{unreadCount > 0 && <b>{unreadCount > 9 ? "9+" : unreadCount}</b>}
     </button>}
   </div>;
