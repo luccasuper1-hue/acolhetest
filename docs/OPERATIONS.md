@@ -17,6 +17,8 @@ Este documento é um runbook executável. Ele não substitui a configuração do
 
 Scripts locais: `ops/backup-mongodb.ps1` e `ops/restore-mongodb.ps1`. Faça um restore mensal em banco separado; nunca restaure diretamente em produção sem janela aprovada.
 
+Para gerar um pacote compartilhável, use `ops/package-release.ps1 -OutputPath <arquivo.zip>`. O empacotador exclui perfis de navegador (`.edge-shot`), caches, dependências, builds locais, logs e outros artefatos de ambiente.
+
 ## Recuperação
 
 1. Registrar o incidente e pausar novas comunicações com a instituição.
