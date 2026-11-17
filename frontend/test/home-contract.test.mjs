@@ -530,6 +530,7 @@ test("route changes reset the page scroll position", async () => {
   assert.match(appSource, /const main = document\.querySelector\("main"\)/);
   assert.match(appSource, /main\.focus\(\{ preventScroll: true \}\)/);
   assert.match(appSource, /focusIsDocumentBody/);
+  assert.match(appSource, /focusIsDetached = Boolean\(active && !active\.isConnected\)/);
   assert.match(appSource, /\}, \[location\.pathname, location\.search\]\);/);
 });
 

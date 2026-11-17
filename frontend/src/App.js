@@ -436,7 +436,8 @@ function AppRoutes() {
     const main = document.querySelector("main");
     const active = document.activeElement;
     const focusIsDocumentBody = !active || active === document.body || active === document.documentElement;
-    if (main && focusIsDocumentBody) {
+    const focusIsDetached = Boolean(active && !active.isConnected);
+    if (main && (focusIsDocumentBody || focusIsDetached)) {
       main.tabIndex = -1;
       main.focus({ preventScroll: true });
     }
