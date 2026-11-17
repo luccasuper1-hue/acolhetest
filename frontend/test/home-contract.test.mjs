@@ -496,4 +496,8 @@ test("institution impact reports support a baseline and safe export", () => {
   assert.match(frontendInstitution, /inst-capture-baseline/);
   assert.match(frontendInstitution, /inst-export-impact/);
   assert.match(frontendInstitution, /relatorio-impacto-acolhe\.csv/);
+  assert.match(routes, /period_start/);
+  assert.match(routes, /population/);
+  assert.match(frontendInstitution, /Variação observada/);
+  assert.match(frontendInstitution, /sem identificadores/);
 });
