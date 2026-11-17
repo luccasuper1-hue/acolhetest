@@ -608,11 +608,16 @@ test("mobile navigation locks background scroll while open", async () => {
 test("interactive notification surfaces import their React hooks", async () => {
   const command = await readFile(resolve(root, "src/components/CommandPalette.jsx"), "utf8");
   const bell = await readFile(resolve(root, "src/components/NotificationBell.jsx"), "utf8");
+  const onboarding = await readFile(resolve(root, "src/components/Onboarding.jsx"), "utf8");
   assert.match(command, /import \{ useEffect, useMemo, useRef, useState \} from "react"/);
   assert.match(command, /aria-modal="true"/);
   assert.match(command, /aria-label="Buscar páginas e profissionais"/);
   assert.match(bell, /import \{ useEffect, useId, useRef, useState \} from "react"/);
   assert.match(bell, /role="dialog"/);
+  assert.match(command, /import \{ lockOverlayScroll \} from "\.\.\/overlayScrollLock"/);
+  assert.match(command, /const unlockScroll = lockOverlayScroll\(\)/);
+  assert.match(onboarding, /import \{ lockOverlayScroll \} from "\.\.\/overlayScrollLock"/);
+  assert.match(onboarding, /const unlockScroll = lockOverlayScroll\(\)/);
 });
 
 test("sync retry tolerates panels without a refresh callback", async () => {

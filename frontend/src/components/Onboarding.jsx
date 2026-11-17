@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import AcolheMark from "./AcolheMark";
 import JourneyFlow from "./JourneyFlow";
 import { useEffect, useRef, useState } from "react";
+import { lockOverlayScroll } from "../overlayScrollLock";
 
 const STEPS = [
   {
@@ -45,6 +46,7 @@ export const Onboarding = ({ onFinish, onExplore }) => {
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) return undefined;
+    const unlockScroll = lockOverlayScroll();
     const first = dialog.querySelector("button:not([disabled])");
     first?.focus();
     const handleKeyDown = event => {
@@ -58,7 +60,7 @@ export const Onboarding = ({ onFinish, onExplore }) => {
       else if (!event.shiftKey && document.activeElement === lastItem) { event.preventDefault(); firstItem.focus(); }
     };
     dialog.addEventListener("keydown", handleKeyDown);
-    return () => dialog.removeEventListener("keydown", handleKeyDown);
+    return () => { dialog.removeEventListener("keydown", handleKeyDown); unlockScroll(); };
   }, [index]);
   return createPortal(
     <div ref={dialogRef} className="onboarding" role="dialog" aria-modal="true" aria-labelledby="onboarding-title" aria-describedby="onboarding-description" data-testid="onboarding-overlay">

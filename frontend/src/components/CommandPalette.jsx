@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, CornerDownLeft, Search } from "lucide-react";
 import { professionals } from "../data";
+import { lockOverlayScroll } from "../overlayScrollLock";
 
 const PAGES = [
   ["Quero conversar", "/entrar"],
@@ -50,8 +51,9 @@ export const CommandPalette = () => {
 
   useEffect(() => {
     if (!open) return undefined;
+    const unlockScroll = lockOverlayScroll();
     const panel = panelRef.current;
-    if (!panel) return undefined;
+    if (!panel) return unlockScroll;
     const handleKeyDown = event => {
       if (event.key !== "Tab") return;
       const items = [...panel.querySelectorAll("input, button:not([disabled])")];
@@ -62,7 +64,7 @@ export const CommandPalette = () => {
       else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
     };
     panel.addEventListener("keydown", handleKeyDown);
-    return () => panel.removeEventListener("keydown", handleKeyDown);
+    return () => { panel.removeEventListener("keydown", handleKeyDown); unlockScroll(); };
   }, [open]);
 
   const results = useMemo(() => {
