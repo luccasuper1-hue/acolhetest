@@ -8,6 +8,7 @@ export default function InstitutionArea() {
   const [metrics, setMetrics] = useState(null);
   const [professionals, setProfessionals] = useState([]);
   const [certificates, setCertificates] = useState([]);
+  const [fallbackRequests, setFallbackRequests] = useState([]);
   const [institution, setInstitution] = useState(null);
   const [invite, setInvite] = useState({ name: "", email: "", link_type: "institution", specialty: "" });
   const [inviteLink, setInviteLink] = useState(null);
@@ -16,11 +17,12 @@ export default function InstitutionArea() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [profileBusy, setProfileBusy] = useState(false);
+  const [fallbackBusy, setFallbackBusy] = useState(null);
 
   const load = useCallback(async () => {
     try {
       const { data } = await api.get("/institutions/me/dashboard");
-      setMetrics(data.metrics); setProfessionals(data.professionals || []); setCertificates(data.certificates || []); setInstitution(data.institution);
+      setMetrics(data.metrics); setProfessionals(data.professionals || []); setCertificates(data.certificates || []); setFallbackRequests(data.fallback_requests || []); setInstitution(data.institution);
       setProfile({ name: data.institution?.name || "", contact_email: data.institution?.contact_email || "", support_note: data.institution?.support_note || "" });
       setLoadError("");
     } catch (error) {
@@ -57,6 +59,28 @@ export default function InstitutionArea() {
     finally { setProfileBusy(false); }
   };
 
+  const onboardingSteps = [
+    ["professionals", "Vincular pelo menos um profissional"],
+    ["access", "Compartilhar o código com os estudantes"],
+    ["privacy", "Revisar privacidade e responsabilidades com a equipe"],
+    ["flow", "Testar um pedido até a confirmação"],
+    ["support", "Definir quem acompanha pedidos atrasados"],
+  ];
+  const completedOnboarding = new Set(institution?.onboarding_steps || []);
+  const toggleOnboarding = async step => {
+    const next = new Set(completedOnboarding);
+    if (next.has(step)) next.delete(step); else next.add(step);
+    try { await api.put("/institutions/me", { onboarding_steps: [...next] }); setInstitution(current => ({ ...current, onboarding_steps: [...next] })); }
+    catch (err) { toast.error(apiError(err)); }
+  };
+  const reviewFallback = async (requestId, action) => {
+    if (fallbackBusy) return;
+    setFallbackBusy(`${requestId}:${action}`);
+    try { await api.post(`/institutions/me/requests/${encodeURIComponent(requestId)}/fallback`, { action }); toast.success("Próximo passo registrado."); await load(); }
+    catch (err) { toast.error(apiError(err)); }
+    finally { setFallbackBusy(null); }
+  };
+
   const linkedProfessionals = metrics?.professionals_linked || 0;
   const scheduledRequests = metrics?.sessions_scheduled || 0;
   const hasActivity = Boolean(metrics?.has_data) || (metrics?.requests_total || 0) > 0 || (metrics?.sessions_completed || 0) > 0;
@@ -91,7 +115,10 @@ export default function InstitutionArea() {
       </MvpCard>
 
       <MvpCard title="Guia rápido do piloto" subtitle="Veja o passo a passo da configuração, privacidade e operação." testid="inst-onboarding-card" className="institution-onboarding-card">
-        <p>Use este roteiro para preparar a equipe sem depender de suporte a cada ação.</p>
+        <p>Use este roteiro para preparar a equipe em um dia, sem depender de suporte a cada ação.</p>
+        <div className="institution-onboarding-checklist" aria-label="Checklist de implantação">
+          {onboardingSteps.map(([step, label]) => <label key={step} className="institution-check-item"><input type="checkbox" checked={completedOnboarding.has(step)} onChange={() => toggleOnboarding(step)} /><span>{label}</span></label>)}
+        </div>
         <a className="button secondary small" href="/ajuda/instituicoes" data-testid="inst-onboarding-link">Abrir guia institucional <ExternalLink size={14} /></a>
       </MvpCard>
 
@@ -142,6 +169,22 @@ export default function InstitutionArea() {
         <div className="mvp-row"><div className="mvp-row-main"><strong>Linha de base</strong><span>{metrics?.baseline_available ? "Disponível para comparação" : "Ainda não registrada"}</span></div><span className="mvp-tag wait">{metrics?.baseline_available ? "PRONTA" : "PENDENTE"}</span></div>
         <p className="mvp-note">As métricas de velocidade e comparecimento só aparecem com pelo menos {metrics?.minimum_sample_size ?? 5} casos. O período e a amostra devem acompanhar qualquer comparação antes/depois. As 48 horas são uma meta operacional do piloto, não uma garantia clínica, de disponibilidade ou de resultado terapêutico.</p>
       </MvpCard>
+
+      <div className="mvp-grid institution-operations-grid">
+        <MvpCard title="Capacidade e gargalos" subtitle="Visão agregada dos horários e da fila operacional." testid="inst-capacity-card">
+          <div className="mvp-row"><div className="mvp-row-main"><strong>Horários disponíveis</strong><span>{metrics?.capacity_open_slots || 0} livres para novos pedidos</span></div><span className="mvp-tag ok">{metrics?.capacity_open_slots || 0}</span></div>
+          <div className="mvp-row"><div className="mvp-row-main"><strong>Capacidade utilizada</strong><span>{metrics?.capacity_utilization_percent == null ? "Sem horários publicados" : `${metrics.capacity_utilization_percent}% dos horários reservados`}</span></div><span className="mvp-tag">{metrics?.capacity_reserved_slots || 0}</span></div>
+          <div className="mvp-row"><div className="mvp-row-main"><strong>Gargalos de resposta</strong><span>{metrics?.requests_overdue || 0} pedidos ultrapassaram 48 horas</span></div><span className={`mvp-tag ${(metrics?.requests_overdue || 0) ? "off" : "ok"}`}>{metrics?.requests_overdue || 0}</span></div>
+        </MvpCard>
+
+        <MvpCard title="Continuidade do cuidado" subtitle="Registro operacional após a conversa, sem conteúdo clínico." testid="inst-continuity-card">
+          {Object.entries(metrics?.referrals_by_status || {}).length ? Object.entries(metrics.referrals_by_status).map(([status, count]) => <div className="mvp-row" key={status}><div className="mvp-row-main"><strong>{({ orientacao: "Orientação registrada", encaminhamento_interno: "Encaminhamento interno", encaminhamento_externo: "Encaminhamento externo", sem_encaminhamento: "Sem encaminhamento" })[status] || status}</strong></div><span className="mvp-tag">{count}</span></div>) : <MvpEmpty testid="inst-continuity-empty">Nenhum desfecho operacional registrado ainda.</MvpEmpty>}
+        </MvpCard>
+      </div>
+
+      {fallbackRequests.length > 0 && <MvpCard title="Pedidos que precisam de um próximo passo" subtitle="A instituição decide manualmente como apoiar; nada é redistribuído sem consentimento." testid="inst-fallback-card" className="institution-fallback-card">
+        {fallbackRequests.map(item => <div className="mvp-row" key={item.id} data-testid={`inst-fallback-${item.id}`}><div className="mvp-row-main"><strong>Pedido sem resposta no prazo</strong><span>Criado em {formatDate(item.created_at)} · {item.kind === "direct" ? "pedido direto" : "horário publicado"}</span><small className="mvp-next-step">Defina um contato, uma alternativa ou a fila de apoio.</small></div><div className="mvp-row-actions"><button className="button small quiet" disabled={fallbackBusy} onClick={() => reviewFallback(item.id, "contact_student")}>Contatar estudante</button><button className="button small secondary" disabled={fallbackBusy} onClick={() => reviewFallback(item.id, "offer_other_professional")}>Oferecer alternativa</button><button className="button small secondary" disabled={fallbackBusy} onClick={() => reviewFallback(item.id, "queue_support")}>Fila de apoio</button></div></div>)}
+      </MvpCard>}
 
       <div className="mvp-grid">
         <MvpCard title="Solicitações por período" subtitle="Solicitações por mês (dados do piloto)." testid="inst-usage-card">

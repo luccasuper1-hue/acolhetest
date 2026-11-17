@@ -478,3 +478,13 @@ test("response SLA is framed as an operational pilot target", () => {
   assert.match(operations, /48 horas corridas/);
   assert.match(operations, /America\/Fortaleza/);
 });
+
+test("institution operations expose capacity, manual fallback and onboarding", () => {
+  assert.match(routes, /capacity_open_slots/);
+  assert.match(routes, /request_fallback_reviewed/);
+  assert.match(routes, /onboarding_steps/);
+  assert.match(frontendInstitution, /inst-capacity-card/);
+  assert.match(frontendInstitution, /inst-fallback-card/);
+  assert.match(frontendInstitution, /inst-onboarding-card/);
+  assert.match(frontendInstitution, /offer_other_professional/);
+});

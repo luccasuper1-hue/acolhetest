@@ -245,6 +245,15 @@ html[data-theme="dark"] .admin-filter-bar button.active { color: var(--ink); }
 .mvp-row-main span { font-size: 13px; opacity: .68; }
 .mvp-row-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex: 0 1 auto; flex-wrap: wrap; }
 .mvp-row-actions .button { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.institution-onboarding-checklist { display: grid; gap: 8px; margin: 14px 0 16px; }
+.institution-check-item { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 13px; line-height: 1.4; }
+.institution-check-item input { width: 17px; height: 17px; accent-color: var(--purple); }
+.institution-operations-grid { margin-top: 18px; }
+.institution-fallback-card .mvp-row-actions { max-width: 520px; }
+@media (max-width: 720px) {
+  .institution-fallback-card .mvp-row-actions { width: 100%; max-width: none; justify-content: flex-start; }
+  .institution-fallback-card .mvp-row-actions .button { flex: 1 1 100%; justify-content: center; }
+}
 .mvp-tag { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; padding: 4px 9px; border-radius: 999px;
   border: 1px solid var(--line, #e7e1ee); white-space: nowrap; }
 .mvp-tag.ok { border-color: transparent; background: color-mix(in srgb, var(--success) 18%, transparent); color: var(--success); }
