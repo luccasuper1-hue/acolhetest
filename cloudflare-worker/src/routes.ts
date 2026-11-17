@@ -62,6 +62,16 @@ function requestFlowMeta(record: Doc) {
 const sortDate = { date: 1 as const, time: 1 as const };
 const timeToMinutes = (value: string) => Number(value.slice(0, 2)) * 60 + Number(value.slice(3, 5));
 const minutesToTime = (value: number) => `${String(Math.floor(value / 60)).padStart(2, "0")}:${String(value % 60).padStart(2, "0")}`;
+const slotDurationMinutes = (record: Doc) => {
+  const duration = Number(record.duration_minutes);
+  return Number.isInteger(duration) && duration >= 15 && duration <= 120 ? duration : 30;
+};
+const intervalsOverlap = (date: string, time: string, duration: number, record: Doc) => {
+  if (String(record.date) !== date || !validTime(record.time)) return false;
+  const start = timeToMinutes(time), end = start + duration;
+  const otherStart = timeToMinutes(String(record.time)), otherEnd = otherStart + slotDurationMinutes(record);
+  return start < otherEnd && otherStart < end;
+};
 const addDays = (value: string, days: number) => {
   const date = new Date(`${value}T00:00:00Z`);
   date.setUTCDate(date.getUTCDate() + days);
@@ -687,7 +697,8 @@ async function studentRoutes(request: Request, env: Env, pathname: string): Prom
     // place. Appointment sessions use appointment_request_id as their source;
     // this compatibility value prevents the old request_id unique index from
     // treating every appointment session as the same null value.
-    const session = { id: id(), request_id: `appointment:${appointmentConfirmId}`, appointment_request_id: appointmentConfirmId, student_id: student.id, professional_id: record.professional_id, institution_id: student.institution_id, date: record.date, time: record.time, meeting_mode: record.meeting_mode, status: "scheduled", created_at: now() };
+    const capacity = record.availability_id ? await store.findOne("availability", { id: record.availability_id }, { duration_minutes: 1 }) : null;
+    const session = { id: id(), request_id: `appointment:${appointmentConfirmId}`, appointment_request_id: appointmentConfirmId, student_id: student.id, professional_id: record.professional_id, institution_id: student.institution_id, date: record.date, time: record.time, duration_minutes: slotDurationMinutes(capacity || record), meeting_mode: record.meeting_mode, status: "scheduled", created_at: now() };
     try { await store.insert("sessions", session); } catch (error) {
       await store.update("appointment_requests", { id: appointmentConfirmId, student_id: student.id, status: "accepted" }, { $set: { status: "proposed" }, $unset: { confirmed_at: true } });
       console.error("Appointment confirmation rolled back", error);
@@ -830,7 +841,7 @@ async function professionalRoutes(request: Request, env: Env, pathname: string):
       const created: Doc[] = [];
       try {
         for (const slotData of generated) {
-          const slot = { id: id(), professional_id: professional.id, institution_id: professional.institution_id, date: slotData.date, time: slotData.time, mode: meetingMode, location, status: "open", created_at: now() };
+          const slot = { id: id(), professional_id: professional.id, institution_id: professional.institution_id, date: slotData.date, time: slotData.time, duration_minutes: duration, mode: meetingMode, location, status: "open", created_at: now() };
           await store.insert("availability", slot); created.push(slot);
         }
       } catch (error) {
@@ -847,8 +858,11 @@ async function professionalRoutes(request: Request, env: Env, pathname: string):
     const uniqueTimes = Array.isArray(times) ? new Set(times) : new Set();
     const today = localToday(), currentTime = localCurrentTime();
     if (!validDate(date) || !Array.isArray(times) || times.length < 1 || times.length > 20 || uniqueTimes.size !== times.length || times.some((time) => !validTime(time) || (date === today && time <= currentTime))) return fail("Dados inválidos", 422);
+    const duration = [15, 20, 30, 45, 60].includes(Number(payload?.slot_minutes)) ? Number(payload?.slot_minutes) : 30;
+    const existing = await store.findMany("availability", { professional_id: professional.id, date }, { projection: { date: 1, time: 1, duration_minutes: 1, status: 1 }, limit: 500 });
+    if (times.some((time) => existing.some((slot) => intervalsOverlap(date, String(time), duration, slot)))) return fail("Os horários se sobrepõem a uma disponibilidade existente.", 409);
     const created: Doc[] = [];
-    try { for (const time of times) { const slot = { id: id(), professional_id: professional.id, institution_id: professional.institution_id, date, time: time.trim(), mode: meetingMode, location, status: "open", created_at: now() }; await store.insert("availability", slot); created.push(slot); } } catch (error) { if (created.length) await store.remove("availability", { id: { $in: created.map((slot) => slot.id) } }, true); console.error("Availability creation rolled back", error); return fail("Não foi possível publicar todos os horários. Verifique duplicidades e tente novamente.", 409); }
+    try { for (const time of times) { const slot = { id: id(), professional_id: professional.id, institution_id: professional.institution_id, date, time: time.trim(), duration_minutes: duration, mode: meetingMode, location, status: "open", created_at: now() }; await store.insert("availability", slot); created.push(slot); } } catch (error) { if (created.length) await store.remove("availability", { id: { $in: created.map((slot) => slot.id) } }, true); console.error("Availability creation rolled back", error); return fail("Não foi possível publicar todos os horários. Verifique duplicidades e sobreposições.", 409); }
     await logEvent(env, "availability_created", user, professional.institution_id, { count: created.length }); await notifyWaitingStudents(env, store, professional.institution_id, created.length); await refreshStudentPanels(env, store, professional.institution_id); return json(created, 201);
   }
   const slotId = pathParameter(pathname, "/api/professionals/me/availability/");
@@ -872,20 +886,27 @@ async function professionalRoutes(request: Request, env: Env, pathname: string):
       if (!validDate(proposedDate) || !validTime(proposedTime) || proposedDate < today || (proposedDate === today && proposedTime <= currentTime)) return fail("Escolha uma data e hora futuras.", 422);
       // A direct proposal still becomes a real capacity record, so utilization
       // metrics and conflict checks remain aligned with scheduled meetings.
-      const generatedSlot = { id: id(), professional_id: professional.id, institution_id: professional.institution_id, date: proposedDate, time: proposedTime, mode: record.meeting_mode === "presencial" ? "presencial" : "online", location: null, status: "reserved", source: "direct_request", created_at: now() };
+      const duration = slotDurationMinutes(record);
+      const [sameDaySlots, sameDaySessions, sameDayProposals] = await Promise.all([
+        store.findMany("availability", { professional_id: professional.id, date: proposedDate, status: { $in: ["open", "reserved"] } }, { projection: { date: 1, time: 1, duration_minutes: 1 }, limit: 500 }),
+        store.findMany("sessions", { professional_id: professional.id, date: proposedDate, status: "scheduled" }, { projection: { date: 1, time: 1, duration_minutes: 1 }, limit: 500 }),
+        store.findMany("appointment_requests", { professional_id: professional.id, date: proposedDate, status: { $in: ["proposed", "accepted"] } }, { projection: { date: 1, time: 1, duration_minutes: 1 }, limit: 500 }),
+      ]);
+      if ([...sameDaySlots, ...sameDaySessions, ...sameDayProposals].some((existing) => intervalsOverlap(proposedDate, proposedTime, duration, existing))) return fail("Este horário se sobrepõe a outro compromisso. Escolha outra data ou hora.", 409);
+      const generatedSlot = { id: id(), professional_id: professional.id, institution_id: professional.institution_id, date: proposedDate, time: proposedTime, duration_minutes: duration, mode: record.meeting_mode === "presencial" ? "presencial" : "online", location: null, status: "reserved", source: "direct_request", created_at: now() };
       try { await store.insert("availability", generatedSlot); slot = generatedSlot; } catch { return fail("Este horário acabou de ser reservado. Escolha outra data ou hora.", 409); }
     }
     const date = slot?.date || proposedDate;
     const time = slot?.time || proposedTime;
     const [scheduledConflict, proposedConflict] = await Promise.all([
       store.findOne("sessions", { professional_id: professional.id, status: "scheduled", date, time }),
-      store.findOne("appointment_requests", { professional_id: professional.id, status: "proposed", date, time }),
+      store.findOne("appointment_requests", { professional_id: professional.id, status: { $in: ["proposed", "accepted"] }, date, time }),
     ]);
     if (scheduledConflict || proposedConflict) {
       if (slot) await store.update("availability", { id: slot.id, status: "reserved" }, { $set: { status: "open" } });
       return fail("Este horário já está ocupado. Escolha outra data ou horário.", 409);
     }
-    const updated = await store.update("appointment_requests", { id: appointmentProposeId, professional_id: professional.id, status: "pending" }, { $set: { status: "proposed", availability_id: slot?.id || null, date, time, meeting_location: slot?.location || null, proposed_at: now(), responded_at: now() } });
+    const updated = await store.update("appointment_requests", { id: appointmentProposeId, professional_id: professional.id, status: "pending" }, { $set: { status: "proposed", availability_id: slot?.id || null, date, time, duration_minutes: slotDurationMinutes(slot || record), meeting_location: slot?.location || null, proposed_at: now(), responded_at: now() } });
     if (!updated) { if (slot) await store.update("availability", { id: slot.id, status: "reserved" }, { $set: { status: "open" } }); return fail("Este pedido já foi alterado", 409); }
     const student = await store.findOne("students", { id: record.student_id }, { user_id: 1 });
     if (student?.user_id) await notifyUser(env, String(student.user_id), "appointment_request_proposed", "Novo horário proposto", `O profissional sugeriu ${date.split("-").reverse().join("/")} às ${time}.`, { appointment_request_id: appointmentProposeId });
@@ -906,7 +927,7 @@ async function professionalRoutes(request: Request, env: Env, pathname: string):
     return json({ ok: true });
   }
   const acceptId = pathParameter(pathname, "/api/professionals/me/requests/", "/accept");
-  if (acceptId && request.method === "POST") { const record = await store.findOne("requests", { id: acceptId, professional_id: professional.id }); if (!record) return fail("Solicitação não encontrada", 404); if (await store.update("requests", { id: acceptId, professional_id: professional.id, status: "pending" }, { $set: { status: "accepted", responded_at: now() } }) === 0) return fail("Solicitação já tratada", 409); const session = { id: id(), request_id: acceptId, student_id: record.student_id, professional_id: professional.id, institution_id: professional.institution_id, date: record.date, time: record.time, status: "scheduled", created_at: now() }; try { await store.insert("sessions", session); } catch (error) { await store.update("requests", { id: acceptId, status: "accepted" }, { $set: { status: "pending" } }); console.error("Request acceptance rolled back", error); return fail("Não foi possível confirmar a conversa. Tente novamente.", 503); } const student = await store.findOne("students", { id: record.student_id }, { user_id: 1 }); if (student?.user_id) await notifyUser(env, String(student.user_id), "request_accepted", "Conversa confirmada", `Sua conversa foi confirmada para ${record.date.split("-").reverse().join("/")} às ${record.time}.`, { request_id: acceptId, session_id: session.id }); await refreshStudentPanels(env, store, professional.institution_id); await refreshPanels(env, store, professional.institution_id, "institution"); await refreshPanels(env, store, professional.institution_id, "admin"); await logEvent(env, "request_accepted", user, professional.institution_id, { request_id: acceptId }); return json(session); }
+  if (acceptId && request.method === "POST") { const record = await store.findOne("requests", { id: acceptId, professional_id: professional.id }); if (!record) return fail("Solicitação não encontrada", 404); if (await store.update("requests", { id: acceptId, professional_id: professional.id, status: "pending" }, { $set: { status: "accepted", responded_at: now() } }) === 0) return fail("Solicitação já tratada", 409); const session = { id: id(), request_id: acceptId, student_id: record.student_id, professional_id: professional.id, institution_id: professional.institution_id, date: record.date, time: record.time, duration_minutes: slotDurationMinutes(record), status: "scheduled", created_at: now() }; try { await store.insert("sessions", session); } catch (error) { await store.update("requests", { id: acceptId, status: "accepted" }, { $set: { status: "pending" } }); console.error("Request acceptance rolled back", error); return fail("Não foi possível confirmar a conversa. Tente novamente.", 503); } const student = await store.findOne("students", { id: record.student_id }, { user_id: 1 }); if (student?.user_id) await notifyUser(env, String(student.user_id), "request_accepted", "Conversa confirmada", `Sua conversa foi confirmada para ${record.date.split("-").reverse().join("/")} às ${record.time}.`, { request_id: acceptId, session_id: session.id }); await refreshStudentPanels(env, store, professional.institution_id); await refreshPanels(env, store, professional.institution_id, "institution"); await refreshPanels(env, store, professional.institution_id, "admin"); await logEvent(env, "request_accepted", user, professional.institution_id, { request_id: acceptId }); return json(session); }
   const declineId = pathParameter(pathname, "/api/professionals/me/requests/", "/decline");
   if (declineId && request.method === "POST") { const record = await store.findOne("requests", { id: declineId, professional_id: professional.id }); if (!record) return fail("Solicitação não encontrada", 404); if (await store.update("requests", { id: declineId, professional_id: professional.id, status: "pending" }, { $set: { status: "declined", responded_at: now() } }) === 0) return fail("Solicitação já tratada", 409); await store.update("availability", { id: record.availability_id }, { $set: { status: "open" } }); const student = await store.findOne("students", { id: record.student_id }, { user_id: 1 }); if (student?.user_id) await notifyUser(env, String(student.user_id), "request_declined", "Solicitação não confirmada", "O profissional não conseguiu confirmar este horário. Você pode escolher outro quando houver disponibilidade.", { request_id: declineId }); await refreshPanels(env, store, professional.institution_id, "institution"); await refreshPanels(env, store, professional.institution_id, "admin"); await logEvent(env, "request_declined", user, professional.institution_id, { request_id: declineId }); return json({ ok: true }); }
   const roomId = pathParameter(pathname, "/api/professionals/me/requests/", "/room-link");

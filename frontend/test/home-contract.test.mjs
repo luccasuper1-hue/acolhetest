@@ -22,6 +22,7 @@ const routes = await readFile(resolve(root, "..", "cloudflare-worker", "src", "r
 const core = await readFile(resolve(root, "..", "cloudflare-worker", "src", "core.ts"), "utf8");
 const workerDb = await readFile(resolve(root, "..", "cloudflare-worker", "src", "db.ts"), "utf8");
 const workerIndex = await readFile(resolve(root, "..", "cloudflare-worker", "src", "index.ts"), "utf8");
+const workerConfig = await readFile(resolve(root, "..", "cloudflare-worker", "wrangler.jsonc"), "utf8");
 const staticHeaders = await readFile(resolve(root, "public", "_headers"), "utf8");
 const home = app.slice(app.indexOf("function Home()"), app.indexOf("function InfoPage"));
 
@@ -309,6 +310,35 @@ test("expired requests refresh every affected panel scope", () => {
   assert.match(block, /scope: "professional"/);
   assert.match(block, /refreshPanels\(env, store, institutionId, "institution"\)/);
   assert.match(block, /refreshPanels\(env, store, institutionId, "admin"\)/);
+});
+
+test("SLA expiration runs on a scheduled worker and is idempotent", () => {
+  assert.ok(workerConfig.includes('"crons": ["*/15 * * * *"]'));
+  assert.match(workerIndex, /async scheduled\(_controller: ScheduledController/);
+  assert.match(workerIndex, /ctx\.waitUntil\(expirePendingRequests\(db\(env\), env\)\)/);
+  const start = routes.indexOf("export async function expirePendingRequests");
+  const end = routes.indexOf("function sessionReminderNotifications", start);
+  const block = routes.slice(start, end);
+  assert.match(block, /status: \"pending\"/);
+  assert.match(block, /findOne\(\"notifications\", \{ recipient_user_id: professional\.user_id, type: \"request_expiring\"/);
+});
+
+test("capacity records carry duration and reject overlapping direct proposals", () => {
+  assert.match(routes, /const slotDurationMinutes =/);
+  assert.match(routes, /const intervalsOverlap =/);
+  assert.match(routes, /duration_minutes: duration/);
+  assert.match(routes, /sameDaySlots, sameDaySessions, sameDayProposals/);
+  assert.match(routes, /se sobrepõe a outro compromisso/);
+});
+
+test("minor approval stays institution-scoped and rolls back when audit fails", () => {
+  const start = routes.indexOf("const minorApprovalId = pathParameter");
+  const end = routes.indexOf("const fallbackId = pathParameter", start);
+  const block = routes.slice(start, end);
+  assert.match(block, /institution_id: institution\.id/);
+  assert.match(block, /guardian_review_status: \"pending_institution_review\"/);
+  assert.match(block, /minor_registration_approved/);
+  assert.match(block, /active: false/);
 });
 
 test("appointment cancellation notifies the professional", () => {
