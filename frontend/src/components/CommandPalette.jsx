@@ -20,16 +20,33 @@ export const CommandPalette = () => {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const panelRef = useRef(null);
+  const openRef = useRef(false);
+  const returnFocusRef = useRef(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     const onKey = e => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); setQuery(""); setOpen(o => !o); }
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        if (!openRef.current) returnFocusRef.current = document.activeElement;
+        const nextOpen = !openRef.current;
+        openRef.current = nextOpen;
+        setQuery("");
+        setOpen(nextOpen);
+      }
       else if (e.key === "Escape") setOpen(false);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
+
+  useEffect(() => {
+    openRef.current = open;
+    if (!open && returnFocusRef.current && document.contains(returnFocusRef.current)) {
+      returnFocusRef.current.focus({ preventScroll: true });
+      returnFocusRef.current = null;
+    }
+  }, [open]);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -59,7 +76,7 @@ export const CommandPalette = () => {
 
   if (!open) return null;
 
-  const go = to => { setOpen(false); navigate(to); };
+  const go = to => { returnFocusRef.current = null; setOpen(false); navigate(to); };
 
   return (
     <div className="command-overlay" onClick={() => setOpen(false)} data-testid="command-palette">
