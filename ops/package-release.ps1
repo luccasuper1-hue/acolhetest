@@ -21,6 +21,8 @@ try {
     ($parts | Where-Object { $excludedDirectories -contains $_ }).Count -eq 0 -and
       ($excludedExtensions -notcontains $_.Extension.ToLowerInvariant()) -and
       ($excludedFileNames -notcontains $_.Name) -and
+      ($_.Name -notmatch '^\.env(?:\.|$)') -and
+      ($_.Name -notmatch '(?i)(^|[-_.])(credentials?|secrets?|private[-_]?key|access[-_]?token)([-_.]|$)') -and
       ($_.Extension.ToLowerInvariant() -notin @(".pem", ".key")) -and
       $_.FullName -ne $output
   } | ForEach-Object {
