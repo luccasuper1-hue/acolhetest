@@ -865,7 +865,7 @@ async function professionalRoutes(request: Request, env: Env, pathname: string):
       // A direct proposal still becomes a real capacity record, so utilization
       // metrics and conflict checks remain aligned with scheduled meetings.
       const generatedSlot = { id: id(), professional_id: professional.id, institution_id: professional.institution_id, date: proposedDate, time: proposedTime, mode: record.meeting_mode === "presencial" ? "presencial" : "online", location: null, status: "reserved", source: "direct_request", created_at: now() };
-      try { await store.insert("availability", generatedSlot); slot = generatedSlot; } catch { return fail("Não foi possível reservar essa capacidade. Tente novamente.", 503); }
+      try { await store.insert("availability", generatedSlot); slot = generatedSlot; } catch { return fail("Este horário acabou de ser reservado. Escolha outra data ou hora.", 409); }
     }
     const date = slot?.date || proposedDate;
     const time = slot?.time || proposedTime;
@@ -1039,9 +1039,10 @@ async function institutionRoutes(request: Request, env: Env, pathname: string): 
   if (minorApprovalId && request.method === "POST") {
     const minor = await store.findOne("users", { id: minorApprovalId, institution_id: institution.id, role: "student", age_band: "child", guardian_review_status: "pending_institution_review" });
     if (!minor) return fail("Cadastro infantil não encontrado ou já revisado", 404);
-    await store.update("users", { id: minorApprovalId, institution_id: institution.id }, { $set: { active: true, guardian_review_status: "approved", guardian_reviewed_at: now(), guardian_reviewed_by: user.id } });
+    if (await store.update("users", { id: minorApprovalId, institution_id: institution.id, guardian_review_status: "pending_institution_review" }, { $set: { active: true, guardian_review_status: "approved", guardian_reviewed_at: now(), guardian_reviewed_by: user.id } }) === 0) return fail("Cadastro infantil já foi revisado", 409);
+    try { await logEvent(env, "minor_registration_approved", user, institution.id, { student_user_id: minorApprovalId }); }
+    catch { await store.update("users", { id: minorApprovalId, institution_id: institution.id, guardian_review_status: "approved" }, { $set: { active: false, guardian_review_status: "pending_institution_review" }, $unset: { guardian_reviewed_at: "", guardian_reviewed_by: "" } }); return fail("Não foi possível registrar a auditoria da liberação. Tente novamente.", 503); }
     await notifyUser(env, minorApprovalId, "minor_registration_approved", "Acesso liberado", "A instituição validou o cadastro do responsável. Você já pode entrar no Acolhe.");
-    await logEvent(env, "minor_registration_approved", user, institution.id, { student_user_id: minorApprovalId });
     return json({ ok: true });
   }
   if (pathname === "/api/institutions/me/impact/baseline" && request.method === "POST") {
