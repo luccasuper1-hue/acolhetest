@@ -36,8 +36,10 @@ const SAMPLE_TOPICS = ["Ansiedade", "Pressão escolar", "Quero apenas conversar"
 export const Onboarding = ({ onFinish, onExplore }) => {
   const [index, setIndex] = useState(0);
   const dialogRef = useRef(null);
+  const returnFocusRef = useRef(typeof document !== "undefined" ? document.activeElement : null);
   const step = STEPS[index];
   const last = index === STEPS.length - 1;
+  useEffect(() => () => returnFocusRef.current?.focus?.({ preventScroll: true }), []);
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) return undefined;
