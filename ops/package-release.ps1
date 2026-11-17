@@ -11,6 +11,7 @@ $excludedDirectories = @(
   "node_modules", "build", "dist", "coverage", ".cache", "__pycache__"
 )
 $excludedExtensions = @(".zip", ".tar", ".tar.gz", ".tgz", ".pyc", ".pyo", ".log")
+$excludedFileNames = @(".env", ".dev.vars", ".dev.vars.example", "credentials.json", "token.json")
 
 try {
   New-Item -ItemType Directory -Force -Path $staging | Out-Null
@@ -19,6 +20,8 @@ try {
     $parts = $relative -split '[\\/]'
     ($parts | Where-Object { $excludedDirectories -contains $_ }).Count -eq 0 -and
       ($excludedExtensions -notcontains $_.Extension.ToLowerInvariant()) -and
+      ($excludedFileNames -notcontains $_.Name) -and
+      ($_.Extension.ToLowerInvariant() -notin @(".pem", ".key")) -and
       $_.FullName -ne $output
   } | ForEach-Object {
     $relative = $_.FullName.Substring($root.Length).TrimStart([char[]]@('\', '/'))
