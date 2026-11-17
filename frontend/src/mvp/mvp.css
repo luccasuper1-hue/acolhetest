@@ -2000,6 +2000,35 @@ html[data-theme="dark"] .mvp-shell[data-testid="student-area"] .student-active-a
 
 /* Auditoria mobile final: aplica os mesmos limites aos quatro painéis. */
 @media (max-width: 640px) {
+  /* Lote mobile 01: prevent the narrow viewport from creating horizontal
+     overflow in any of the four protected dashboards. */
+  .mvp-shell,
+  .mvp-topbar,
+  .mvp-topbar-inner,
+  .mvp-main,
+  .mvp-workspace-content,
+  .mvp-card,
+  .mvp-card-head,
+  .mvp-row,
+  .mvp-row-main,
+  .mvp-row-actions,
+  .mvp-inline-form { min-width: 0; }
+  .mvp-topbar { overflow: hidden; }
+  .mvp-brand { min-width: 0; max-width: 46vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mvp-card-head h2,
+  .mvp-row-main strong,
+  .mvp-row-main span { overflow-wrap: anywhere; }
+  .mvp-row-actions { width: 100%; justify-content: flex-start; }
+  .mvp-row-actions .button { max-width: 100%; white-space: normal; text-align: center; }
+  .mvp-inline-form { width: 100%; }
+  .mvp-inline-form label,
+  .mvp-inline-form input,
+  .mvp-inline-form select,
+  .mvp-inline-form textarea { min-width: 0; max-width: 100%; }
+  .mvp-notification-item-title,
+  .mvp-notification-item small { overflow-wrap: anywhere; }
+  .mvp-conversation-panel { max-width: calc(100vw - 20px); }
+  .mvp-conversation-window .mvp-floating-chat-close { flex: 0 0 auto; min-height: 36px; padding-bottom: env(safe-area-inset-bottom, 0px); }
   .mvp-main { padding-bottom: calc(124px + env(safe-area-inset-bottom)); }
   .mvp-workspace-content > .mvp-card,
   .mvp-workspace-content > .mvp-card:first-child,
