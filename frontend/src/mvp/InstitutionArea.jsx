@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Copy, ExternalLink, UserPlus } from "lucide-react";
+import { Copy, ExternalLink, UserPlus, X } from "lucide-react";
+import BrandMark from "../components/BrandMark";
 import { MvpShell, MvpCard, MvpEmpty, MvpKpi } from "./MvpShell";
 import { api, apiError, formatDate } from "./api";
 
@@ -27,6 +28,33 @@ function InsightResultView({ result, details, setDetails, helpful, setHelpful, o
     {details && <div className="insight-result-v2-details"><div className="insight-result-v2-method"><strong>Como calculamos</strong><span>Usamos apenas indicadores agregados do período. A variação é descritiva e não prova causalidade nem resultado clínico.</span></div>{result.sources?.length > 0 && <div className="insight-result-v2-sources"><strong>Fontes agregadas</strong>{result.sources.map(source => <span key={`${source.metric}:${source.origin}`}>{source.metric} · {source.sample_size} observações</span>)}</div>}<div className="insight-result-v2-limitations"><strong>Limitações</strong>{(result.limitations || []).map(item => <span key={item}>{item}</span>)}</div></div>}
     <footer className="insight-result-v2-feedback" role="group" aria-label="Avaliação da resposta"><span>Foi útil?</span><button type="button" className={`button quiet small ${helpful === true ? "is-selected" : ""}`} onClick={() => setHelpful(true)}>Sim</button><button type="button" className={`button quiet small ${helpful === false ? "is-selected" : ""}`} onClick={() => setHelpful(false)}>Não ajudou</button></footer>
   </section>;
+}
+
+function InstitutionInsightsLauncher({ question, setQuestion, result, error, busy, details, setDetails, helpful, setHelpful, ask, deepen }) {
+  const [open, setOpen] = useState(false);
+  const triggerRef = useRef(null);
+  const closeRef = useRef(null);
+  const wasOpen = useRef(false);
+  useEffect(() => { if (open) closeRef.current?.focus(); else if (wasOpen.current) triggerRef.current?.focus(); wasOpen.current = open; }, [open]);
+  useEffect(() => {
+    if (!open) return undefined;
+    const close = event => { if (event.key === "Escape") setOpen(false); };
+    document.addEventListener("keydown", close);
+    return () => document.removeEventListener("keydown", close);
+  }, [open]);
+  return <div className={`institution-insights-launcher ${open ? "is-open" : ""}`}>
+    {open && <div className="institution-insights-popover" id="institution-insights-popover" role="dialog" aria-modal="false" aria-labelledby="institution-insights-title">
+      <header className="institution-insights-popover-head"><div><strong id="institution-insights-title">Acolhe Insights</strong><small>Converse sobre o produto e a operação</small></div><button ref={closeRef} type="button" className="institution-insights-close" onClick={() => setOpen(false)} aria-label="Fechar Acolhe Insights"><X size={17} /></button></header>
+      <p className="institution-insights-popover-intro">Pergunte naturalmente. Uso apenas documentação segura e indicadores agregados; não acesso conversas nem executo ações.</p>
+      <form className="insight-question-form" onSubmit={event => ask(event)}><label htmlFor="institution-insight-question">Sua pergunta</label><div className="insight-question-row"><input id="institution-insight-question" value={question} maxLength={600} onChange={event => setQuestion(event.target.value)} placeholder="Ex.: Pra que servem as notificações?" disabled={busy} /><button type="submit" className="button primary small" disabled={busy || !question.trim()}>{busy ? "Analisando…" : "Perguntar"}</button></div></form>
+      <div className="insight-suggestions insight-guided-questions" aria-label="Atalhos do Acolhe Insights">
+        {INSIGHT_QUESTIONS.map(item => <button type="button" className={`button secondary small ${question === item ? "is-selected" : ""}`} key={item} onClick={event => ask(event, item)} disabled={busy}>{item}</button>)}
+      </div>
+      {error && <div className="mvp-error" role="alert">{error} <button type="button" className="button quiet small" onClick={event => ask(event)}>Tentar novamente</button></div>}
+      <InsightResultView result={result} details={details} setDetails={setDetails} helpful={helpful} setHelpful={setHelpful} onDeepen={deepen} busy={busy} />
+    </div>}
+    <button ref={triggerRef} type="button" className="institution-insights-trigger" onClick={() => setOpen(value => !value)} aria-haspopup="dialog" aria-expanded={open} aria-controls="institution-insights-popover" aria-label="Abrir Acolhe Insights" title="Conversar com o Acolhe Insights"><BrandMark size={30} /></button>
+  </div>;
 }
 
 export default function InstitutionArea() {
@@ -268,15 +296,7 @@ export default function InstitutionArea() {
         </div>
       </MvpCard>
 
-    <MvpCard title="Acolhe Insights" subtitle="Um assistente do projeto para entender fluxos, políticas e indicadores — sem acessar conversas ou dados individuais." testid="inst-insights-card" className="institution-insights-card">
-        <div className="insight-guided-intro"><strong>Converse sobre a operação</strong><span>Você pode escrever naturalmente ou começar por uma sugestão. O copiloto usa somente indicadores agregados, não acessa conversas e não executa ações.</span></div>
-        <form className="insight-question-form" onSubmit={event => askInsight(event)}><label htmlFor="institution-insight-question">Sua pergunta</label><div className="insight-question-row"><input id="institution-insight-question" value={insightQuestion} maxLength={600} onChange={event => setInsightQuestion(event.target.value)} placeholder="Ex.: A demanda aumentou?" disabled={insightBusy} /><button type="submit" className="button primary small" disabled={insightBusy || !insightQuestion.trim()}>{insightBusy ? "Analisando…" : "Perguntar"}</button></div></form>
-        <div className="insight-suggestions insight-guided-questions" aria-label="Perguntas disponíveis">
-          {INSIGHT_QUESTIONS.map(question => <button type="button" className={`button secondary small ${insightQuestion === question ? "is-selected" : ""}`} key={question} onClick={event => askInsight(event, question)} disabled={insightBusy}>{question}{insightBusy && insightQuestion === question ? " · analisando…" : ""}</button>)}
-        </div>
-        {insightError && <div className="mvp-error" role="alert">{insightError} <button type="button" className="button quiet small" onClick={event => askInsight(event)}>Tentar novamente</button></div>}
-        <InsightResultView result={insightResult} details={insightDetails} setDetails={setInsightDetails} helpful={insightHelpful} setHelpful={setInsightHelpful} onDeepen={deepenInsight} busy={insightBusy} />
-      </MvpCard>
+      <InstitutionInsightsLauncher question={insightQuestion} setQuestion={setInsightQuestion} result={insightResult} error={insightError} busy={insightBusy} details={insightDetails} setDetails={setInsightDetails} helpful={insightHelpful} setHelpful={setInsightHelpful} ask={askInsight} deepen={deepenInsight} />
 
       <div className="mvp-grid institution-operations-grid">
         <MvpCard title="Capacidade e gargalos" subtitle="Visão agregada dos horários e da fila operacional." testid="inst-capacity-card">
