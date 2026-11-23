@@ -7,7 +7,7 @@
 - Staging: `5402ef6a-759a-46ca-9b5c-b81a3134db6d` — `APP_ENV=staging`.
 - Origens: `https://acolhetest.luccasuper1.workers.dev` e `https://acolhetest-staging.luccasuper1.workers.dev`.
 - Health GET: HTTP 200 e `database: ok` nos dois ambientes.
-- Gates locais: Worker 85/85; frontend 314/314; TypeScript, lint, build e bundle budget aprovados.
+- Gates locais: Worker 87/87; frontend 314/314; TypeScript, lint, build e bundle budget aprovados.
 - O staging foi publicado a partir da mesma build local da produção; os hashes dos assets são idênticos.
 - O Acolhe Insights usa `@cf/meta/llama-3.1-8b-instruct-fast`; a variante AWQ anterior estava depreciada e causava fallback seguro.
 - E2E autenticado e carga não foram executados nesta promoção; permanecem validações separadas, não inventadas.
