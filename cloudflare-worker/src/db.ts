@@ -664,7 +664,7 @@ export class MongoGateway extends DurableObject<Env> {
     return { professionalIds, certificates, requests, appointmentRequests, minorRegistrations };
   }
 
-  async getAdminSummary(): Promise<{ users: RecordDoc[]; requests: RecordDoc[]; appointmentRequests: RecordDoc[]; leads: RecordDoc[]; institutions: RecordDoc[]; certificates: RecordDoc[] }> {
+  async getAdminSummary(): Promise<{ users: RecordDoc[]; requests: RecordDoc[]; appointmentRequests: RecordDoc[]; leads: RecordDoc[]; institutions: RecordDoc[]; certificates: RecordDoc[]; institutionStudentCounts: RecordDoc[]; institutionProfessionalCounts: RecordDoc[] }> {
     const database = await this.db();
     const [users, requests, appointmentRequests, leads, institutions, certificates] = await Promise.all([
       database.collection<RecordDoc>("users").find({}, { projection: { _id: 0, id: 1, name: 1, email: 1, role: 1, institution_id: 1, active: 1, created_at: 1 }, sort: { created_at: -1 }, limit: 200 }).toArray(),
@@ -674,7 +674,11 @@ export class MongoGateway extends DurableObject<Env> {
       database.collection<RecordDoc>("institutions").find({}, { projection: { _id: 0 }, limit: 200 }).toArray(),
       database.collection<RecordDoc>("certificates").find({}, { projection: { _id: 0 }, sort: { issued_at: -1 }, limit: 100 }).toArray(),
     ]);
-    return { users, requests, appointmentRequests, leads, institutions, certificates };
+    const [institutionStudentCounts, institutionProfessionalCounts] = await Promise.all([
+      database.collection<RecordDoc>("students").aggregate([{ $match: { institution_id: { $exists: true, $ne: null } } }, { $group: { _id: "$institution_id", count: { $sum: 1 } } }, { $project: { _id: 0, institution_id: "$_id", count: 1 } }], { maxTimeMS: 3_000 }).toArray(),
+      database.collection<RecordDoc>("professionals").aggregate([{ $match: { institution_id: { $exists: true, $ne: null } } }, { $group: { _id: "$institution_id", count: { $sum: 1 } } }, { $project: { _id: 0, institution_id: "$_id", count: 1 } }], { maxTimeMS: 3_000 }).toArray(),
+    ]);
+    return { users, requests, appointmentRequests, leads, institutions, certificates, institutionStudentCounts: institutionStudentCounts as RecordDoc[], institutionProfessionalCounts: institutionProfessionalCounts as RecordDoc[] };
   }
 
   /**

@@ -1365,12 +1365,14 @@ async function institutionProfessionals(store: ReturnType<typeof db>, institutio
   });
 }
 
-async function adminInstitutions(store: ReturnType<typeof db>, includeArchived = false): Promise<Doc[]> {
-  const [institutions, studentCounts, professionalCounts] = await Promise.all([
-    store.findMany("institutions", {}, { limit: 200 }),
-    store.aggregate("students", [{ $match: { institution_id: { $exists: true, $ne: null } } }, { $group: { _id: "$institution_id", count: { $sum: 1 } } }, { $project: { _id: 0, institution_id: "$_id", count: 1 } }]),
-    store.aggregate("professionals", [{ $match: { institution_id: { $exists: true, $ne: null } } }, { $group: { _id: "$institution_id", count: { $sum: 1 } } }, { $project: { _id: 0, institution_id: "$_id", count: 1 } }]),
-  ]);
+async function adminInstitutions(store: ReturnType<typeof db>, includeArchived = false, seed?: { institutions?: Doc[]; institutionStudentCounts?: Doc[]; institutionProfessionalCounts?: Doc[] }): Promise<Doc[]> {
+  const [institutions, studentCounts, professionalCounts] = seed?.institutions && seed.institutionStudentCounts && seed.institutionProfessionalCounts
+    ? [seed.institutions, seed.institutionStudentCounts, seed.institutionProfessionalCounts]
+    : await Promise.all([
+      store.findMany("institutions", {}, { limit: 200 }),
+      store.aggregate("students", [{ $match: { institution_id: { $exists: true, $ne: null } } }, { $group: { _id: "$institution_id", count: { $sum: 1 } } }, { $project: { _id: 0, institution_id: "$_id", count: 1 } }]),
+      store.aggregate("professionals", [{ $match: { institution_id: { $exists: true, $ne: null } } }, { $group: { _id: "$institution_id", count: { $sum: 1 } } }, { $project: { _id: 0, institution_id: "$_id", count: 1 } }]),
+    ]);
   const studentsByInstitution = new Map(studentCounts.map((row) => [String(row.institution_id), Number(row.count || 0)]));
   const professionalsByInstitution = new Map(professionalCounts.map((row) => [String(row.institution_id), Number(row.count || 0)]));
   return institutions
@@ -1524,8 +1526,8 @@ async function adminRoutes(request: Request, env: Env, pathname: string): Promis
   // findMany("certificates", { institution_id: institution.id, professional_id: { $in: professionalIds } });
   // findMany("appointment_requests", {}, { projection: { note: 0, reason_note: 0 }, limit: 500 });
   if (pathname === "/api/admin/dashboard" && request.method === "GET") {
-    const institutionsPromise = adminInstitutions(store, true);
-    const [dashboardSeed, institutions] = await Promise.all([store.getAdminSummary(), institutionsPromise]);
+    const dashboardSeed = await store.getAdminSummary();
+    const institutions = await adminInstitutions(store, true, dashboardSeed);
     const { users, requests, appointmentRequests, leads, certificates } = dashboardSeed;
     const institutionNames = new Map(institutions.map((institution) => [institution.id, institution.name]));
     const activeInstitutions = institutions.filter((institution) => institution.active !== false);
