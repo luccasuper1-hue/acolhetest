@@ -3,7 +3,7 @@
 ## Referência atual — 23/11/2026
 
 - Commit/tag reproduzível: correção de contato direto por e-mail após a publicação de 23/11/2026.
-- Produção: `2c958d1a-d625-4e27-bf4f-f52c761edb61` — `APP_ENV=production`.
+- Produção: `81da134a-7837-4431-b131-a5e17e424663` — `APP_ENV=production`.
 - Staging: `5402ef6a-759a-46ca-9b5c-b81a3134db6d` — `APP_ENV=staging`.
 - Origens: `https://acolhetest.luccasuper1.workers.dev` e `https://acolhetest-staging.luccasuper1.workers.dev`.
 - Health GET: HTTP 200 e `database: ok` nos dois ambientes.
@@ -26,6 +26,7 @@
 - O contexto autenticado (conta, instituição e perfil) agora é carregado em um único RPC e o perfil é reutilizado durante a requisição, reduzindo saltos repetidos sem alterar guards.
 - A home pública agora é a landing principal do Acolhe: apresenta o piloto, mantém o acesso existente como ação secundária e oferece contato no CTA final e no footer.
 - Os contatos “Falar com a equipe” do footer e do CTA final agora abrem diretamente `mailto:acolheiluminado@gmail.com`.
+- O CTA final voltou a exibir somente “Começar agora”; o contato permanece disponível no footer.
 - Esta publicação adiciona a base de conhecimento segura do produto e o escopo operacional do profissional.
 - O painel agora deixa visível que o Insights é um assistente do projeto: as sugestões cobrem fluxo do piloto, privacidade, métricas, demanda e gargalos, e cada resposta identifica seu escopo (Produto, Privacidade, Métricas, Piloto ou Operação).
 - A base de conhecimento agora responde tópicos específicos dos painéis, como a finalidade das notificações do estudante, sem mostrar amostra fictícia para respostas documentais.
