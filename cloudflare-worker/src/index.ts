@@ -163,6 +163,27 @@ function operationalHealth(request: Request, env: Env, payload: Record<string, u
   return withCors(response, allowedOrigin(request, env));
 }
 
+// Health probes are often issued in bursts by monitors, browsers and deploy
+// checks. Keep the database probe out of the hot path for a short window and
+// share an in-flight probe so a burst cannot fan out into the Durable Object.
+const READINESS_CACHE_MS = 15_000;
+type ReadinessProbe = { database: "ok" | "unavailable"; checked_at: string };
+let readinessCache: ({ expiresAt: number } & ReadinessProbe) | null = null;
+let readinessProbe: Promise<ReadinessProbe> | null = null;
+async function probeDatabase(env: Env) {
+  const now = Date.now();
+  if (readinessCache && readinessCache.expiresAt > now) return { database: readinessCache.database, checked_at: readinessCache.checked_at };
+  if (readinessProbe) return readinessProbe;
+  readinessProbe = (async () => {
+    let database: "ok" | "unavailable" = "ok";
+    try { await db(env).ping(); } catch { database = "unavailable"; }
+    const result = { database, checked_at: new Date().toISOString() };
+    readinessCache = { ...result, expiresAt: Date.now() + READINESS_CACHE_MS };
+    return result;
+  })().finally(() => { readinessProbe = null; });
+  return readinessProbe;
+}
+
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     if (request.method === "OPTIONS") return corsPreflight(request, env);
@@ -170,10 +191,10 @@ export default {
     if (["/api/live", "/api/ready", "/api/health"].includes(url.pathname) && ["GET", "HEAD"].includes(request.method)) {
       const base = { service: "acolhe", environment: env.APP_ENV || "production", checked_at: new Date().toISOString() };
       if (url.pathname === "/api/live") return operationalHealth(request, env, { ...base, ok: true }, 200);
-      let database = "ok";
-      try { await db(env).ping(); } catch { database = "unavailable"; }
+      const probe = await probeDatabase(env);
+      const database = probe.database;
       const ready = database === "ok";
-      return operationalHealth(request, env, { ...base, ok: ready, database }, ready ? 200 : 503);
+      return operationalHealth(request, env, { ...base, checked_at: probe.checked_at, ok: ready, database }, ready ? 200 : 503);
     }
     if (!url.pathname.startsWith("/api")) return servePublicAsset(request, env, url);
     if (url.pathname === "/api/realtime" && request.headers.get("upgrade")?.toLowerCase() === "websocket") {
