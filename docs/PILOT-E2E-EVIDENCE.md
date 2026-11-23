@@ -2,7 +2,7 @@
 
 ## Estado do release atual — 23/11/2026
 
-- Produção: `3935a7d9-e29f-43a6-abac-0c04da275fe7`.
+- Produção: `181777c5-604e-4a59-8907-89bf730cfd4d`.
 - Staging: `5402ef6a-759a-46ca-9b5c-b81a3134db6d`.
 - Ambos respondem health HTTP 200 com banco saudável.
 - O provedor do Acolhe Insights foi atualizado para o modelo Workers AI ativo `@cf/meta/llama-3.1-8b-instruct-fast`; esta publicação também remove a versão duplicada/legada do resultado no painel institucional. Não houve E2E autenticado nesta publicação.
@@ -11,6 +11,7 @@
 - Healthchecks anônimos passaram a ser deduplicados e cacheados por poucos segundos; não houve E2E remoto nesta otimização.
 - Refreshes de dashboards acionados por troca de aba agora são limitados a uma janela curta; nenhum E2E remoto foi executado.
 - Leituras auxiliares do painel profissional foram consolidadas no gateway; nenhum E2E remoto foi executado nesta otimização.
+- Leituras de profissionais e disponibilidade do painel estudantil também foram consolidadas; nenhum E2E remoto foi executado.
 - O release é reproduzível pelo commit `8c0eb65` e pela tag `acolhe-release-2026-11-22`.
 - E2E autenticado e carga não foram executados nesta rodada; qualquer evidência anterior continua histórica e não é promovida automaticamente.
 
