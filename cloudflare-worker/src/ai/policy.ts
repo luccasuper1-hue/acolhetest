@@ -19,13 +19,16 @@ const intentPatterns: [string, RegExp][] = [
   ["capacity", /capacidade|hor[aá]rio|vaga|disponib|abrir mais/i],
   ["impact", /linha de base|mudou|evolu[íi]u?|evolu[cç][aã]o|impacto|antes|depois|comparar|compara[cç][aã]o|comparativo/i],
   ["demand", /demanda|pedidos|procura|volume|fila/i],
-  ["overview", /acolhe|por que usar|pq usar|pr[oó]ximo passo|acompanhar/i],
+  ["overview", /acolhe|por que usar|pq usar|vale a pena|recomenda|opini[aã]o|pr[oó]ximo passo|acompanhar/i],
 ];
 const usage = new Map<string, { day: string; count: number; minute: number; minuteCount: number; fingerprints: Map<string, number> }>();
 const dayKey = () => new Date().toISOString().slice(0, 10);
 
 export function inspectQuestion(raw: unknown) {
   const question = validateQuestion(raw);
+  if (/^(oi|ol[aá]|ola|bom dia|boa tarde|boa noite|tudo bem|como vai)[!,.?\s]*$/i.test(question)) {
+    return { allowed: true as const, question, intent: "conversation" };
+  }
   if (blockedPatterns.some(pattern => pattern.test(question))) return { allowed: false as const, question, reason: "O Acolhe Insights trabalha apenas com indicadores operacionais agregados e não acessa conversas nem produz avaliações clínicas.", intent: "blocked" };
   const matched = intentPatterns.filter(([, pattern]) => pattern.test(question)).map(([intent]) => intent);
   const intent = matched.length === 1 ? matched[0] : matched.length > 1 && matched.includes("overview") ? matched.find(item => item !== "overview") : matched[0];
