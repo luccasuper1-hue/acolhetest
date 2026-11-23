@@ -21,7 +21,9 @@ test("natural Portuguese questions map to safe intents and clarifications", asyn
     assert.equal(inspectQuestion("Temos capacidade para abrir mais horários?").intent, "capacity");
     assert.equal(inspectQuestion("Onde está o principal gargalo?").intent, "bottlenecks");
     assert.equal(inspectQuestion("Oi").intent, "conversation");
+    assert.equal(inspectQuestion("oitdd bem").intent, "conversation");
     assert.equal(inspectQuestion("Vale a pena usar o Acolhe?").intent, "overview");
+    assert.equal(inspectQuestion("Me explica esse site do seu jeito").intent, "general_scope");
     assert.equal(inspectQuestion("Demanda e capacidade estão equilibradas?").intent, "clarification");
     assert.equal(inspectQuestion("Como evoluiu nos últimos 24 meses?").intent, "period_limit");
   } finally { await rm(directory, { recursive: true, force: true }); }

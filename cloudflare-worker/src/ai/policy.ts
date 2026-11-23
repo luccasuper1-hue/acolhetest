@@ -26,13 +26,12 @@ const dayKey = () => new Date().toISOString().slice(0, 10);
 
 export function inspectQuestion(raw: unknown) {
   const question = validateQuestion(raw);
-  if (/^(oi|ol[aá]|ola|bom dia|boa tarde|boa noite|tudo bem|como vai)[!,.?\s]*$/i.test(question)) {
-    return { allowed: true as const, question, intent: "conversation" };
-  }
   if (blockedPatterns.some(pattern => pattern.test(question))) return { allowed: false as const, question, reason: "O Acolhe Insights trabalha apenas com indicadores operacionais agregados e não acessa conversas nem produz avaliações clínicas.", intent: "blocked" };
+  const casual = question.toLocaleLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
+  if (casual.length <= 80 && (/^(oi|ola|o+i+|bom dia|boa tarde|boa noite|tudo bem|como vai)/i.test(casual) || /\b(tudo bem|td bem|ta bem|como vai)\b/i.test(casual))) return { allowed: true as const, question, intent: "conversation" };
   const matched = intentPatterns.filter(([, pattern]) => pattern.test(question)).map(([intent]) => intent);
   const intent = matched.length === 1 ? matched[0] : matched.length > 1 && matched.includes("overview") ? matched.find(item => item !== "overview") : matched[0];
-  if (!intent) return { allowed: false as const, question, reason: "Posso ajudar com demanda, tempo de resposta, comparecimento, capacidade, evolução da linha de base ou gargalos operacionais. Qual desses temas você quer analisar?", intent: "clarification" };
+  if (!intent) return { allowed: true as const, question, intent: "general_scope" };
   if (matched.length > 1 && !matched.includes("overview")) {
     const knowledge = matched.filter(item => ["product_help", "privacy_and_policy", "metrics_explanation", "pilot_and_roadmap"].includes(item));
     if (knowledge.includes("product_help")) return { allowed: true as const, question, intent: "product_help" };

@@ -7,6 +7,7 @@ export function fallbackInsight(data: InsightData, intent: string, reason: strin
   const operationalData = ready || ["impact", "capacity", "bottlenecks"].includes(intent);
   const responseIntent = intent === "response" || intent === "response_time";
   let answer = "Com os dados disponíveis, ainda não há amostra suficiente para interpretar este indicador.";
+  if (intent === "general_scope") answer = "Posso conversar sobre o Acolhe, explicar os fluxos e políticas do projeto ou interpretar os indicadores operacionais permitidos. A IA está indisponível neste momento, mas você pode tentar novamente em instantes.";
   if (intent === "impact") answer = (data.tools.impact as any)?.available ? "A linha de base está disponível para comparar a evolução dos indicadores." : "A linha de base ainda não foi registrada; registre-a para acompanhar o que mudou ao longo do piloto.";
   if (intent === "capacity") {
     const open = Number((tool as any)?.open_slots || 0); const reserved = Number((tool as any)?.reserved_slots || 0);
