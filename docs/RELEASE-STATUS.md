@@ -3,7 +3,7 @@
 ## Referência atual — 22/11/2026
 
 - Commit/tag reproduzível: atualização do modelo Workers AI após a publicação de 22/11/2026.
-- Produção: `30b82384-2d33-4426-9743-6fa15744fff5` — `APP_ENV=production`.
+- Produção: `9ea1ecaa-12c0-4adf-a7ed-aecf42c7881c` — `APP_ENV=production`.
 - Staging: `5402ef6a-759a-46ca-9b5c-b81a3134db6d` — `APP_ENV=staging`.
 - Origens: `https://acolhetest.luccasuper1.workers.dev` e `https://acolhetest-staging.luccasuper1.workers.dev`.
 - Health GET: HTTP 200 e `database: ok` nos dois ambientes.
@@ -17,6 +17,7 @@
 - O painel agora deixa visível que o Insights é um assistente do projeto: as sugestões cobrem fluxo do piloto, privacidade, métricas, demanda e gargalos, e cada resposta identifica seu escopo (Produto, Privacidade, Métricas, Piloto ou Operação).
 - A base de conhecimento agora responde tópicos específicos dos painéis, como a finalidade das notificações do estudante, sem mostrar amostra fictícia para respostas documentais.
 - O Insights institucional foi movido para um launcher flutuante com o ícone oficial: o painel principal fica compacto e o chat abre sob demanda com atalhos e pergunta livre.
+- O launcher agora reutiliza exatamente o componente visual `corner-logo` já usado nas subpáginas, incluindo moldura, glow, animação e tooltip.
 - O Acolhe Insights usa `@cf/meta/llama-3.1-8b-instruct-fast`; a variante AWQ anterior estava depreciada e causava fallback seguro.
 - E2E autenticado e carga não foram executados nesta promoção; permanecem validações separadas, não inventadas.
 
