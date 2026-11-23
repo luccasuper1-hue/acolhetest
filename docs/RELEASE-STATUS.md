@@ -3,7 +3,7 @@
 ## Referência atual — 22/11/2026
 
 - Commit/tag reproduzível: atualização do modelo Workers AI após a publicação de 22/11/2026.
-- Produção: `11fbb10d-9e45-4c29-906d-9cffdf906050` — `APP_ENV=production`.
+- Produção: `0cbb8e1d-aeff-4d1d-a26e-93e67b66ef7a` — `APP_ENV=production`.
 - Staging: `5402ef6a-759a-46ca-9b5c-b81a3134db6d` — `APP_ENV=staging`.
 - Origens: `https://acolhetest.luccasuper1.workers.dev` e `https://acolhetest-staging.luccasuper1.workers.dev`.
 - Health GET: HTTP 200 e `database: ok` nos dois ambientes.
@@ -12,6 +12,7 @@
 - A correção publicada remove a renderização duplicada do resultado do Insights, evitando que a versão legada sobrescreva a leitura operacional com “Leitura limitada”.
 - Esta publicação adiciona perguntas livres, classificação natural de intenções, clarificação de perguntas ambíguas e aprofundamento contextualizado sem memória persistente.
 - A interface do resultado foi simplificada: a resposta aparece em texto contínuo; os blocos separados ficam removidos e fontes/limitações permanecem recolhíveis.
+- O parser do provedor agora extrai respostas humanas quando o modelo aninha JSON dentro de `answer`, evitando exibir chaves e estrutura técnica no painel.
 - O Acolhe Insights usa `@cf/meta/llama-3.1-8b-instruct-fast`; a variante AWQ anterior estava depreciada e causava fallback seguro.
 - E2E autenticado e carga não foram executados nesta promoção; permanecem validações separadas, não inventadas.
 
