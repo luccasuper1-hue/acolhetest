@@ -9,5 +9,13 @@ test("institution panel exposes non-blocking Acolhe Insights", () => {
   assert.match(source, /AbortController/);
   assert.match(source, /Como está nossa demanda/);
   assert.match(source, /fontes agregadas|Fontes agregadas/);
+  assert.match(source, /const INSIGHT_QUESTIONS = \[/);
+  assert.equal((source.match(/"Como está nossa demanda\?"/g) || []).length, 1);
+  assert.equal((source.match(/"Qual foi o tempo médio de resposta\?"/g) || []).length, 1);
+  assert.equal((source.match(/"Como está o comparecimento\?"/g) || []).length, 1);
+  assert.equal((source.match(/"O que mudou desde a linha de base\?"/g) || []).length, 1);
+  assert.equal((source.match(/"Onde estão os gargalos operacionais\?"/g) || []).length, 1);
+  assert.doesNotMatch(source, /institution-insight-question/);
+  assert.match(source, /INSIGHT_QUESTIONS\.includes\(question\)/);
   assert.match(api, /timeout: 15_000/);
 });
