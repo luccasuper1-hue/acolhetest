@@ -2,7 +2,7 @@
 
 ## Estado do release atual — 23/11/2026
 
-- Produção: `81a8394a-7fe9-402f-972f-e6c52b87b7a7`.
+- Produção: `88c60211-f597-49b4-b601-788b190def6a`.
 - Staging: `5402ef6a-759a-46ca-9b5c-b81a3134db6d`.
 - Ambos respondem health HTTP 200 com banco saudável.
 - O provedor do Acolhe Insights foi atualizado para o modelo Workers AI ativo `@cf/meta/llama-3.1-8b-instruct-fast`; esta publicação também remove a versão duplicada/legada do resultado no painel institucional. Não houve E2E autenticado nesta publicação.
@@ -18,6 +18,7 @@
 - Beacons de analytics repetidos no mesmo isolate são coalescidos por 30 segundos; nenhum E2E remoto foi executado nesta otimização.
 - O cron de manutenção usa um snapshot único para expiração e retries; nenhum E2E remoto foi executado nesta otimização.
 - A autenticação reutiliza conta, instituição e perfil do mesmo RPC; nenhum E2E remoto foi executado nesta otimização.
+- A home foi publicada como landing principal, com CTA de apresentação do piloto e contato no footer; nenhuma validação E2E autenticada foi executada nesta alteração visual.
 - O release é reproduzível pelo commit `8c0eb65` e pela tag `acolhe-release-2026-11-22`.
 - E2E autenticado e carga não foram executados nesta rodada; qualquer evidência anterior continua histórica e não é promovida automaticamente.
 
