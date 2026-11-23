@@ -2,13 +2,14 @@
 
 ## Referência atual — 22/11/2026
 
-- Commit/tag reproduzível: `8c0eb65` / `acolhe-release-2026-11-22`.
-- Produção: `531346eb-065a-46fd-bd2e-86d9aace3c54` — `APP_ENV=production`.
-- Staging: `7d8ba397-b1fb-433d-b42a-cfe24bb8e224` — `APP_ENV=staging`.
+- Commit/tag reproduzível: atualização do modelo Workers AI após a publicação de 22/11/2026.
+- Produção: `4917648a-a779-430f-9406-85fb7dfff210` — `APP_ENV=production`.
+- Staging: `b9007951-7e70-4132-9871-6e3b51490ba5` — `APP_ENV=staging`.
 - Origens: `https://acolhetest.luccasuper1.workers.dev` e `https://acolhetest-staging.luccasuper1.workers.dev`.
 - Health GET: HTTP 200 e `database: ok` nos dois ambientes.
 - Gates locais: Worker 85/85; frontend 314/314; TypeScript, lint, build e bundle budget aprovados.
 - O staging foi publicado a partir da mesma build local da produção; os hashes dos assets são idênticos.
+- O Acolhe Insights usa `@cf/meta/llama-3.1-8b-instruct-fast`; a variante AWQ anterior estava depreciada e causava fallback seguro.
 - E2E autenticado e carga não foram executados nesta promoção; permanecem validações separadas, não inventadas.
 
 - Última publicação autorizada: ciclo 678 — preenchimento integral do card de pedido em 22/11/2026.

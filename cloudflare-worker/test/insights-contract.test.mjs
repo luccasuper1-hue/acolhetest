@@ -10,6 +10,8 @@ test("Acolhe Insights is institution-scoped and Workers AI-only", () => {
   assert.match(assistant, /consumeInsightQuota/);
   assert.match(assistant, /fallbackInsight/);
   assert.match(provider, /env\.AI/);
+  assert.match(provider, /@cf\/meta\/llama-3\.1-8b-instruct-fast/);
+  assert.doesNotMatch(provider, /llama-3\.1-8b-instruct-awq/i);
   assert.doesNotMatch(provider, /openai|gemini|anthropic/i);
   assert.match(index, /AI\?:/);
   assert.match(wrangler, /"ai"\s*:\s*\{\s*"binding"\s*:\s*"AI"/);

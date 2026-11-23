@@ -2,7 +2,10 @@ import type { Env } from "../index";
 import { buildPrompt } from "./prompts";
 import type { InsightData } from "./tools";
 export type AiProviderResult = { value: unknown; available: boolean; reason?: "missing_binding" | "timeout" | "provider_error" | "invalid_output" };
-const MODEL = "@cf/meta/llama-3.1-8b-instruct-awq";
+// Use the currently supported low-latency Workers AI variant. The former
+// AWQ model was deprecated by Cloudflare and silently pushed requests into
+// the deterministic fallback path.
+const MODEL = "@cf/meta/llama-3.1-8b-instruct-fast";
 function parseModelOutput(candidate: unknown, data: InsightData): unknown {
   if (candidate && typeof candidate === "object") {
     const row = candidate as Record<string, any>;
