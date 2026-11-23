@@ -9,6 +9,8 @@ test("Acolhe Insights is institution-scoped and Workers AI-only", () => {
   assert.match(routes, /\/api\/institutions\/me\/insights/);
   assert.match(assistant, /consumeInsightQuota/);
   assert.match(assistant, /fallbackInsight/);
+  assert.match(assistant, /GUIDED_QUESTIONS/);
+  assert.match(assistant, /aceita apenas perguntas guiadas/);
   assert.match(provider, /env\.AI/);
   assert.match(provider, /@cf\/meta\/llama-3\.1-8b-instruct-fast/);
   assert.doesNotMatch(provider, /llama-3\.1-8b-instruct-awq/i);

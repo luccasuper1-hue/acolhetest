@@ -2,8 +2,8 @@
 
 ## Estado do release atual — 22/11/2026
 
-- Produção: `e34e3baa-47a3-4582-b834-05c077333c52`.
-- Staging: `0a8060c8-a82b-442c-9423-044805e2ed6a`.
+- Produção: `c95864e6-3354-4c1c-a34f-a67548bcefb1`.
+- Staging: `5402ef6a-759a-46ca-9b5c-b81a3134db6d`.
 - Ambos respondem health HTTP 200 com banco saudável.
 - O provedor do Acolhe Insights foi atualizado para o modelo Workers AI ativo `@cf/meta/llama-3.1-8b-instruct-fast`; não houve E2E autenticado nesta publicação.
 - O release é reproduzível pelo commit `8c0eb65` e pela tag `acolhe-release-2026-11-22`.
