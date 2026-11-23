@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Copy, ExternalLink, Sparkle, UserPlus, X } from "lucide-react";
+import { Copy, ExternalLink, Send, Sparkle, UserPlus, X } from "lucide-react";
 import BrandMark from "../components/BrandMark";
 import { MvpShell, MvpCard, MvpEmpty, MvpKpi } from "./MvpShell";
 import { api, apiError, formatDate } from "./api";
@@ -43,15 +43,20 @@ function InstitutionInsightsLauncher({ question, setQuestion, result, error, bus
     return () => document.removeEventListener("keydown", close);
   }, [open]);
   return <div className={`institution-insights-launcher ${open ? "is-open" : ""}`}>
-    {open && <div className="institution-insights-popover" id="institution-insights-popover" role="dialog" aria-modal="false" aria-labelledby="institution-insights-title">
-      <header className="institution-insights-popover-head"><div><strong id="institution-insights-title">Acolhe Insights</strong><small>Converse sobre o produto e a operação</small></div><button ref={closeRef} type="button" className="institution-insights-close" onClick={() => setOpen(false)} aria-label="Fechar Acolhe Insights"><X size={17} /></button></header>
-      <p className="institution-insights-popover-intro">Pergunte naturalmente. Uso apenas documentação segura e indicadores agregados; não acesso conversas nem executo ações.</p>
-      <form className="insight-question-form" onSubmit={event => ask(event)}><label htmlFor="institution-insight-question">Sua pergunta</label><div className="insight-question-row"><input id="institution-insight-question" value={question} maxLength={600} onChange={event => setQuestion(event.target.value)} placeholder="Ex.: Pra que servem as notificações?" disabled={busy} /><button type="submit" className="button primary small" disabled={busy || !question.trim()}>{busy ? "Analisando…" : "Perguntar"}</button></div></form>
-      <div className="insight-suggestions insight-guided-questions" aria-label="Atalhos do Acolhe Insights">
-        {INSIGHT_QUESTIONS.map(item => <button type="button" className={`button secondary small ${question === item ? "is-selected" : ""}`} key={item} onClick={event => ask(event, item)} disabled={busy}>{item}</button>)}
+    {open && <div className="institution-insights-popover mvp-conversation-panel" id="institution-insights-popover" role="dialog" aria-modal="false" aria-labelledby="institution-insights-title">
+      <header className="mvp-conversation-panel-head"><div><strong id="institution-insights-title">Acolhe Insights</strong><small>Converse sobre o produto e a operação</small></div><button ref={closeRef} type="button" className="mvp-conversation-close" onClick={() => setOpen(false)} aria-label="Fechar Acolhe Insights"><X size={17} /></button></header>
+      <div className="mvp-floating-chat institution-insights-chat">
+        {error && <div className="mvp-chat-error" role="alert"><span>{error}</span><button type="button" className="button quiet small" onClick={event => ask(event)}>Tentar novamente</button></div>}
+        <div className="mvp-chat-messages" aria-live="polite">
+          <div className="mvp-chat-message theirs">Posso explicar o Acolhe, suas políticas ou ajudar a interpretar indicadores agregados. Não acesso conversas e não executo ações.</div>
+          {result && question && <div className="mvp-chat-message mine">{question}</div>}
+          {result && <div className="mvp-chat-message theirs institution-insights-answer"><InsightResultView result={result} details={details} setDetails={setDetails} helpful={helpful} setHelpful={setHelpful} onDeepen={deepen} busy={busy} /></div>}
+        </div>
+        <div className="insight-suggestions insight-guided-questions" aria-label="Atalhos do Acolhe Insights">
+          {INSIGHT_QUESTIONS.map(item => <button type="button" className={`button secondary small ${question === item ? "is-selected" : ""}`} key={item} onClick={event => ask(event, item)} disabled={busy}>{item}</button>)}
+        </div>
+        <form className="mvp-chat-compose" onSubmit={event => ask(event)}><input id="institution-insight-question" aria-label="Pergunta para o Acolhe Insights" value={question} maxLength={600} onChange={event => setQuestion(event.target.value)} placeholder="Pergunte do seu jeito…" disabled={busy} /><button type="submit" aria-label="Enviar pergunta" className="button small primary" disabled={busy || !question.trim()}><Send size={14} /></button></form>
       </div>
-      {error && <div className="mvp-error" role="alert">{error} <button type="button" className="button quiet small" onClick={event => ask(event)}>Tentar novamente</button></div>}
-      <InsightResultView result={result} details={details} setDetails={setDetails} helpful={helpful} setHelpful={setHelpful} onDeepen={deepen} busy={busy} />
     </div>}
     <button ref={triggerRef} type="button" className="corner-logo institution-insights-trigger" onClick={() => setOpen(value => !value)} aria-haspopup="dialog" aria-expanded={open} aria-controls="institution-insights-popover" aria-label="Abrir Acolhe Insights"><span className="corner-logo-glow" aria-hidden="true"/><span className="corner-logo-float" aria-hidden="true"><span className="corner-logo-body"><span className="corner-logo-mark"><BrandMark size={30}/></span></span></span><Sparkle className="institution-insights-sparkle" size={16} strokeWidth={2.4} aria-hidden="true"/><span className="corner-logo-tooltip">Conversar com o Acolhe Insights</span></button>
   </div>;
