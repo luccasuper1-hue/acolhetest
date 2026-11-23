@@ -3,8 +3,8 @@
 ## Referência atual — 22/11/2026
 
 - Commit/tag reproduzível: atualização do modelo Workers AI após a publicação de 22/11/2026.
-- Produção: `5fb50e7f-f1e5-47cb-8ad7-b33e26b2d732` — `APP_ENV=production`.
-- Staging: `9f0f7337-de12-4eeb-88eb-5871551af8cf` — `APP_ENV=staging`.
+- Produção: `f0df5fce-400f-4471-88ec-0c3b5cacbddf` — `APP_ENV=production`.
+- Staging: `07b95f03-7844-4e91-8f57-5e5b2fcb1daf` — `APP_ENV=staging`.
 - Origens: `https://acolhetest.luccasuper1.workers.dev` e `https://acolhetest-staging.luccasuper1.workers.dev`.
 - Health GET: HTTP 200 e `database: ok` nos dois ambientes.
 - Gates locais: Worker 85/85; frontend 314/314; TypeScript, lint, build e bundle budget aprovados.
