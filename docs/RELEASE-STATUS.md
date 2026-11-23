@@ -3,7 +3,7 @@
 ## Referência atual — 23/11/2026
 
 - Commit/tag reproduzível: atualização do modelo Workers AI após a publicação de 22/11/2026.
-- Produção: `b2b313f3-65da-4e8c-ac21-35d7eaf69351` — `APP_ENV=production`.
+- Produção: `52d4673a-f46e-4186-9d80-9cb72fafd930` — `APP_ENV=production`.
 - Staging: `5402ef6a-759a-46ca-9b5c-b81a3134db6d` — `APP_ENV=staging`.
 - Origens: `https://acolhetest.luccasuper1.workers.dev` e `https://acolhetest-staging.luccasuper1.workers.dev`.
 - Health GET: HTTP 200 e `database: ok` nos dois ambientes.
@@ -19,6 +19,7 @@
 - O dashboard profissional passou a buscar relações auxiliares no mesmo RPC agregado do `MongoGateway`, reduzindo round-trips sem alterar o contrato público.
 - O dashboard estudantil passou a reutilizar profissionais e horários do plano agregado, evitando leituras duplicadas ao abrir o painel.
 - As dez agregações das métricas institucionais agora atravessam o gateway em um único batch limitado e allowlisted.
+- As contagens do resumo administrativo também usam um batch allowlisted, removendo a sequência de RPCs individuais.
 - Esta publicação adiciona a base de conhecimento segura do produto e o escopo operacional do profissional.
 - O painel agora deixa visível que o Insights é um assistente do projeto: as sugestões cobrem fluxo do piloto, privacidade, métricas, demanda e gargalos, e cada resposta identifica seu escopo (Produto, Privacidade, Métricas, Piloto ou Operação).
 - A base de conhecimento agora responde tópicos específicos dos painéis, como a finalidade das notificações do estudante, sem mostrar amostra fictícia para respostas documentais.
