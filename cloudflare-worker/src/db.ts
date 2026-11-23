@@ -609,7 +609,7 @@ export class MongoGateway extends DurableObject<Env> {
     return { requests, appointmentRequests, professionals, availabilityInterest: availabilityInterests || null };
   }
 
-  async getProfessionalDashboard(professionalId: string, institutionId: string): Promise<{ availability: RecordDoc[]; requests: RecordDoc[]; sessions: RecordDoc[]; availabilityInterests: RecordDoc[]; appointmentRequests: RecordDoc[] }> {
+  async getProfessionalDashboard(professionalId: string, institutionId: string): Promise<{ availability: RecordDoc[]; requests: RecordDoc[]; sessions: RecordDoc[]; availabilityInterests: RecordDoc[]; appointmentRequests: RecordDoc[]; appointmentStudents: RecordDoc[]; appointmentStudentUsers: RecordDoc[]; requestSessions: RecordDoc[]; sessionRequests: RecordDoc[]; referrals: RecordDoc[]; sessionStudents: RecordDoc[]; sessionStudentUsers: RecordDoc[] }> {
     const database = await this.db();
     const [availability, requests, sessions, availabilityInterests, appointmentRequests] = await Promise.all([
       database.collection<RecordDoc>("availability").find({ professional_id: professionalId, date: { $gte: new Date().toISOString().slice(0, 10) } }, { projection: { _id: 0, id: 1, date: 1, time: 1, mode: 1, location: 1, duration_minutes: 1, status: 1 }, sort: { date: 1, time: 1 }, limit: 200 }).toArray(),
@@ -618,7 +618,24 @@ export class MongoGateway extends DurableObject<Env> {
       database.collection<RecordDoc>("availability_interests").find({ institution_id: institutionId, status: "waiting" }, { projection: { _id: 0, reason_code: 1 }, limit: 100 }).toArray(),
       database.collection<RecordDoc>("appointment_requests").find({ professional_id: professionalId, status: { $in: ["pending", "proposed"] } }, { projection: { _id: 0 }, sort: { created_at: -1 }, limit: 50 }).toArray(),
     ]);
-    return { availability, requests, sessions, availabilityInterests, appointmentRequests };
+    const appointmentStudentIds = [...new Set(appointmentRequests.map((record) => String(record.student_id || "")).filter(Boolean))];
+    const requestIds = requests.map((record) => record.id).filter(Boolean);
+    const sessionRequestIds = sessions.map((session) => session.request_id).filter(Boolean);
+    const sessionStudentIds = [...new Set(sessions.map((session) => String(session.student_id || "")).filter(Boolean))];
+    const [appointmentStudents, requestSessions, sessionRequests, referrals, sessionStudents] = await Promise.all([
+      appointmentStudentIds.length ? database.collection<RecordDoc>("students").find({ id: { $in: appointmentStudentIds } }, { projection: { _id: 0, id: 1, user_id: 1 }, limit: 50 }).toArray() : Promise.resolve([]),
+      requestIds.length ? database.collection<RecordDoc>("sessions").find({ request_id: { $in: requestIds } }, { projection: { _id: 0 }, limit: 200 }).toArray() : Promise.resolve([]),
+      sessionRequestIds.length ? database.collection<RecordDoc>("requests").find({ id: { $in: sessionRequestIds } }, { projection: { _id: 0 }, limit: 200 }).toArray() : Promise.resolve([]),
+      sessions.length ? database.collection<RecordDoc>("referrals").find({ session_id: { $in: sessions.map((session) => session.id) } }, { projection: { _id: 0 }, limit: 200 }).toArray() : Promise.resolve([]),
+      sessionStudentIds.length ? database.collection<RecordDoc>("students").find({ id: { $in: sessionStudentIds } }, { projection: { _id: 0, id: 1, user_id: 1 }, limit: 200 }).toArray() : Promise.resolve([]),
+    ]);
+    const appointmentUserIds = appointmentStudents.map((student) => student.user_id).filter(Boolean);
+    const sessionUserIds = sessionStudents.map((student) => student.user_id).filter(Boolean);
+    const userIds = [...new Set([...appointmentUserIds, ...sessionUserIds])];
+    const users = userIds.length ? await database.collection<RecordDoc>("users").find({ id: { $in: userIds } }, { projection: { _id: 0, id: 1, name: 1 }, limit: 200 }).toArray() : [];
+    const appointmentStudentUserIds = new Set(appointmentUserIds.map(String));
+    const sessionStudentUserIds = new Set(sessionUserIds.map(String));
+    return { availability, requests, sessions, availabilityInterests, appointmentRequests, appointmentStudents, appointmentStudentUsers: users.filter((user) => appointmentStudentUserIds.has(String(user.id))), requestSessions, sessionRequests, referrals, sessionStudents, sessionStudentUsers: users.filter((user) => sessionStudentUserIds.has(String(user.id))) };
   }
 
   async getInstitutionDashboard(institutionId: string): Promise<{ professionalIds: string[]; certificates: RecordDoc[]; requests: RecordDoc[]; appointmentRequests: RecordDoc[]; minorRegistrations: RecordDoc[] }> {

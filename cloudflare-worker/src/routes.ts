@@ -1140,24 +1140,12 @@ async function professionalRoutes(request: Request, env: Env, pathname: string, 
   if (pathname === "/api/professionals/me/dashboard" && request.method === "GET") {
     ctx.waitUntil(expirePendingRequests(store, env, professional.institution_id).catch((error) => logOperational("dashboard_expiration_failed", { error_name: error instanceof Error ? error.name : "unknown" })));
     const dashboardSeed = await store.getProfessionalDashboard(professional.id, professional.institution_id);
-    const { availability, requests, sessions, availabilityInterests, appointmentRequests } = dashboardSeed;
-    const appointmentStudentIds = appointmentRequests.map((record) => record.student_id);
-    const appointmentStudents = appointmentStudentIds.length ? await store.findMany("students", { id: { $in: appointmentStudentIds } }, { projection: { id: 1, user_id: 1 }, limit: 50 }) : [];
-    const appointmentStudentUsers = appointmentStudents.length ? await store.findMany("users", { id: { $in: appointmentStudents.map((student) => student.user_id) } }, { projection: { id: 1, name: 1 }, limit: 50 }) : [];
+    const { availability, requests, sessions, availabilityInterests, appointmentRequests, appointmentStudents, appointmentStudentUsers, requestSessions, sessionRequests, referrals, sessionStudents, sessionStudentUsers } = dashboardSeed;
     const studentUserById = new Map(appointmentStudentUsers.map((account) => [account.id, account.name]));
     const studentById = new Map(appointmentStudents.map((student) => [student.id, student]));
-    const requestIds = requests.map((record) => record.id), sessionRequestIds = sessions.map((session) => session.request_id);
-    const [requestSessions, sessionRequests, referrals] = await Promise.all([
-      requestIds.length ? store.findMany("sessions", { request_id: { $in: requestIds } }, { limit: 200 }) : Promise.resolve([]),
-      sessionRequestIds.length ? store.findMany("requests", { id: { $in: sessionRequestIds } }, { limit: 200 }) : Promise.resolve([]),
-      sessions.length ? store.findMany("referrals", { session_id: { $in: sessions.map((session) => session.id) } }, { limit: 200 }) : Promise.resolve([]),
-    ]);
     const requestSessionById = new Map(requestSessions.map((session) => [session.request_id, session]));
     const requestById = new Map(sessionRequests.map((record) => [record.id, record]));
     const referralBySession = new Map(referrals.map((referral) => [referral.session_id, referral]));
-    const sessionStudentIds = [...new Set(sessions.map((session) => session.student_id).filter(Boolean))];
-    const sessionStudents = sessionStudentIds.length ? await store.findMany("students", { id: { $in: sessionStudentIds } }, { projection: { id: 1, user_id: 1 }, limit: 200 }) : [];
-    const sessionStudentUsers = sessionStudents.length ? await store.findMany("users", { id: { $in: sessionStudents.map((student) => student.user_id) } }, { projection: { id: 1, name: 1 }, limit: 200 }) : [];
     const sessionUserNameById = new Map(sessionStudentUsers.map((account) => [account.id, account.name]));
     const sessionStudentNameById = new Map(sessionStudents.map((student) => [student.id, sessionUserNameById.get(student.user_id) || "Estudante"]));
     ctx.waitUntil(sessionReminderNotifications(store, env, sessions, user.id).catch((error) => logOperational("session_reminders_failed", { error_name: error instanceof Error ? error.name : "unknown" })));
