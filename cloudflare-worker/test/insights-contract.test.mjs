@@ -29,6 +29,8 @@ test("Acolhe Insights is institution-scoped and Workers AI-only", () => {
   assert.match(prompts, /next_step/);
   assert.match(provider, /containsPromptLeak/);
   assert.match(provider, /repeatedPhrase/);
+  assert.match(provider, /embeddedAnswer/);
+  assert.match(prompts, /campo answer deve conter somente a resposta humana/);
 });
 
 test("adversarial and source integrity protections are present", () => {

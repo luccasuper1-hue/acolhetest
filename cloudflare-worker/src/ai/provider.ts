@@ -7,6 +7,10 @@ export type AiProviderResult = { value: unknown; available: boolean; reason?: "m
 // the deterministic fallback path.
 const MODEL = "@cf/meta/llama-3.1-8b-instruct-fast";
 function stripEmbeddedJson(value: string): string {
+  const embeddedAnswer = value.match(/\"answer\"\s*:\s*\"((?:\\.|[^\"\\])*)\"/s);
+  if (embeddedAnswer && /^\s*\{/.test(value)) {
+    try { return JSON.parse(`"${embeddedAnswer[1]}"`).trim().slice(0, 1200); } catch { /* fall through to the bounded cleanup below */ }
+  }
   const marker = value.search(/(?:^|\n)\s*(?:json\s*:\s*)?\{"(?:answer|observation|interpretation|next_step)"/i);
   const cleaned = marker > 0 ? value.slice(0, marker) : value;
   return cleaned.replace(/```(?:json)?/gi, "").replace(/```/g, "").trim().slice(0, 1200);
