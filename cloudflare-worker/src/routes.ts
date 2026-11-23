@@ -1316,18 +1316,18 @@ async function institutionMetrics(env: Env, institutionId: string) {
     { $group: { _id: null, total: { $sum: 1 }, first_created_at: { $min: "$created_at" }, pending: { $sum: { $cond: [{ $eq: ["$status", "pending"] }, 1, 0] } }, due_soon: { $sum: { $cond: [{ $and: [{ $eq: ["$status", "pending"] }, { $gte: ["$created_at", dueSoonCutoff] }, { $lt: ["$created_at", overdueCutoff] }] }, 1, 0] } }, overdue: { $sum: { $cond: [{ $and: [{ $eq: ["$status", "pending"] }, { $lt: ["$created_at", overdueCutoff] }] }, 1, 0] } }, proposed: { $sum: { $cond: [{ $eq: ["$status", "proposed"] }, 1, 0] } }, cancelled: { $sum: { $cond: [{ $eq: ["$status", "cancelled"] }, 1, 0] } }, declined: { $sum: { $cond: [{ $eq: ["$status", "declined"] }, 1, 0] } }, students: { $addToSet: "$student_id" }, response_count: { $sum: { $cond: [{ $ne: ["$responseMinutes", null] }, 1, 0] } }, response_avg: { $avg: "$responseMinutes" }, within_48h: { $sum: { $cond: [{ $and: [{ $ne: ["$responseMinutes", null] }, { $lte: ["$responseMinutes", 2880] }] }, 1, 0] } } } },
   ];
   const monthlyPipeline = [{ $match: { institution_id: institutionId, created_at: { $exists: true } } }, { $group: { _id: { $substrBytes: ["$created_at", 0, 7] }, requests: { $sum: 1 } } }, { $project: { _id: 0, month: "$_id", requests: 1 } }, { $sort: { month: 1 } }];
-  const [students, professionals, requests, appointments, sessions, availability, feedback, referrals, requestMonths, appointmentMonths] = await Promise.all([
-    store.aggregate("students", [{ $match: { institution_id: institutionId } }, { $group: { _id: null, total: { $sum: 1 }, accessed: { $sum: { $cond: [{ $ne: ["$last_access", null] }, 1, 0] } }, active: { $sum: { $cond: [{ $gte: ["$last_access", cutoff] }, 1, 0] } } } }]),
-    store.aggregate("professionals", [{ $match: { institution_id: institutionId } }, { $group: { _id: null, total: { $sum: 1 }, accessed: { $sum: { $cond: [{ $ne: ["$last_access", null] }, 1, 0] } } } }]),
-    store.aggregate("requests", requestPipeline),
-    store.aggregate("appointment_requests", requestPipeline),
-    store.aggregate("sessions", [{ $match: { institution_id: institutionId } }, { $group: { _id: null, scheduled: { $sum: { $cond: [{ $eq: ["$status", "scheduled"] }, 1, 0] } }, completed: { $sum: { $cond: [{ $eq: ["$status", "completed"] }, 1, 0] } }, no_show: { $sum: { $cond: [{ $eq: ["$status", "no_show"] }, 1, 0] } } } }]),
-    store.aggregate("availability", [{ $match: { institution_id: institutionId, date: { $gte: localToday() } } }, { $group: { _id: null, open: { $sum: { $cond: [{ $eq: ["$status", "open"] }, 1, 0] } }, reserved: { $sum: { $cond: [{ $eq: ["$status", "reserved"] }, 1, 0] } } } }]),
-    store.aggregate("feedback", [{ $match: { institution_id: institutionId, score: { $type: "number" } } }, { $group: { _id: null, count: { $sum: 1 }, average: { $avg: "$score" } } }]),
-    store.aggregate("referrals", [{ $match: { institution_id: institutionId } }, { $group: { _id: "$status", count: { $sum: 1 } } }]),
-    store.aggregate("requests", monthlyPipeline),
-    store.aggregate("appointment_requests", monthlyPipeline),
-  ]);
+  const [students, professionals, requests, appointments, sessions, availability, feedback, referrals, requestMonths, appointmentMonths] = await store.aggregateMany([
+    { collection: "students", pipeline: [{ $match: { institution_id: institutionId } }, { $group: { _id: null, total: { $sum: 1 }, accessed: { $sum: { $cond: [{ $ne: ["$last_access", null] }, 1, 0] } }, active: { $sum: { $cond: [{ $gte: ["$last_access", cutoff] }, 1, 0] } } } }] },
+    { collection: "professionals", pipeline: [{ $match: { institution_id: institutionId } }, { $group: { _id: null, total: { $sum: 1 }, accessed: { $sum: { $cond: [{ $ne: ["$last_access", null] }, 1, 0] } } } }] },
+    { collection: "requests", pipeline: requestPipeline },
+    { collection: "appointment_requests", pipeline: requestPipeline },
+    { collection: "sessions", pipeline: [{ $match: { institution_id: institutionId } }, { $group: { _id: null, scheduled: { $sum: { $cond: [{ $eq: ["$status", "scheduled"] }, 1, 0] } }, completed: { $sum: { $cond: [{ $eq: ["$status", "completed"] }, 1, 0] } }, no_show: { $sum: { $cond: [{ $eq: ["$status", "no_show"] }, 1, 0] } } } }] },
+    { collection: "availability", pipeline: [{ $match: { institution_id: institutionId, date: { $gte: localToday() } } }, { $group: { _id: null, open: { $sum: { $cond: [{ $eq: ["$status", "open"] }, 1, 0] } }, reserved: { $sum: { $cond: [{ $eq: ["$status", "reserved"] }, 1, 0] } } } }] },
+    { collection: "feedback", pipeline: [{ $match: { institution_id: institutionId, score: { $type: "number" } } }, { $group: { _id: null, count: { $sum: 1 }, average: { $avg: "$score" } } }] },
+    { collection: "referrals", pipeline: [{ $match: { institution_id: institutionId } }, { $group: { _id: "$status", count: { $sum: 1 } } }] },
+    { collection: "requests", pipeline: monthlyPipeline },
+    { collection: "appointment_requests", pipeline: monthlyPipeline },
+  ], { maxTimeMS: 3_000 });
   const requestStats = [requests[0] || {}, appointments[0] || {}] as Doc[];
   const total = requestStats.reduce((sum, row) => sum + Number(row.total || 0), 0), pending = requestStats.reduce((sum, row) => sum + Number(row.pending || 0), 0);
   const responseCount = requestStats.reduce((sum, row) => sum + Number(row.response_count || 0), 0), responseTotal = requestStats.reduce((sum, row) => sum + Number(row.response_avg || 0) * Number(row.response_count || 0), 0), responseTimeMinutes = responseCount >= 5 ? Math.round(responseTotal / responseCount * 10) / 10 : null;

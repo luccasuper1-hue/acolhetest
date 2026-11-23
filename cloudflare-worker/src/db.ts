@@ -685,6 +685,21 @@ export class MongoGateway extends DurableObject<Env> {
     return result;
   }
 
+  /** Executes a bounded, allowlisted batch of read-only aggregations in one DO RPC. */
+  async aggregateMany(plans: { collection: string; pipeline: Document[] }[], options: { maxTimeMS?: number } = {}): Promise<RecordDoc[][]> {
+    const allowed = new Set(["students", "professionals", "requests", "appointment_requests", "sessions", "availability", "feedback", "referrals"]);
+    if (!Array.isArray(plans) || plans.length > 12 || plans.some((plan) => !allowed.has(plan.collection) || !Array.isArray(plan.pipeline) || plan.pipeline.length > 12)) throw new Error("Invalid aggregation batch");
+    const database = await this.db();
+    const maxTimeMS = options.maxTimeMS ?? 3_000;
+    return Promise.all(plans.map(async (plan) => {
+      const startedAt = Date.now();
+      const result = await database.collection<RecordDoc>(plan.collection).aggregate(plan.pipeline, { maxTimeMS }).toArray() as RecordDoc[];
+      const durationMs = Date.now() - startedAt;
+      if (durationMs >= 1_000) logOperational("mongo_query_slow", { collection: plan.collection, operation: "aggregate_batch", duration_ms: durationMs, result_count: result.length });
+      return result;
+    }));
+  }
+
   async closeSession(sessionId: string, professionalId: string, status: "completed" | "no_show"): Promise<boolean> {
     return this.withCapacityLock(professionalId, async () => {
       const database = await this.db();
@@ -1064,7 +1079,7 @@ export class MongoGateway extends DurableObject<Env> {
   }
 }
 
-export type Mongo = Pick<MongoGateway, "ping" | "findOne" | "findMany" | "insert" | "insertIfAbsent" | "update" | "recordAnalyticsPageView" | "allowChatMessage" | "updateMany" | "remove" | "deleteAccount" | "count" | "aggregate" | "getStudentDashboard" | "getProfessionalDashboard" | "getInstitutionDashboard" | "getAdminSummary" | "distinct" | "findOneAndUpdate" | "claimNotificationEmail" | "proposeDirectAppointment" | "confirmDirectAppointment" | "reservePublishedCapacity" | "deleteAvailability" | "proposePublishedAppointment" | "reschedulePublishedRequest" | "approveMinorRegistration" | "createStudentRequest" | "createPublishedStudentRequest" | "issueCertificate" | "saveFeedback" | "createAvailabilityBatch" | "recordLoginFailure" | "finalizeLogin" | "savePasswordReset" | "createLead" | "createStudentAccount" | "createProfessionalInvite" | "createInstitution" | "approveInstitutionLead" | "closeSession" | "acceptPublishedRequest" | "declinePublishedRequest" | "cancelAppointmentRequest" | "declineAppointmentRequest" | "expirePublishedRequest" | "expireAppointmentRequest" | "cancelPublishedRequest" | "saveRoomLink" | "saveSessionRoomLink" | "saveReferral">;
+export type Mongo = Pick<MongoGateway, "ping" | "findOne" | "findMany" | "insert" | "insertIfAbsent" | "update" | "recordAnalyticsPageView" | "allowChatMessage" | "updateMany" | "remove" | "deleteAccount" | "count" | "aggregate" | "aggregateMany" | "getStudentDashboard" | "getProfessionalDashboard" | "getInstitutionDashboard" | "getAdminSummary" | "distinct" | "findOneAndUpdate" | "claimNotificationEmail" | "proposeDirectAppointment" | "confirmDirectAppointment" | "reservePublishedCapacity" | "deleteAvailability" | "proposePublishedAppointment" | "reschedulePublishedRequest" | "approveMinorRegistration" | "createStudentRequest" | "createPublishedStudentRequest" | "issueCertificate" | "saveFeedback" | "createAvailabilityBatch" | "recordLoginFailure" | "finalizeLogin" | "savePasswordReset" | "createLead" | "createStudentAccount" | "createProfessionalInvite" | "createInstitution" | "approveInstitutionLead" | "closeSession" | "acceptPublishedRequest" | "declinePublishedRequest" | "cancelAppointmentRequest" | "declineAppointmentRequest" | "expirePublishedRequest" | "expireAppointmentRequest" | "cancelPublishedRequest" | "saveRoomLink" | "saveSessionRoomLink" | "saveReferral">;
 
 export function gateway(env: Env): Mongo {
   const gatewayName = gatewayObjectName(env.APP_ENV);
