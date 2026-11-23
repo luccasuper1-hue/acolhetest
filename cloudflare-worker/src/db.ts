@@ -590,6 +590,14 @@ export class MongoGateway extends DurableObject<Env> {
     return (await this.collection(collection)).countDocuments(filter);
   }
 
+  /** Runs bounded count probes in one Durable Object RPC for admin summaries. */
+  async countMany(plans: { collection: string; filter?: Filter<RecordDoc> }[]): Promise<number[]> {
+    const allowed = new Set(["users", "students", "professionals", "requests", "appointment_requests", "sessions", "referrals", "events"]);
+    if (!Array.isArray(plans) || plans.length > 24 || plans.some((plan) => !allowed.has(plan.collection) || !plan.filter || typeof plan.filter !== "object")) throw new Error("Invalid count batch");
+    const database = await this.db();
+    return Promise.all(plans.map((plan) => database.collection<RecordDoc>(plan.collection).countDocuments(plan.filter)));
+  }
+
   /**
    * Bounded dashboard read plans. These keep the Worker->Durable Object hop
    * to one RPC per panel while retaining the existing route response shapes.
@@ -1079,7 +1087,7 @@ export class MongoGateway extends DurableObject<Env> {
   }
 }
 
-export type Mongo = Pick<MongoGateway, "ping" | "findOne" | "findMany" | "insert" | "insertIfAbsent" | "update" | "recordAnalyticsPageView" | "allowChatMessage" | "updateMany" | "remove" | "deleteAccount" | "count" | "aggregate" | "aggregateMany" | "getStudentDashboard" | "getProfessionalDashboard" | "getInstitutionDashboard" | "getAdminSummary" | "distinct" | "findOneAndUpdate" | "claimNotificationEmail" | "proposeDirectAppointment" | "confirmDirectAppointment" | "reservePublishedCapacity" | "deleteAvailability" | "proposePublishedAppointment" | "reschedulePublishedRequest" | "approveMinorRegistration" | "createStudentRequest" | "createPublishedStudentRequest" | "issueCertificate" | "saveFeedback" | "createAvailabilityBatch" | "recordLoginFailure" | "finalizeLogin" | "savePasswordReset" | "createLead" | "createStudentAccount" | "createProfessionalInvite" | "createInstitution" | "approveInstitutionLead" | "closeSession" | "acceptPublishedRequest" | "declinePublishedRequest" | "cancelAppointmentRequest" | "declineAppointmentRequest" | "expirePublishedRequest" | "expireAppointmentRequest" | "cancelPublishedRequest" | "saveRoomLink" | "saveSessionRoomLink" | "saveReferral">;
+export type Mongo = Pick<MongoGateway, "ping" | "findOne" | "findMany" | "insert" | "insertIfAbsent" | "update" | "recordAnalyticsPageView" | "allowChatMessage" | "updateMany" | "remove" | "deleteAccount" | "count" | "countMany" | "aggregate" | "aggregateMany" | "getStudentDashboard" | "getProfessionalDashboard" | "getInstitutionDashboard" | "getAdminSummary" | "distinct" | "findOneAndUpdate" | "claimNotificationEmail" | "proposeDirectAppointment" | "confirmDirectAppointment" | "reservePublishedCapacity" | "deleteAvailability" | "proposePublishedAppointment" | "reschedulePublishedRequest" | "approveMinorRegistration" | "createStudentRequest" | "createPublishedStudentRequest" | "issueCertificate" | "saveFeedback" | "createAvailabilityBatch" | "recordLoginFailure" | "finalizeLogin" | "savePasswordReset" | "createLead" | "createStudentAccount" | "createProfessionalInvite" | "createInstitution" | "approveInstitutionLead" | "closeSession" | "acceptPublishedRequest" | "declinePublishedRequest" | "cancelAppointmentRequest" | "declineAppointmentRequest" | "expirePublishedRequest" | "expireAppointmentRequest" | "cancelPublishedRequest" | "saveRoomLink" | "saveSessionRoomLink" | "saveReferral">;
 
 export function gateway(env: Env): Mongo {
   const gatewayName = gatewayObjectName(env.APP_ENV);

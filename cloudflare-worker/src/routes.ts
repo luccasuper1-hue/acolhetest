@@ -1379,25 +1379,28 @@ async function adminInstitutions(store: ReturnType<typeof db>, includeArchived =
 }
 
 async function globalMetrics(env: Env, store: ReturnType<typeof db>, institutions: Doc[]) {
-  const [perInstitution, users, studentsRegistered, studentsAccessed, professionals, requests, appointmentRequests, pendingRequests, pendingAppointments, overdueRequests, overdueAppointments, sessions, scheduledSessions, noShowSessions, referrals, events, pendingInvites] = await Promise.all([
+  const [perInstitution, counts] = await Promise.all([
     Promise.all(institutions.map(async (institution) => ({ institution: institution.name, code: institution.code, ...await institutionMetrics(env, institution.id) }))),
-    store.count("users"),
-    store.count("students"),
-    store.count("students", { last_access: { $exists: true } }),
-    store.count("professionals"),
-    store.count("requests"),
-    store.count("appointment_requests"),
-    store.count("requests", { status: "pending" }),
-    store.count("appointment_requests", { status: "pending" }),
-    store.count("requests", { status: "pending", created_at: { $lte: new Date(Date.now() - RESPONSE_WINDOW_MS).toISOString() } }),
-    store.count("appointment_requests", { status: "pending", created_at: { $lte: new Date(Date.now() - RESPONSE_WINDOW_MS).toISOString() } }),
-    store.count("sessions", { status: "completed" }),
-    store.count("sessions", { status: "scheduled" }),
-    store.count("sessions", { status: "no_show" }),
-    store.count("referrals"),
-    store.count("events", { type: { $nin: [...TECHNICAL_EVENT_TYPES] } }),
-    store.count("users", { invite_token: { $exists: true } }),
+    store.countMany([
+      { collection: "users", filter: {} },
+      { collection: "students", filter: {} },
+      { collection: "students", filter: { last_access: { $exists: true } } },
+      { collection: "professionals", filter: {} },
+      { collection: "requests", filter: {} },
+      { collection: "appointment_requests", filter: {} },
+      { collection: "requests", filter: { status: "pending" } },
+      { collection: "appointment_requests", filter: { status: "pending" } },
+      { collection: "requests", filter: { status: "pending", created_at: { $lte: new Date(Date.now() - RESPONSE_WINDOW_MS).toISOString() } } },
+      { collection: "appointment_requests", filter: { status: "pending", created_at: { $lte: new Date(Date.now() - RESPONSE_WINDOW_MS).toISOString() } } },
+      { collection: "sessions", filter: { status: "completed" } },
+      { collection: "sessions", filter: { status: "scheduled" } },
+      { collection: "sessions", filter: { status: "no_show" } },
+      { collection: "referrals", filter: {} },
+      { collection: "events", filter: { type: { $nin: [...TECHNICAL_EVENT_TYPES] } } },
+      { collection: "users", filter: { invite_token: { $exists: true } } },
+    ]),
   ]);
+  const [users, studentsRegistered, studentsAccessed, professionals, requests, appointmentRequests, pendingRequests, pendingAppointments, overdueRequests, overdueAppointments, sessions, scheduledSessions, noShowSessions, referrals, events, pendingInvites] = counts;
   const closedSessions = sessions + noShowSessions;
   const attendanceRate = closedSessions >= 5 ? Math.round((sessions / closedSessions) * 1000) / 10 : null;
   return { institutions: institutions.length, users, students_registered: studentsRegistered, students_accessed: studentsAccessed, professionals, requests: requests + appointmentRequests, pending_requests: pendingRequests + pendingAppointments, overdue_requests: overdueRequests + overdueAppointments, sessions_completed: sessions, scheduled_sessions: scheduledSessions, no_show_sessions: noShowSessions, attendance_rate: attendanceRate, attendance_sample_size: closedSessions, referrals, events, pending_invites: pendingInvites, per_institution: perInstitution };
