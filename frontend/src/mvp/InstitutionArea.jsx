@@ -5,10 +5,10 @@ import { MvpShell, MvpCard, MvpEmpty, MvpKpi } from "./MvpShell";
 import { api, apiError, formatDate } from "./api";
 
 const INSIGHT_QUESTIONS = [
+  "Como funciona o fluxo do piloto?",
+  "Como protegemos a privacidade dos estudantes?",
+  "Como calculamos o comparecimento?",
   "Como está nossa demanda?",
-  "Qual foi o tempo médio de resposta?",
-  "Como está o comparecimento?",
-  "O que mudou desde a linha de base?",
   "Onde estão os gargalos operacionais?",
 ];
 
@@ -18,8 +18,9 @@ function InsightResultView({ result, details, setDetails, helpful, setHelpful, o
   const grounded = result.sources?.length > 0 && result.confidence !== "blocked";
   const label = unavailable ? "IA temporariamente indisponível" : result.confidence === "blocked" ? "Consulta protegida" : result.fallback && !grounded ? "Leitura limitada" : "Leitura operacional";
   const tag = unavailable ? "Fallback seguro" : result.confidence === "supported" || grounded ? "Com fontes" : result.confidence === "blocked" ? "Bloqueada" : "Dados insuficientes";
+  const scopeLabel = { produto: "Produto", privacidade: "Privacidade", métricas: "Métricas", piloto: "Piloto", professional: "Minha operação" }[result.scope] || "Operação";
   return <section className="insight-result-v2" aria-live="polite">
-    <header className="insight-result-v2-head"><div><span className="insight-kicker">Acolhe Insights</span><h3>{label}</h3></div><span className="mvp-tag">{tag}</span></header>
+    <header className="insight-result-v2-head"><div><span className="insight-kicker">Acolhe Insights · {scopeLabel}</span><h3>{label}</h3></div><span className="mvp-tag">{tag}</span></header>
     <p className="insight-result-v2-answer">{result.answer}</p>
     <div className="insight-result-v2-meta"><span>Período</span><b>{result.period?.start || "—"} a {result.period?.end || "—"}</b>{result.sources?.length > 0 && <><span>Amostra</span><b>{result.sources.map(source => source.sample_size).join(" · ")} observações</b></>}</div>
     <div className="insight-result-v2-actions"><button type="button" className="button quiet small" onClick={() => setDetails(value => !value)}>{details ? "Ocultar cálculo" : "Como calculamos?"}</button><button type="button" className="button quiet small" onClick={onDeepen} disabled={busy}>{busy ? "Aprofundando…" : "Aprofundar"}</button></div>
@@ -267,7 +268,7 @@ export default function InstitutionArea() {
         </div>
       </MvpCard>
 
-      <MvpCard title="Acolhe Insights" subtitle="Pergunte sobre indicadores operacionais agregados. O copiloto não acessa conversas, nomes ou dados individuais." testid="inst-insights-card" className="institution-insights-card">
+    <MvpCard title="Acolhe Insights" subtitle="Um assistente do projeto para entender fluxos, políticas e indicadores — sem acessar conversas ou dados individuais." testid="inst-insights-card" className="institution-insights-card">
         <div className="insight-guided-intro"><strong>Converse sobre a operação</strong><span>Você pode escrever naturalmente ou começar por uma sugestão. O copiloto usa somente indicadores agregados, não acessa conversas e não executa ações.</span></div>
         <form className="insight-question-form" onSubmit={event => askInsight(event)}><label htmlFor="institution-insight-question">Sua pergunta</label><div className="insight-question-row"><input id="institution-insight-question" value={insightQuestion} maxLength={600} onChange={event => setInsightQuestion(event.target.value)} placeholder="Ex.: A demanda aumentou?" disabled={insightBusy} /><button type="submit" className="button primary small" disabled={insightBusy || !insightQuestion.trim()}>{insightBusy ? "Analisando…" : "Perguntar"}</button></div></form>
         <div className="insight-suggestions insight-guided-questions" aria-label="Perguntas disponíveis">

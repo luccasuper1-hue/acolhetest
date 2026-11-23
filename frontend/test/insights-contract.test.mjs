@@ -10,10 +10,10 @@ test("institution panel exposes non-blocking Acolhe Insights", () => {
   assert.match(source, /Como está nossa demanda/);
   assert.match(source, /fontes agregadas|Fontes agregadas/);
   assert.match(source, /const INSIGHT_QUESTIONS = \[/);
+  assert.equal((source.match(/"Como funciona o fluxo do piloto\?"/g) || []).length, 1);
+  assert.equal((source.match(/"Como protegemos a privacidade dos estudantes\?"/g) || []).length, 1);
+  assert.equal((source.match(/"Como calculamos o comparecimento\?"/g) || []).length, 1);
   assert.equal((source.match(/"Como está nossa demanda\?"/g) || []).length, 1);
-  assert.equal((source.match(/"Qual foi o tempo médio de resposta\?"/g) || []).length, 1);
-  assert.equal((source.match(/"Como está o comparecimento\?"/g) || []).length, 1);
-  assert.equal((source.match(/"O que mudou desde a linha de base\?"/g) || []).length, 1);
   assert.equal((source.match(/"Onde estão os gargalos operacionais\?"/g) || []).length, 1);
   assert.match(source, /institution-insight-question/);
   assert.match(source, /maxLength=\{600\}/);

@@ -32,6 +32,7 @@ export function inspectQuestion(raw: unknown) {
   if (!intent) return { allowed: false as const, question, reason: "Posso ajudar com demanda, tempo de resposta, comparecimento, capacidade, evolução da linha de base ou gargalos operacionais. Qual desses temas você quer analisar?", intent: "clarification" };
   if (matched.length > 1 && !matched.includes("overview")) {
     const knowledge = matched.filter(item => ["product_help", "privacy_and_policy", "metrics_explanation", "pilot_and_roadmap"].includes(item));
+    if (knowledge.includes("product_help")) return { allowed: true as const, question, intent: "product_help" };
     if (knowledge.length === 1) return { allowed: true as const, question, intent: knowledge[0] };
     return { allowed: false as const, question, reason: "Posso explicar o produto, privacidade, métricas ou operação. Qual desses temas você quer entender primeiro?", intent: "clarification" };
   }
