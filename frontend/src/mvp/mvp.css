@@ -2704,6 +2704,7 @@ html[data-theme="dark"] .mvp-shell[data-testid="student-area"] .student-active-a
 .institution-insights-card .insight-sources span{background:transparent;border:1px solid var(--line,#e7e1ee);padding:.22rem .48rem}
 .institution-insights-card .insight-limitations{margin-top:1rem;font-size:.8rem;color:var(--muted,#716780)}
 .institution-insights-card .insight-limitations>strong{display:block;margin-bottom:.35rem;color:var(--ink,#241a33);font-size:.78rem}
+.institution-insights-card .insight-guided-intro{display:grid;gap:.25rem;margin-top:.25rem;color:var(--muted,#766b86)}.institution-insights-card .insight-guided-intro strong{color:var(--ink,#241a33)}.insight-guided-questions .button{transition:border-color .18s ease,background .18s ease}.insight-guided-questions .button.is-selected{border-color:var(--brand,#7254ad);background:color-mix(in srgb,var(--brand,#7254ad) 10%,transparent)}
 @media (max-width:760px){.institution-insights-card .insight-narrative{grid-template-columns:1fr;gap:.8rem}.institution-insights-card .insight-narrative>div{padding-left:.65rem}.institution-insights-card .insight-result{padding-top:1rem}}
 
 /* V2 answer layout: an editorial reading with a clear next step, not a nested alert box. */

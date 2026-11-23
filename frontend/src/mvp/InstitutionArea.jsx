@@ -4,6 +4,14 @@ import { Copy, ExternalLink, UserPlus } from "lucide-react";
 import { MvpShell, MvpCard, MvpEmpty, MvpKpi } from "./MvpShell";
 import { api, apiError, formatDate } from "./api";
 
+const INSIGHT_QUESTIONS = [
+  "Como está nossa demanda?",
+  "Qual foi o tempo médio de resposta?",
+  "Como está o comparecimento?",
+  "O que mudou desde a linha de base?",
+  "Onde estão os gargalos operacionais?",
+];
+
 function InsightResultView({ result, details, setDetails, helpful, setHelpful }) {
   if (!result) return null;
   const unavailable = result.confidence === "unavailable" || result.limitations?.some(item => /não consegui gerar|indisponível/i.test(item));
@@ -74,6 +82,7 @@ export default function InstitutionArea() {
   const askInsight = async (event, suggestedQuestion) => {
     event?.preventDefault();
     const question = String(suggestedQuestion ?? insightQuestion).trim();
+    if (!INSIGHT_QUESTIONS.includes(question)) return;
     if (!question || insightBusy) return;
     insightAbortRef.current?.abort();
     const controller = new AbortController(); insightAbortRef.current = controller;
@@ -261,12 +270,9 @@ export default function InstitutionArea() {
       </MvpCard>
 
       <MvpCard title="Acolhe Insights" subtitle="Pergunte sobre indicadores operacionais agregados. O copiloto não acessa conversas, nomes ou dados individuais." testid="inst-insights-card" className="institution-insights-card">
-        <form onSubmit={askInsight} className="insight-form">
-          <label htmlFor="institution-insight-question">Sua pergunta</label>
-          <div className="insight-input-row"><input id="institution-insight-question" value={insightQuestion} maxLength={600} onChange={event => setInsightQuestion(event.target.value)} placeholder="Como está nossa demanda?" disabled={insightBusy} /><button className="button primary" type="submit" disabled={insightBusy || !insightQuestion.trim()}>{insightBusy ? "Analisando…" : "Perguntar"}</button></div>
-        </form>
-        <div className="insight-suggestions" aria-label="Perguntas sugeridas">
-          {["Como está nossa demanda?", "Qual foi o tempo médio de resposta?", "Como está o comparecimento?", "O que mudou desde a linha de base?", "Onde estão os gargalos operacionais?"].map(question => <button type="button" className="button secondary small" key={question} onClick={event => askInsight(event, question)} disabled={insightBusy}>{question}</button>)}
+        <div className="insight-guided-intro"><strong>Escolha uma leitura para começar</strong><span>As perguntas abaixo são consultas operacionais seguras, respondidas somente com dados agregados da instituição.</span></div>
+        <div className="insight-suggestions insight-guided-questions" aria-label="Perguntas disponíveis">
+          {INSIGHT_QUESTIONS.map(question => <button type="button" className={`button secondary small ${insightQuestion === question ? "is-selected" : ""}`} key={question} onClick={event => askInsight(event, question)} disabled={insightBusy}>{question}{insightBusy && insightQuestion === question ? " · analisando…" : ""}</button>)}
         </div>
         {insightError && <div className="mvp-error" role="alert">{insightError} <button type="button" className="button quiet small" onClick={event => askInsight(event)}>Tentar novamente</button></div>}
         <InsightResultView result={insightResult} details={insightDetails} setDetails={setInsightDetails} helpful={insightHelpful} setHelpful={setInsightHelpful} />
