@@ -233,7 +233,18 @@ export default {
   async scheduled(_controller: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
     // Keep the 48-hour SLA clock independent from dashboard visits. The
     // request-triggered sweep remains as a fast consistency fallback.
-    ctx.waitUntil(expirePendingRequests(db(env), env));
-    ctx.waitUntil(retryNotificationEmails(env, db(env)));
+    const store = db(env);
+    ctx.waitUntil((async () => {
+      const nowIso = new Date().toISOString();
+      const staleBeforeIso = new Date(Date.now() - 48 * 60 * 60_000).toISOString();
+      const expiringFromIso = new Date(Date.now() - 48 * 60 * 60_000).toISOString();
+      const expiringBeforeIso = new Date(Date.now() - 36 * 60 * 60_000).toISOString();
+      const staleClaimIso = new Date(Date.now() - 10 * 60_000).toISOString();
+      const snapshot = await store.getMaintenanceSnapshot(staleBeforeIso, expiringFromIso, expiringBeforeIso, nowIso, staleClaimIso);
+      await Promise.all([
+        expirePendingRequests(store, env, undefined, snapshot),
+        retryNotificationEmails(env, store, snapshot.notificationCandidates),
+      ]);
+    })());
   },
 } satisfies ExportedHandler<Env>;

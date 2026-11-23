@@ -3,7 +3,7 @@
 ## Referência atual — 23/11/2026
 
 - Commit/tag reproduzível: atualização do modelo Workers AI após a publicação de 22/11/2026.
-- Produção: `41f0e74d-0118-48f2-b6a0-fdf3791e4cf1` — `APP_ENV=production`.
+- Produção: `0fc0d05b-fb5b-46da-9aea-61242de0a899` — `APP_ENV=production`.
 - Staging: `5402ef6a-759a-46ca-9b5c-b81a3134db6d` — `APP_ENV=staging`.
 - Origens: `https://acolhetest.luccasuper1.workers.dev` e `https://acolhetest-staging.luccasuper1.workers.dev`.
 - Health GET: HTTP 200 e `database: ok` nos dois ambientes.
@@ -22,6 +22,7 @@
 - As contagens do resumo administrativo também usam um batch allowlisted, removendo a sequência de RPCs individuais.
 - A lista de instituições do admin reutiliza as contagens já carregadas pelo resumo, sem nova leitura de coleção.
 - Beacons de analytics repetidos no mesmo isolate agora são coalescidos por 30 segundos antes de abrir um RPC ao Durable Object.
+- A manutenção do cron agora carrega pedidos expirados e retries de e-mail em um único snapshot do gateway, evitando duas invocações e varreduras independentes quando não há trabalho.
 - Esta publicação adiciona a base de conhecimento segura do produto e o escopo operacional do profissional.
 - O painel agora deixa visível que o Insights é um assistente do projeto: as sugestões cobrem fluxo do piloto, privacidade, métricas, demanda e gargalos, e cada resposta identifica seu escopo (Produto, Privacidade, Métricas, Piloto ou Operação).
 - A base de conhecimento agora responde tópicos específicos dos painéis, como a finalidade das notificações do estudante, sem mostrar amostra fictícia para respostas documentais.

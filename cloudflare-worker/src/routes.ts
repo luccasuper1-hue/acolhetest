@@ -226,10 +226,11 @@ async function cachedShortRead<T>(key: string, loader: () => Promise<T>, ttl = S
   return inFlight;
 }
 
-async function expirePendingRequestsWork(store: ReturnType<typeof db>, env: Env, institutionId?: string) {
+type MaintenanceSnapshot = Awaited<ReturnType<ReturnType<typeof db>["getMaintenanceSnapshot"]>>;
+async function expirePendingRequestsWork(store: ReturnType<typeof db>, env: Env, institutionId?: string, snapshot?: MaintenanceSnapshot) {
   const filter: Doc = { status: "pending", created_at: { $lt: hoursAgo(48) } };
   if (institutionId) filter.institution_id = institutionId;
-  const stale = await store.findMany("requests", filter, { limit: 200 });
+  const stale = snapshot && !institutionId ? snapshot.staleRequests : await store.findMany("requests", filter, { limit: 200 });
   const professionalUserIds = new Set<string>();
   const refreshedInstitutions = new Set<string>();
   let expiredCount = 0;
@@ -245,7 +246,7 @@ async function expirePendingRequestsWork(store: ReturnType<typeof db>, env: Env,
   }
   const expiringFilter: Doc = { status: "pending", created_at: { $gte: hoursAgo(48), $lt: hoursAgo(36) } };
   if (institutionId) expiringFilter.institution_id = institutionId;
-  const expiring = await store.findMany("requests", expiringFilter, { limit: 200 });
+  const expiring = snapshot && !institutionId ? snapshot.expiringRequests : await store.findMany("requests", expiringFilter, { limit: 200 });
   for (const record of expiring) {
     const professional = await store.findOne("professionals", { id: record.professional_id }, { user_id: 1 });
     if (!professional?.user_id) continue;
@@ -254,7 +255,7 @@ async function expirePendingRequestsWork(store: ReturnType<typeof db>, env: Env,
   // Direct requests use a separate collection but the same 48-hour contract.
   const directFilter: Doc = { status: "pending", created_at: { $lt: hoursAgo(48) } };
   if (institutionId) directFilter.institution_id = institutionId;
-  const staleDirect = await store.findMany("appointment_requests", directFilter, { limit: 200 });
+  const staleDirect = snapshot && !institutionId ? snapshot.staleDirectRequests : await store.findMany("appointment_requests", directFilter, { limit: 200 });
   for (const record of staleDirect) {
     if (await store.expireAppointmentRequest(record.id, String(record.professional_id), record.availability_id)) {
       const studentUserId = String((await store.findOne("students", { id: record.student_id }, { user_id: 1 }))?.user_id || "");
@@ -279,13 +280,13 @@ async function expirePendingRequestsWork(store: ReturnType<typeof db>, env: Env,
   }));
 }
 
-export async function expirePendingRequests(store: ReturnType<typeof db>, env: Env, institutionId?: string) {
+export async function expirePendingRequests(store: ReturnType<typeof db>, env: Env, institutionId?: string, snapshot?: MaintenanceSnapshot) {
   const key = institutionId ? `institution:${institutionId}` : "global";
   const timestamp = Date.now();
   const existing = expirationRuns.get(key);
   if (existing?.inFlight) return existing.inFlight;
   if (existing && existing.expiresAt > timestamp) return;
-  const run = expirePendingRequestsWork(store, env, institutionId).catch((error) => {
+  const run = (snapshot ? expirePendingRequestsWork(store, env, institutionId, snapshot) : expirePendingRequestsWork(store, env, institutionId)).catch((error) => {
     expirationRuns.delete(key);
     throw error;
   });
@@ -451,10 +452,10 @@ async function notifyUser(env: Env, recipientUserId: string, type: string, title
   if (decision.status === "pending" || decision.status === "failed") await logEvent(env, decision.status === "failed" ? "email_delivery_failed" : "email_delivery_retry_scheduled", undefined, undefined, { notification_id: String(created.id), failure: decision.failure || null, attempts });
 }
 
-export async function retryNotificationEmails(env: Env, store: ReturnType<typeof db>) {
+export async function retryNotificationEmails(env: Env, store: ReturnType<typeof db>, snapshotCandidates?: Doc[]) {
   const nowIso = now();
   const staleClaim = new Date(Date.now() - 10 * 60_000).toISOString();
-  const candidates = await store.findMany("notifications", {
+  const candidates = snapshotCandidates || await store.findMany("notifications", {
     $or: [
       { "email_delivery.status": "pending", "email_delivery.next_attempt_at": { $lte: nowIso } },
       { "email_delivery.status": "sending", "email_delivery.claimed_at": { $lt: staleClaim } },

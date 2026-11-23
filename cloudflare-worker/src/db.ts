@@ -450,6 +450,24 @@ export class MongoGateway extends DurableObject<Env> {
     return rows;
   }
 
+  /**
+   * Reads all periodic maintenance candidates in one gateway call. The
+   * scheduler can then exit without opening a second DO invocation when the
+   * system is idle, which is the common case between pilot sessions.
+   */
+  async getMaintenanceSnapshot(staleBeforeIso: string, expiringFromIso: string, expiringBeforeIso: string, nowIso: string, staleClaimIso: string): Promise<{ staleRequests: RecordDoc[]; expiringRequests: RecordDoc[]; staleDirectRequests: RecordDoc[]; notificationCandidates: RecordDoc[] }> {
+    const requestProjection = { _id: 0, id: 1, student_id: 1, professional_id: 1, institution_id: 1, availability_id: 1 };
+    const notificationsProjection = { _id: 0, id: 1, recipient_user_id: 1, title: 1, body: 1, email_delivery: 1 };
+    const database = await this.db();
+    const [staleRequests, expiringRequests, staleDirectRequests, notificationCandidates] = await Promise.all([
+      database.collection<RecordDoc>("requests").find({ status: "pending", created_at: { $lt: staleBeforeIso } }, { projection: requestProjection, limit: 200 }).toArray(),
+      database.collection<RecordDoc>("requests").find({ status: "pending", created_at: { $gte: expiringFromIso, $lt: expiringBeforeIso } }, { projection: requestProjection, limit: 200 }).toArray(),
+      database.collection<RecordDoc>("appointment_requests").find({ status: "pending", created_at: { $lt: staleBeforeIso } }, { projection: requestProjection, limit: 200 }).toArray(),
+      database.collection<RecordDoc>("notifications").find({ $or: [{ "email_delivery.status": "pending", "email_delivery.next_attempt_at": { $lte: nowIso } }, { "email_delivery.status": "sending", "email_delivery.claimed_at": { $lt: staleClaimIso } }] }, { projection: notificationsProjection, sort: { created_at: 1 }, limit: 100 }).toArray(),
+    ]);
+    return { staleRequests, expiringRequests, staleDirectRequests, notificationCandidates };
+  }
+
   async insert(collection: string, value: RecordDoc): Promise<void> {
     await (await this.collection(collection)).insertOne(value);
   }
@@ -1091,7 +1109,7 @@ export class MongoGateway extends DurableObject<Env> {
   }
 }
 
-export type Mongo = Pick<MongoGateway, "ping" | "findOne" | "findMany" | "insert" | "insertIfAbsent" | "update" | "recordAnalyticsPageView" | "allowChatMessage" | "updateMany" | "remove" | "deleteAccount" | "count" | "countMany" | "aggregate" | "aggregateMany" | "getStudentDashboard" | "getProfessionalDashboard" | "getInstitutionDashboard" | "getAdminSummary" | "distinct" | "findOneAndUpdate" | "claimNotificationEmail" | "proposeDirectAppointment" | "confirmDirectAppointment" | "reservePublishedCapacity" | "deleteAvailability" | "proposePublishedAppointment" | "reschedulePublishedRequest" | "approveMinorRegistration" | "createStudentRequest" | "createPublishedStudentRequest" | "issueCertificate" | "saveFeedback" | "createAvailabilityBatch" | "recordLoginFailure" | "finalizeLogin" | "savePasswordReset" | "createLead" | "createStudentAccount" | "createProfessionalInvite" | "createInstitution" | "approveInstitutionLead" | "closeSession" | "acceptPublishedRequest" | "declinePublishedRequest" | "cancelAppointmentRequest" | "declineAppointmentRequest" | "expirePublishedRequest" | "expireAppointmentRequest" | "cancelPublishedRequest" | "saveRoomLink" | "saveSessionRoomLink" | "saveReferral">;
+export type Mongo = Pick<MongoGateway, "ping" | "findOne" | "findMany" | "getMaintenanceSnapshot" | "insert" | "insertIfAbsent" | "update" | "recordAnalyticsPageView" | "allowChatMessage" | "updateMany" | "remove" | "deleteAccount" | "count" | "countMany" | "aggregate" | "aggregateMany" | "getStudentDashboard" | "getProfessionalDashboard" | "getInstitutionDashboard" | "getAdminSummary" | "distinct" | "findOneAndUpdate" | "claimNotificationEmail" | "proposeDirectAppointment" | "confirmDirectAppointment" | "reservePublishedCapacity" | "deleteAvailability" | "proposePublishedAppointment" | "reschedulePublishedRequest" | "approveMinorRegistration" | "createStudentRequest" | "createPublishedStudentRequest" | "issueCertificate" | "saveFeedback" | "createAvailabilityBatch" | "recordLoginFailure" | "finalizeLogin" | "savePasswordReset" | "createLead" | "createStudentAccount" | "createProfessionalInvite" | "createInstitution" | "approveInstitutionLead" | "closeSession" | "acceptPublishedRequest" | "declinePublishedRequest" | "cancelAppointmentRequest" | "declineAppointmentRequest" | "expirePublishedRequest" | "expireAppointmentRequest" | "cancelPublishedRequest" | "saveRoomLink" | "saveSessionRoomLink" | "saveReferral">;
 
 export function gateway(env: Env): Mongo {
   const gatewayName = gatewayObjectName(env.APP_ENV);
