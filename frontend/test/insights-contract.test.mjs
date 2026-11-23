@@ -15,7 +15,9 @@ test("institution panel exposes non-blocking Acolhe Insights", () => {
   assert.equal((source.match(/"Como está o comparecimento\?"/g) || []).length, 1);
   assert.equal((source.match(/"O que mudou desde a linha de base\?"/g) || []).length, 1);
   assert.equal((source.match(/"Onde estão os gargalos operacionais\?"/g) || []).length, 1);
-  assert.doesNotMatch(source, /institution-insight-question/);
-  assert.match(source, /INSIGHT_QUESTIONS\.includes\(question\)/);
+  assert.match(source, /institution-insight-question/);
+  assert.match(source, /maxLength=\{600\}/);
+  assert.doesNotMatch(source, /INSIGHT_QUESTIONS\.includes\(question\)/);
+  assert.match(source, /onDeepen|deepenInsight/);
   assert.match(api, /timeout: 15_000/);
 });

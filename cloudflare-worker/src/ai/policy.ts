@@ -8,13 +8,13 @@ const blockedPatterns = [
   /\b(prompt|system message|mensagem do sistema|token|senha|cookie)\b/i,
 ];
 const intentPatterns: [string, RegExp][] = [
-  ["overview", /\b(acolhe|painel|indicador(?:es)?|m[eé]trica(?:s)?|como funciona|por que usar|pq usar|pr[oó]ximo passo)\b/i],
-  ["response_time", /resposta|tempo|48\s*h|atrasad|prazo/i],
-  ["attendance", /comparecimento|presen[cç]a|aus[eê]ncia/i],
   ["bottlenecks", /gargalo|onde.*trav|problema operacional/i],
-  ["capacity", /capacidade|hor[aá]rio|vaga|disponib/i],
-  ["impact", /linha de base|mudou|evolu[cç][aã]o|impacto|antes|depois/i],
-  ["demand", /demanda|pedidos|procura|volume/i],
+  ["response_time", /resposta|tempo médio|tempo de resposta|48\s*h|atrasad|prazo/i],
+  ["attendance", /comparecimento|presen[cç]a|aus[eê]ncia/i],
+  ["capacity", /capacidade|hor[aá]rio|vaga|disponib|abrir mais/i],
+  ["impact", /linha de base|mudou|evolu[íi]u?|evolu[cç][aã]o|impacto|antes|depois|comparar|compara[cç][aã]o|comparativo/i],
+  ["demand", /demanda|pedidos|procura|volume|fila/i],
+  ["overview", /acolhe|painel|indicador(?:es)?|m[eé]trica(?:s)?|como funciona|por que usar|pq usar|pr[oó]ximo passo|acompanhar/i],
 ];
 const usage = new Map<string, { day: string; count: number; minute: number; minuteCount: number; fingerprints: Map<string, number> }>();
 const dayKey = () => new Date().toISOString().slice(0, 10);
@@ -22,10 +22,14 @@ const dayKey = () => new Date().toISOString().slice(0, 10);
 export function inspectQuestion(raw: unknown) {
   const question = validateQuestion(raw);
   if (blockedPatterns.some(pattern => pattern.test(question))) return { allowed: false as const, question, reason: "O Acolhe Insights trabalha apenas com indicadores operacionais agregados e não acessa conversas nem produz avaliações clínicas.", intent: "blocked" };
-  const intent = intentPatterns.find(([, pattern]) => pattern.test(question))?.[0];
-  if (!intent) return { allowed: false as const, question, reason: "O Acolhe Insights responde apenas sobre demanda, resposta, comparecimento, capacidade, impacto e gargalos operacionais.", intent: "out_of_scope" };
+  const matched = intentPatterns.filter(([, pattern]) => pattern.test(question)).map(([intent]) => intent);
+  const intent = matched.length === 1 ? matched[0] : matched.length > 1 && matched.includes("overview") ? matched.find(item => item !== "overview") : matched[0];
+  if (!intent) return { allowed: false as const, question, reason: "Posso ajudar com demanda, tempo de resposta, comparecimento, capacidade, evolução da linha de base ou gargalos operacionais. Qual desses temas você quer analisar?", intent: "clarification" };
+  if (matched.length > 1 && !matched.includes("overview")) return { allowed: false as const, question, reason: "Posso analisar um indicador por vez. Você quer começar por demanda, resposta, comparecimento, capacidade ou gargalos?", intent: "clarification" };
   const years = [...question.matchAll(/\b(20\d{2})[-/]?(0[1-9]|1[0-2])\b/g)].map(match => Number(match[1]) * 12 + Number(match[2]));
-  if (years.length >= 2 && Math.max(...years) - Math.min(...years) > 12) return { allowed: false as const, question, reason: "O período máximo para comparação é de 12 meses.", intent: "period_limit" };
+  const relativeMonths = question.match(/(?:últim[oa]s?|pr[oó]xim[oa]s?)\s+(\d+)\s+mes(?:es|es)?/i)?.[1];
+  const yearsAgo = question.match(/(?:últim[oa]s?|pr[oó]xim[oa]s?)\s+(\d+)\s+ano/i)?.[1];
+  if ((relativeMonths && Number(relativeMonths) > 12) || (yearsAgo && Number(yearsAgo) > 1) || (years.length >= 2 && Math.max(...years) - Math.min(...years) > 12)) return { allowed: false as const, question, reason: "O período máximo para comparação é de 12 meses.", intent: "period_limit" };
   return { allowed: true as const, question, intent };
 }
 

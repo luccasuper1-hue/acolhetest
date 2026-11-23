@@ -1,4 +1,4 @@
-# Acolhe Insights — governança da primeira versão
+# Acolhe Insights — governança da camada conversacional
 
 O Acolhe Insights interpreta somente indicadores operacionais agregados da instituição. O modelo recebe um conjunto mínimo de números já filtrados pelo backend; ele não consulta MongoDB, conversas, mensagens, notas, diagnósticos, nomes, e-mails ou identificadores individuais.
 
@@ -8,6 +8,7 @@ Sua voz é calma, lúcida, próxima, discreta e prática: um orientador instituc
 
 - acesso exclusivo ao papel institucional e à instituição autenticada;
 - perguntas individuais, clínicas, diagnósticas, de conteúdo privado e de prompt injection bloqueadas;
+- perguntas naturais são classificadas de forma determinística antes do modelo; perguntas ambíguas recebem uma clarificação curta;
 - amostras menores que o mínimo operacional ficam ocultas;
 - limites por usuário, instituição e dia, pergunta com até 600 caracteres e saída limitada;
 - limite por minuto, fingerprint de perguntas repetidas, comparação máxima de 12 meses e cache curto por instituição/intenção/período;
@@ -17,6 +18,7 @@ Sua voz é calma, lúcida, próxima, discreta e prática: um orientador instituc
 - logs apenas com escopo anonimizado, intenção, duração, status, fallback e contagem de métricas;
 - binding exclusivo `env.AI` do Cloudflare Workers AI; não há provedor alternativo;
 - nenhuma chamada automática na abertura do painel, processamento em background ou WebSocket.
+- o contexto de aprofundamento é curto, agregado, enviado apenas na consulta seguinte e não é persistido como memória;
 - gráficos e comparações só podem usar séries fornecidas pelo backend; a primeira versão não executa ações.
 - respostas estruturadas distinguem `observation`, `interpretation`, `next_step` e `limitations`;
 - a interface evita culpa, falsa intimidade, promessas emocionais e linguagem clínica.

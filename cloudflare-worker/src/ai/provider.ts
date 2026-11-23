@@ -64,10 +64,10 @@ function parseModelOutput(candidate: unknown, data: InsightData): unknown {
   }
   return null;
 }
-export async function runWorkersAi(env: Env, question: string, data: InsightData): Promise<AiProviderResult> {
+export async function runWorkersAi(env: Env, question: string, data: InsightData, context = ""): Promise<AiProviderResult> {
   if (!env.AI?.run) return { value: null, available: false, reason: "missing_binding" };
   try {
-    const result = await Promise.race([env.AI.run(MODEL, { prompt: buildPrompt(question, data), max_tokens: 500 }), new Promise<never>((_, reject) => setTimeout(() => reject(new Error("ai_timeout")), 5_000))]);
+    const result = await Promise.race([env.AI.run(MODEL, { prompt: buildPrompt(question, data, context), max_tokens: 500 }), new Promise<never>((_, reject) => setTimeout(() => reject(new Error("ai_timeout")), 5_000))]);
     const candidate = result && typeof result === "object" && "response" in result ? (result as { response: unknown }).response : result;
     const value = parseModelOutput(candidate, data);
     return value ? { value, available: true } : { value: null, available: true, reason: "invalid_output" };

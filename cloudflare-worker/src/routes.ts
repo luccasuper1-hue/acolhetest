@@ -1413,7 +1413,7 @@ async function institutionRoutes(request: Request, env: Env, pathname: string): 
   const { user, institution } = identity, store = db(env);
   if (pathname === "/api/institutions/me/insights" && request.method === "POST") {
     const payload = await requestBody(request);
-    const result = await handleInstitutionInsight({ env, userId: user.id, institutionId: institution.id, role: user.role, question: payload?.question, metrics: await institutionMetrics(env, institution.id), impact: institution.impact_baseline || null });
+    const result = await handleInstitutionInsight({ env, userId: user.id, institutionId: institution.id, role: user.role, question: payload?.question, context: payload?.context, metrics: await institutionMetrics(env, institution.id), impact: institution.impact_baseline || null });
     return json(result);
   }
   if (pathname === "/api/institutions/me" && request.method === "GET") return json(institution);

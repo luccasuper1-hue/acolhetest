@@ -9,8 +9,9 @@ test("Acolhe Insights is institution-scoped and Workers AI-only", () => {
   assert.match(routes, /\/api\/institutions\/me\/insights/);
   assert.match(assistant, /consumeInsightQuota/);
   assert.match(assistant, /fallbackInsight/);
-  assert.match(assistant, /GUIDED_QUESTIONS/);
-  assert.match(assistant, /aceita apenas perguntas guiadas/);
+  assert.doesNotMatch(assistant, /GUIDED_QUESTIONS/);
+  assert.match(assistant, /context/);
+  assert.match(assistant, /sanitizeContext/);
   assert.match(provider, /env\.AI/);
   assert.match(provider, /@cf\/meta\/llama-3\.1-8b-instruct-fast/);
   assert.doesNotMatch(provider, /llama-3\.1-8b-instruct-awq/i);
@@ -48,6 +49,13 @@ test("guided questions map to distinct operational intents", () => {
   assert.match(fallback, /linha de base ainda não foi registrada/);
   assert.match(fallback, /respostas registradas no período/);
   assert.match(fallback, /pedidos além de 48 horas/);
+});
+
+test("natural questions remain classified before model execution", () => {
+  assert.match(policy, /matched = intentPatterns\.filter/);
+  assert.match(policy, /últim/);
+  assert.match(policy, /clarification/);
+  assert.doesNotMatch(assistant, /Escolha uma das leituras operacionais disponíveis no painel/);
 });
 
 test("Insights never logs the complete question or answer", () => {

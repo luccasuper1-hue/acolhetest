@@ -12,7 +12,7 @@ const INSIGHT_QUESTIONS = [
   "Onde estão os gargalos operacionais?",
 ];
 
-function InsightResultView({ result, details, setDetails, helpful, setHelpful }) {
+function InsightResultView({ result, details, setDetails, helpful, setHelpful, onDeepen, busy }) {
   if (!result) return null;
   const unavailable = result.confidence === "unavailable" || result.limitations?.some(item => /não consegui gerar|indisponível/i.test(item));
   const grounded = result.sources?.length > 0 && result.confidence !== "blocked";
@@ -27,7 +27,7 @@ function InsightResultView({ result, details, setDetails, helpful, setHelpful })
       <div><strong>Próximo passo possível</strong><p>{result.next_step}</p></div>
     </div>
     <div className="insight-result-v2-meta"><span>Período</span><b>{result.period?.start || "—"} a {result.period?.end || "—"}</b>{result.sources?.length > 0 && <><span>Amostra</span><b>{result.sources.map(source => source.sample_size).join(" · ")} observações</b></>}</div>
-    <div className="insight-result-v2-actions"><button type="button" className="button quiet small" onClick={() => setDetails(value => !value)}>{details ? "Ocultar cálculo" : "Como calculamos?"}</button><button type="button" className="button quiet small" onClick={() => setDetails(true)}>Aprofundar</button></div>
+    <div className="insight-result-v2-actions"><button type="button" className="button quiet small" onClick={() => setDetails(value => !value)}>{details ? "Ocultar cálculo" : "Como calculamos?"}</button><button type="button" className="button quiet small" onClick={onDeepen} disabled={busy}>{busy ? "Aprofundando…" : "Aprofundar"}</button></div>
     {details && <div className="insight-result-v2-method"><strong>Como calculamos</strong><span>Usamos apenas indicadores agregados do período. A variação é descritiva e não prova causalidade nem resultado clínico.</span></div>}
     {result.sources?.length > 0 && <div className="insight-result-v2-sources"><strong>Fontes agregadas</strong>{result.sources.map(source => <span key={`${source.metric}:${source.origin}`}>{source.metric} · {source.sample_size} observações</span>)}</div>}
     <div className="insight-result-v2-limitations"><strong>O que ainda não dá para concluir</strong>{(result.limitations || []).map(item => <span key={item}>{item}</span>)}</div>
@@ -80,17 +80,21 @@ export default function InstitutionArea() {
   useEffect(() => { load().catch(e => toast.error(apiError(e))); }, [load]);
   useEffect(() => () => insightAbortRef.current?.abort(), []);
 
-  const askInsight = async (event, suggestedQuestion) => {
+  const askInsight = async (event, suggestedQuestion, context = null) => {
     event?.preventDefault();
     const question = String(suggestedQuestion ?? insightQuestion).trim();
-    if (!INSIGHT_QUESTIONS.includes(question)) return;
-    if (!question || insightBusy) return;
+    if (!question || question.length > 600 || insightBusy) return;
     insightAbortRef.current?.abort();
     const controller = new AbortController(); insightAbortRef.current = controller;
     setInsightQuestion(question); setInsightBusy(true); setInsightError("");
-    try { const { data } = await api.post("/institutions/me/insights", { question }, { signal: controller.signal }); setInsightResult(data); }
+    try { const { data } = await api.post("/institutions/me/insights", { question, ...(context ? { context } : {}) }, { signal: controller.signal }); setInsightResult(data); setInsightDetails(false); }
     catch (error) { if (error?.code !== "ERR_CANCELED" && error?.name !== "CanceledError") setInsightError(apiError(error)); }
     finally { if (!controller.signal.aborted) setInsightBusy(false); }
+  };
+
+  const deepenInsight = event => {
+    const context = insightResult ? { answer: insightResult.answer, observation: insightResult.observation, interpretation: insightResult.interpretation, next_step: insightResult.next_step, period: insightResult.period, limitations: insightResult.limitations } : null;
+    askInsight(event, `${insightQuestion} Explique melhor o que sustenta essa leitura e qual é o próximo passo proporcional.`, context);
   };
 
   const submitInvite = async e => {
@@ -271,12 +275,13 @@ export default function InstitutionArea() {
       </MvpCard>
 
       <MvpCard title="Acolhe Insights" subtitle="Pergunte sobre indicadores operacionais agregados. O copiloto não acessa conversas, nomes ou dados individuais." testid="inst-insights-card" className="institution-insights-card">
-        <div className="insight-guided-intro"><strong>Escolha uma leitura para começar</strong><span>As perguntas abaixo são consultas operacionais seguras, respondidas somente com dados agregados da instituição.</span></div>
+        <div className="insight-guided-intro"><strong>Converse sobre a operação</strong><span>Você pode escrever naturalmente ou começar por uma sugestão. O copiloto usa somente indicadores agregados, não acessa conversas e não executa ações.</span></div>
+        <form className="insight-question-form" onSubmit={event => askInsight(event)}><label htmlFor="institution-insight-question">Sua pergunta</label><div className="insight-question-row"><input id="institution-insight-question" value={insightQuestion} maxLength={600} onChange={event => setInsightQuestion(event.target.value)} placeholder="Ex.: A demanda aumentou?" disabled={insightBusy} /><button type="submit" className="button primary small" disabled={insightBusy || !insightQuestion.trim()}>{insightBusy ? "Analisando…" : "Perguntar"}</button></div></form>
         <div className="insight-suggestions insight-guided-questions" aria-label="Perguntas disponíveis">
           {INSIGHT_QUESTIONS.map(question => <button type="button" className={`button secondary small ${insightQuestion === question ? "is-selected" : ""}`} key={question} onClick={event => askInsight(event, question)} disabled={insightBusy}>{question}{insightBusy && insightQuestion === question ? " · analisando…" : ""}</button>)}
         </div>
         {insightError && <div className="mvp-error" role="alert">{insightError} <button type="button" className="button quiet small" onClick={event => askInsight(event)}>Tentar novamente</button></div>}
-        <InsightResultView result={insightResult} details={insightDetails} setDetails={setInsightDetails} helpful={insightHelpful} setHelpful={setInsightHelpful} />
+        <InsightResultView result={insightResult} details={insightDetails} setDetails={setInsightDetails} helpful={insightHelpful} setHelpful={setInsightHelpful} onDeepen={deepenInsight} busy={insightBusy} />
       </MvpCard>
 
       <div className="mvp-grid institution-operations-grid">
