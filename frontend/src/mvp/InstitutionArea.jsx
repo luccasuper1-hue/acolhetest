@@ -53,7 +53,7 @@ function InstitutionInsightsLauncher({ question, setQuestion, result, error, bus
       {error && <div className="mvp-error" role="alert">{error} <button type="button" className="button quiet small" onClick={event => ask(event)}>Tentar novamente</button></div>}
       <InsightResultView result={result} details={details} setDetails={setDetails} helpful={helpful} setHelpful={setHelpful} onDeepen={deepen} busy={busy} />
     </div>}
-    <button ref={triggerRef} type="button" className="institution-insights-trigger" onClick={() => setOpen(value => !value)} aria-haspopup="dialog" aria-expanded={open} aria-controls="institution-insights-popover" aria-label="Abrir Acolhe Insights" title="Conversar com o Acolhe Insights"><BrandMark size={30} /></button>
+    <button ref={triggerRef} type="button" className="corner-logo institution-insights-trigger" onClick={() => setOpen(value => !value)} aria-haspopup="dialog" aria-expanded={open} aria-controls="institution-insights-popover" aria-label="Abrir Acolhe Insights"><span className="corner-logo-glow" aria-hidden="true"/><span className="corner-logo-float" aria-hidden="true"><span className="corner-logo-body"><span className="corner-logo-mark"><BrandMark size={30}/></span></span></span><span className="corner-logo-tooltip">Conversar com o Acolhe Insights</span></button>
   </div>;
 }
 
