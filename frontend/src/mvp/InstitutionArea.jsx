@@ -15,8 +15,9 @@ const INSIGHT_QUESTIONS = [
 function InsightResultView({ result, details, setDetails, helpful, setHelpful }) {
   if (!result) return null;
   const unavailable = result.confidence === "unavailable" || result.limitations?.some(item => /não consegui gerar|indisponível/i.test(item));
-  const label = unavailable ? "IA temporariamente indisponível" : result.confidence === "blocked" ? "Consulta protegida" : result.fallback ? "Leitura limitada" : "Leitura operacional";
-  const tag = unavailable ? "Fallback seguro" : result.confidence === "supported" ? "Com fontes" : result.confidence === "blocked" ? "Bloqueada" : "Dados insuficientes";
+  const grounded = result.sources?.length > 0 && result.confidence !== "blocked";
+  const label = unavailable ? "IA temporariamente indisponível" : result.confidence === "blocked" ? "Consulta protegida" : result.fallback && !grounded ? "Leitura limitada" : "Leitura operacional";
+  const tag = unavailable ? "Fallback seguro" : result.confidence === "supported" || grounded ? "Com fontes" : result.confidence === "blocked" ? "Bloqueada" : "Dados insuficientes";
   return <section className="insight-result-v2" aria-live="polite">
     <header className="insight-result-v2-head"><div><span className="insight-kicker">Acolhe Insights</span><h3>{label}</h3></div><span className="mvp-tag">{tag}</span></header>
     <p className="insight-result-v2-answer">{result.answer}</p>
