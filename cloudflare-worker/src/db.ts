@@ -596,7 +596,7 @@ export class MongoGateway extends DurableObject<Env> {
    * They intentionally return raw, non-clinical records for route-level
    * allowlisting and formatting.
    */
-  async getStudentDashboard(studentId: string, institutionId: string, summary = false): Promise<{ requests: RecordDoc[]; appointmentRequests: RecordDoc[]; professionals: RecordDoc[]; availabilityInterest: RecordDoc | null }> {
+  async getStudentDashboard(studentId: string, institutionId: string, summary = false): Promise<{ requests: RecordDoc[]; appointmentRequests: RecordDoc[]; professionals: RecordDoc[]; professionalAccounts: RecordDoc[]; professionalAvailability: RecordDoc[]; availabilityInterest: RecordDoc | null }> {
     const database = await this.db();
     const requestStatuses = summary ? { status: { $in: ["pending", "accepted"] } } : {};
     const appointmentStatuses = summary ? { status: { $in: ["pending", "proposed", "accepted"] } } : {};
@@ -606,7 +606,12 @@ export class MongoGateway extends DurableObject<Env> {
       database.collection<RecordDoc>("professionals").find({ institution_id: institutionId }, { projection: { _id: 0, id: 1, user_id: 1, specialty: 1, link_type: 1 }, limit: 50 }).toArray(),
       database.collection<RecordDoc>("availability_interests").findOne({ student_id: studentId, institution_id: institutionId, status: "waiting" }, { projection: { _id: 0 } }),
     ]);
-    return { requests, appointmentRequests, professionals, availabilityInterest: availabilityInterests || null };
+    const professionalIds = professionals.map((professional) => professional.id).filter(Boolean);
+    const [professionalAccounts, professionalAvailability] = await Promise.all([
+      professionalIds.length ? database.collection<RecordDoc>("users").find({ id: { $in: professionals.map((professional) => professional.user_id).filter(Boolean) }, institution_id: institutionId }, { projection: { _id: 0, id: 1, name: 1, active: 1 }, limit: 100 }).toArray() : Promise.resolve([]),
+      professionalIds.length ? database.collection<RecordDoc>("availability").find({ professional_id: { $in: professionalIds }, status: "open", date: { $gte: new Date().toISOString().slice(0, 10) } }, { projection: { _id: 0, id: 1, professional_id: 1, date: 1, time: 1, mode: 1, location: 1, duration_minutes: 1, status: 1 }, sort: { date: 1, time: 1 }, limit: 200 }).toArray() : Promise.resolve([]),
+    ]);
+    return { requests, appointmentRequests, professionals, professionalAccounts, professionalAvailability, availabilityInterest: availabilityInterests || null };
   }
 
   async getProfessionalDashboard(professionalId: string, institutionId: string): Promise<{ availability: RecordDoc[]; requests: RecordDoc[]; sessions: RecordDoc[]; availabilityInterests: RecordDoc[]; appointmentRequests: RecordDoc[]; appointmentStudents: RecordDoc[]; appointmentStudentUsers: RecordDoc[]; requestSessions: RecordDoc[]; sessionRequests: RecordDoc[]; referrals: RecordDoc[]; sessionStudents: RecordDoc[]; sessionStudentUsers: RecordDoc[] }> {

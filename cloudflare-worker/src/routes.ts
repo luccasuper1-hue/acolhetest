@@ -829,11 +829,13 @@ async function adminAnalytics(store: ReturnType<typeof db>, request: Request) {
   return { period_start: periodStart, period_end: periodEnd, days, page_views: pageViews, unique_visitors: visitorHashes.size, signup_starts: signupStarts, registrations: registrationsTotal, student_registrations: studentRegistrations, professional_registrations: professionalRegistrations, conversion_rate: conversionRate, conversion_note: conversionNote, active_users: uniqueByType(["access"]), funnel, by_day: byDay, events_truncated: eventsTruncated, data_source: "first_party_aggregate", privacy_note: "Dados agregados; nenhum identificador individual é exibido." };
 }
 
-async function studentProfessionals(store: ReturnType<typeof db>, student: Doc) {
+async function studentProfessionals(store: ReturnType<typeof db>, student: Doc, seed?: { professionals?: Doc[]; professionalAccounts?: Doc[]; professionalAvailability?: Doc[] }) {
   return cachedShortRead(`student-professionals:${student.institution_id}`, async () => {
-    const professionals = await store.findMany("professionals", { institution_id: student.institution_id }, { projection: { id: 1, user_id: 1, specialty: 1, link_type: 1 }, limit: 50 });
+    const professionals = seed?.professionals || await store.findMany("professionals", { institution_id: student.institution_id }, { projection: { id: 1, user_id: 1, specialty: 1, link_type: 1 }, limit: 50 });
     const userIds = professionals.map((professional) => professional.user_id), professionalIds = professionals.map((professional) => professional.id);
-    const [accounts, slots] = await Promise.all([
+    const seededAccounts = seed?.professionalAccounts;
+    const seededSlots = seed?.professionalAvailability;
+    const [accounts, slots] = seededAccounts && seededSlots ? [seededAccounts, seededSlots] : await Promise.all([
       userIds.length ? store.findMany("users", { id: { $in: userIds } }, { projection: { id: 1, name: 1, active: 1 }, limit: 100 }) : Promise.resolve([]),
       professionalIds.length ? store.findMany("availability", { professional_id: { $in: professionalIds }, status: "open", date: { $gte: localToday() } }, { projection: { id: 1, professional_id: 1, date: 1, time: 1, mode: 1, location: 1, duration_minutes: 1, status: 1 }, sort: sortDate, limit: 200 }) : Promise.resolve([]),
     ]);
@@ -958,7 +960,7 @@ async function studentRoutes(request: Request, env: Env, pathname: string, ctx: 
     ctx.waitUntil(expirePendingRequests(store, env, student.institution_id).catch((error) => logOperational("dashboard_expiration_failed", { error_name: error instanceof Error ? error.name : "unknown" })));
     const summaryOnly = new URL(request.url).searchParams.get("summary") === "1";
     const dashboardSeed = await store.getStudentDashboard(student.id, student.institution_id, summaryOnly);
-    const [professionals, dashboardRequests, availabilityInterest] = await Promise.all([studentProfessionals(store, student), studentDashboardRequests(store, student, dashboardSeed), Promise.resolve(dashboardSeed.availabilityInterest || null)]);
+    const [professionals, dashboardRequests, availabilityInterest] = await Promise.all([studentProfessionals(store, student, dashboardSeed), studentDashboardRequests(store, student, dashboardSeed), Promise.resolve(dashboardSeed.availabilityInterest || null)]);
     ctx.waitUntil(sessionReminderNotifications(store, env, dashboardRequests.requests.map((record) => (record as Doc).session).filter((session): session is Doc => Boolean(session)), user.id).catch((error) => logOperational("session_reminders_failed", { error_name: error instanceof Error ? error.name : "unknown" })));
     const notificationPage = await listNotificationsPage(env, user.id, { includeUnreadCount: true });
     return json({ professionals, requests: dashboardRequests.requests, appointment_requests: dashboardRequests.appointmentRequests, availability_interest: availabilityInterest || null, notifications: notificationPage.items, notification_unread_count: notificationPage.unread_count || 0, summary_only: summaryOnly });
