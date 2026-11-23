@@ -6,7 +6,27 @@ export type AiProviderResult = { value: unknown; available: boolean; reason?: "m
 // AWQ model was deprecated by Cloudflare and silently pushed requests into
 // the deterministic fallback path.
 const MODEL = "@cf/meta/llama-3.1-8b-instruct-fast";
+function extractAnswerField(value: string): string | null {
+  const key = value.search(/["']answer["']\s*:/i);
+  if (key < 0) return null;
+  let start = key + value.slice(key).search(/:/) + 1;
+  while (/\s/.test(value[start] || "")) start += 1;
+  if (value[start] !== '"') return null;
+  start += 1;
+  let escaped = false;
+  let captured = "";
+  for (let index = start; index < value.length; index += 1) {
+    const char = value[index];
+    if (escaped) { captured += char === "n" ? "\n" : char === "r" ? "\r" : char === "t" ? "\t" : char; escaped = false; continue; }
+    if (char === "\\") { escaped = true; continue; }
+    if (char === '"') { try { return JSON.parse(`"${captured.replace(/"/g, '\\"')}"`); } catch { return captured; } }
+    captured += char;
+  }
+  return captured || null;
+}
 function stripEmbeddedJson(value: string): string {
+  const answerField = extractAnswerField(value);
+  if (answerField && /^\s*\{/.test(value)) return answerField.trim().slice(0, 1200);
   const embeddedAnswer = value.match(/\"answer\"\s*:\s*\"((?:\\.|[^\"\\])*)\"/s);
   if (embeddedAnswer && /^\s*\{/.test(value)) {
     try { return JSON.parse(`"${embeddedAnswer[1]}"`).trim().slice(0, 1200); } catch { /* fall through to the bounded cleanup below */ }
@@ -37,6 +57,7 @@ function containsPromptLeak(value: string): boolean {
 function parseModelOutput(candidate: unknown, data: InsightData): unknown {
   if (candidate && typeof candidate === "object") {
     const row = candidate as Record<string, any>;
+    if (!row.answer && typeof row.response === "string") return parseModelOutput(row.response, data);
     if (typeof row.answer === "string" && row.answer.trim()) {
       const embedded = extractJson(row.answer);
       if (embedded && typeof embedded === "object" && typeof (embedded as Record<string, unknown>).answer === "string") return parseModelOutput(embedded, data);
