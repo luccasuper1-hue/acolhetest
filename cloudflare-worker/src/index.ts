@@ -184,17 +184,34 @@ async function probeDatabase(env: Env) {
   return readinessProbe;
 }
 
+async function edgeCachedHealth(request: Request, ctx: ExecutionContext, load: () => Promise<Response>): Promise<Response> {
+  // Only cache anonymous GET probes. HEAD keeps the same semantics but does
+  // not need a second cache key or body handling path.
+  if (request.method !== "GET") return load();
+  const cacheKey = new Request(request.url, { method: "GET" });
+  const cached = await caches.default.match(cacheKey);
+  if (cached) return cached;
+  const response = await load();
+  const headers = new Headers(response.headers);
+  headers.set("cache-control", "public, max-age=5, stale-while-revalidate=10");
+  const cacheable = new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+  ctx.waitUntil(caches.default.put(cacheKey, cacheable.clone()).catch(() => undefined));
+  return cacheable;
+}
+
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     if (request.method === "OPTIONS") return corsPreflight(request, env);
     const url = new URL(request.url);
     if (["/api/live", "/api/ready", "/api/health"].includes(url.pathname) && ["GET", "HEAD"].includes(request.method)) {
       const base = { service: "acolhe", environment: env.APP_ENV || "production", checked_at: new Date().toISOString() };
-      if (url.pathname === "/api/live") return operationalHealth(request, env, { ...base, ok: true }, 200);
-      const probe = await probeDatabase(env);
-      const database = probe.database;
-      const ready = database === "ok";
-      return operationalHealth(request, env, { ...base, checked_at: probe.checked_at, ok: ready, database }, ready ? 200 : 503);
+      return edgeCachedHealth(request, ctx, async () => {
+        if (url.pathname === "/api/live") return operationalHealth(request, env, { ...base, ok: true }, 200);
+        const probe = await probeDatabase(env);
+        const database = probe.database;
+        const ready = database === "ok";
+        return operationalHealth(request, env, { ...base, checked_at: probe.checked_at, ok: ready, database }, ready ? 200 : 503);
+      });
     }
     if (!url.pathname.startsWith("/api")) return servePublicAsset(request, env, url);
     if (url.pathname === "/api/realtime" && request.headers.get("upgrade")?.toLowerCase() === "websocket") {
