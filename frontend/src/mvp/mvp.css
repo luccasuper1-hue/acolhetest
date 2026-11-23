@@ -2716,6 +2716,7 @@ html[data-theme="dark"] .mvp-shell[data-testid="student-area"] .student-active-a
 .insight-result-v2-head h3{margin:0;font-size:1rem;letter-spacing:-.15px;font-weight:650}
 .insight-result-v2-head .mvp-tag{font-size:.68rem;letter-spacing:.06em;padding:.3rem .58rem;color:var(--brand,#7254ad);background:color-mix(in srgb,var(--brand,#7254ad) 9%,transparent);border-color:color-mix(in srgb,var(--brand,#7254ad) 26%,var(--line,#e7e1ee))}
 .insight-result-v2-answer{margin:.4rem 0 1.1rem;max-width:64ch;font-size:1.02rem;line-height:1.58;font-weight:560}
+.insight-result-v2-details{margin-top:.35rem}
 .insight-result-v2-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;margin:1rem 0 1.1rem}
 .insight-result-v2-grid>div{padding-left:.75rem;border-left:2px solid color-mix(in srgb,var(--brand,#7254ad) 55%,transparent)}
 .insight-result-v2-grid strong,.insight-result-v2-limitations strong{display:block;font-size:.76rem;letter-spacing:.01em;color:var(--ink,#241a33)}

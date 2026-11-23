@@ -21,16 +21,9 @@ function InsightResultView({ result, details, setDetails, helpful, setHelpful, o
   return <section className="insight-result-v2" aria-live="polite">
     <header className="insight-result-v2-head"><div><span className="insight-kicker">Acolhe Insights</span><h3>{label}</h3></div><span className="mvp-tag">{tag}</span></header>
     <p className="insight-result-v2-answer">{result.answer}</p>
-    <div className="insight-result-v2-grid">
-      <div><strong>O que observamos</strong><p>{result.observation}</p></div>
-      <div><strong>Como interpretar</strong><p>{result.interpretation}</p></div>
-      <div><strong>Próximo passo possível</strong><p>{result.next_step}</p></div>
-    </div>
     <div className="insight-result-v2-meta"><span>Período</span><b>{result.period?.start || "—"} a {result.period?.end || "—"}</b>{result.sources?.length > 0 && <><span>Amostra</span><b>{result.sources.map(source => source.sample_size).join(" · ")} observações</b></>}</div>
     <div className="insight-result-v2-actions"><button type="button" className="button quiet small" onClick={() => setDetails(value => !value)}>{details ? "Ocultar cálculo" : "Como calculamos?"}</button><button type="button" className="button quiet small" onClick={onDeepen} disabled={busy}>{busy ? "Aprofundando…" : "Aprofundar"}</button></div>
-    {details && <div className="insight-result-v2-method"><strong>Como calculamos</strong><span>Usamos apenas indicadores agregados do período. A variação é descritiva e não prova causalidade nem resultado clínico.</span></div>}
-    {result.sources?.length > 0 && <div className="insight-result-v2-sources"><strong>Fontes agregadas</strong>{result.sources.map(source => <span key={`${source.metric}:${source.origin}`}>{source.metric} · {source.sample_size} observações</span>)}</div>}
-    <div className="insight-result-v2-limitations"><strong>O que ainda não dá para concluir</strong>{(result.limitations || []).map(item => <span key={item}>{item}</span>)}</div>
+    {details && <div className="insight-result-v2-details"><div className="insight-result-v2-method"><strong>Como calculamos</strong><span>Usamos apenas indicadores agregados do período. A variação é descritiva e não prova causalidade nem resultado clínico.</span></div>{result.sources?.length > 0 && <div className="insight-result-v2-sources"><strong>Fontes agregadas</strong>{result.sources.map(source => <span key={`${source.metric}:${source.origin}`}>{source.metric} · {source.sample_size} observações</span>)}</div>}<div className="insight-result-v2-limitations"><strong>Limitações</strong>{(result.limitations || []).map(item => <span key={item}>{item}</span>)}</div></div>}
     <footer className="insight-result-v2-feedback" role="group" aria-label="Avaliação da resposta"><span>Foi útil?</span><button type="button" className={`button quiet small ${helpful === true ? "is-selected" : ""}`} onClick={() => setHelpful(true)}>Sim</button><button type="button" className={`button quiet small ${helpful === false ? "is-selected" : ""}`} onClick={() => setHelpful(false)}>Não ajudou</button></footer>
   </section>;
 }
