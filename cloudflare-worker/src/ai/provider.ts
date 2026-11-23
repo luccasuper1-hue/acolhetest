@@ -24,6 +24,12 @@ function extractJson(value: string): unknown {
   }
   return null;
 }
+function containsPromptLeak(value: string): boolean {
+  const normalized = value.toLocaleLowerCase();
+  const instructionMarkers = (normalized.match(/não forneça|retorne apenas|json válido|system prompt|instruções anteriores|ignore as regras/g) || []).length;
+  const repeatedPhrase = (normalized.match(/não forneça informações sobre como você pode ser utilizado/g) || []).length;
+  return instructionMarkers >= 2 || repeatedPhrase >= 2;
+}
 function parseModelOutput(candidate: unknown, data: InsightData): unknown {
   if (candidate && typeof candidate === "object") {
     const row = candidate as Record<string, any>;
@@ -31,7 +37,7 @@ function parseModelOutput(candidate: unknown, data: InsightData): unknown {
       const embedded = extractJson(row.answer);
       if (embedded && typeof embedded === "object" && typeof (embedded as Record<string, unknown>).answer === "string") return parseModelOutput(embedded, data);
       const answer = stripEmbeddedJson(row.answer);
-      if (!answer) return null;
+      if (!answer || containsPromptLeak([answer, row.observation, row.interpretation, row.next_step].filter((item): item is string => typeof item === "string").join(" "))) return null;
       const sources = Array.isArray(row.sources) && row.sources.length > 0 ? row.sources : Object.values(data.tools).flatMap((tool: any) => [tool?.source, tool?.series_source].filter(Boolean)).slice(0, 8);
       return { answer, observation: typeof row.observation === "string" && row.observation.trim() ? stripEmbeddedJson(row.observation) : "O modelo respondeu usando os indicadores agregados autorizados.", interpretation: typeof row.interpretation === "string" && row.interpretation.trim() ? stripEmbeddedJson(row.interpretation) : "A leitura é descritiva e não permite concluir causas ou avaliar pessoas.", next_step: typeof row.next_step === "string" && row.next_step.trim() ? stripEmbeddedJson(row.next_step) : "Vale acompanhar este indicador no próximo período.", sources, period: row.period && typeof row.period === "object" ? row.period : data.period, limitations: Array.isArray(row.limitations) ? row.limitations : data.limitations, confidence: "supported", fallback: false };
     }
@@ -53,7 +59,7 @@ function parseModelOutput(candidate: unknown, data: InsightData): unknown {
       return values;
     }).slice(0, 8);
     const answer = stripEmbeddedJson(text);
-    if (!answer) return null;
+    if (!answer || containsPromptLeak(answer)) return null;
     return { answer, observation: "O modelo respondeu usando os indicadores agregados autorizados.", interpretation: "A leitura é descritiva e não permite concluir causas ou avaliar pessoas.", next_step: "Vale acompanhar este indicador no próximo período.", sources, period: data.period, limitations: data.limitations, confidence: "supported", fallback: false };
   }
   return null;
