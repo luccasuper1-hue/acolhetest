@@ -18,6 +18,12 @@ const APP_TIME_ZONE = PRODUCT_TIME_ZONE;
 // Technical delivery events remain available for alerting and retention, but
 // must not leak into the administrator's operational activity feed or counts.
 const TECHNICAL_EVENT_TYPES = ["email_delivery_retry_scheduled", "email_delivery_failed"] as const;
+// Page-view events are intentionally best-effort. A browser can emit the same
+// beacon more than once while restoring a tab or navigating between history
+// entries. Coalesce identical events in the current isolate before opening a
+// Durable Object RPC; the persistent write still remains the source of truth.
+const analyticsEventCache = new Map<string, number>();
+const ANALYTICS_DEDUP_MS = 30_000;
 const publicSessionMessage = (message: Doc) => ({ id: message.id, sender_role: message.sender_role, body: message.body, created_at: message.created_at, ...(message.read_at ? { read_at: message.read_at } : {}) });
 const publicSession = (session: Doc) => ({ id: session.id, date: session.date, time: session.time, duration_minutes: session.duration_minutes || 30, status: session.status, room_link: session.room_link || null, created_at: session.created_at, completed_at: session.completed_at || null, no_show_at: session.no_show_at || null });
 const publicAvailability = (slot: Doc) => ({ id: slot.id, date: slot.date, time: slot.time, duration_minutes: slot.duration_minutes || 30, mode: slot.mode || "online", location: slot.location || null, status: slot.status, created_at: slot.created_at });
@@ -775,6 +781,17 @@ async function publicRoutes(request: Request, env: Env, pathname: string): Promi
     // still sends a measurement event after login/navigation.
     const privatePrefixes = ["/admin", "/aluno", "/profissional", "/instituicao", "/convite", "/entrar", "/login", "/recuperar-senha", "/redefinir-senha"];
     if (privatePrefixes.some((prefix) => page === prefix || page.startsWith(`${prefix}/`))) return json({ ok: true, ignored: true });
+    const analyticsKey = `${visitorId}:${page}`;
+    const analyticsNow = Date.now();
+    const seenAt = analyticsEventCache.get(analyticsKey);
+    if (seenAt && analyticsNow - seenAt < ANALYTICS_DEDUP_MS) return json({ ok: true, deduplicated: true });
+    analyticsEventCache.set(analyticsKey, analyticsNow);
+    if (analyticsEventCache.size > 2048) {
+      for (const [key, timestamp] of analyticsEventCache) {
+        if (analyticsNow - timestamp >= ANALYTICS_DEDUP_MS) analyticsEventCache.delete(key);
+        if (analyticsEventCache.size <= 1024) break;
+      }
+    }
     const visitorHash = await hashToken(visitorId);
     const increments: Doc = { page_views: 1 };
     if (page === "/cadastro") increments.signup_starts = 1;
