@@ -3,12 +3,13 @@
 ## Referência atual — 22/11/2026
 
 - Commit/tag reproduzível: atualização do modelo Workers AI após a publicação de 22/11/2026.
-- Produção: `c95864e6-3354-4c1c-a34f-a67548bcefb1` — `APP_ENV=production`.
+- Produção: `9e7ab65f-387e-4e07-bf84-bf584b9a1f67` — `APP_ENV=production`.
 - Staging: `5402ef6a-759a-46ca-9b5c-b81a3134db6d` — `APP_ENV=staging`.
 - Origens: `https://acolhetest.luccasuper1.workers.dev` e `https://acolhetest-staging.luccasuper1.workers.dev`.
 - Health GET: HTTP 200 e `database: ok` nos dois ambientes.
 - Gates locais: Worker 87/87; frontend 314/314; TypeScript, lint, build e bundle budget aprovados.
-- O staging foi publicado a partir da mesma build local da produção; os hashes dos assets são idênticos.
+- O staging continua na versão anterior; esta correção foi promovida somente para produção, conforme a autorização de publicação.
+- A correção publicada remove a renderização duplicada do resultado do Insights, evitando que a versão legada sobrescreva a leitura operacional com “Leitura limitada”.
 - O Acolhe Insights usa `@cf/meta/llama-3.1-8b-instruct-fast`; a variante AWQ anterior estava depreciada e causava fallback seguro.
 - E2E autenticado e carga não foram executados nesta promoção; permanecem validações separadas, não inventadas.
 
