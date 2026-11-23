@@ -1,12 +1,13 @@
 # Evidências do piloto ponta a ponta
 
-## Estado do release atual — 22/11/2026
+## Estado do release atual — 23/11/2026
 
-- Produção: `68bf0126-e7bb-4bc2-b69c-1f2585b784ff`.
+- Produção: `71656775-cf16-455f-910f-f5d8bc113989`.
 - Staging: `5402ef6a-759a-46ca-9b5c-b81a3134db6d`.
 - Ambos respondem health HTTP 200 com banco saudável.
 - O provedor do Acolhe Insights foi atualizado para o modelo Workers AI ativo `@cf/meta/llama-3.1-8b-instruct-fast`; esta publicação também remove a versão duplicada/legada do resultado no painel institucional. Não houve E2E autenticado nesta publicação.
 - A interface institucional agora apresenta o Insights como assistente do projeto, com atalhos visíveis para fluxo do piloto, privacidade, métricas, demanda e gargalos, além do escopo da resposta.
+- A classificação agora aceita saudações e perguntas gerais em linguagem natural, inclusive pequenas variações e erros de digitação, sem remover os bloqueios de privacidade e segurança.
 - O release é reproduzível pelo commit `8c0eb65` e pela tag `acolhe-release-2026-11-22`.
 - E2E autenticado e carga não foram executados nesta rodada; qualquer evidência anterior continua histórica e não é promovida automaticamente.
 
