@@ -11,9 +11,9 @@ const intentPatterns: [string, RegExp][] = [
   ["overview", /\b(acolhe|painel|indicador(?:es)?|m[eé]trica(?:s)?|como funciona|por que usar|pq usar|pr[oó]ximo passo)\b/i],
   ["response_time", /resposta|tempo|48\s*h|atrasad|prazo/i],
   ["attendance", /comparecimento|presen[cç]a|aus[eê]ncia/i],
-  ["capacity", /capacidade|hor[aá]rio|vaga|disponib|gargalo/i],
-  ["impact", /linha de base|mudou|evolu[cç][aã]o|impacto|antes|depois/i],
   ["bottlenecks", /gargalo|onde.*trav|problema operacional/i],
+  ["capacity", /capacidade|hor[aá]rio|vaga|disponib/i],
+  ["impact", /linha de base|mudou|evolu[cç][aã]o|impacto|antes|depois/i],
   ["demand", /demanda|pedidos|procura|volume/i],
 ];
 const usage = new Map<string, { day: string; count: number; minute: number; minuteCount: number; fingerprints: Map<string, number> }>();

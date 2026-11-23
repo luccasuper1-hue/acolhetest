@@ -39,6 +39,15 @@ test("adversarial and source integrity protections are present", () => {
   assert.match(schemas, /next_step/);
 });
 
+test("guided questions map to distinct operational intents", () => {
+  const bottlenecks = policy.indexOf('["bottlenecks"');
+  const capacity = policy.indexOf('["capacity"');
+  assert.ok(bottlenecks >= 0 && bottlenecks < capacity, "gargalos must not be classified as capacity");
+  assert.match(fallback, /linha de base ainda não foi registrada/);
+  assert.match(fallback, /respostas registradas no período/);
+  assert.match(fallback, /pedidos além de 48 horas/);
+});
+
 test("Insights never logs the complete question or answer", () => {
   assert.doesNotMatch(assistant, /logOperational\([^\n]*(question|answer)/i);
   assert.match(assistant, /institution_scope/);
