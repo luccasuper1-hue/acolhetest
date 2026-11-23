@@ -1,5 +1,13 @@
 # Exercício de recuperação e incidentes
 
+## Estado atual do release — 22/11/2026
+
+- Produção: `531346eb-065a-46fd-bd2e-86d9aace3c54`, health HTTP 200, banco OK.
+- Staging: `7d8ba397-b1fb-433d-b42a-cfe24bb8e224`, health HTTP 200, banco OK, ambiente identificado como `staging`.
+- Commit reproduzível: `8c0eb65` (`acolhe-release-2026-11-22`).
+- Validações locais: Worker 85/85 e frontend 314/314; TypeScript, lint, build e orçamento de bundle aprovados.
+- Não houve E2E autenticado ou carga nesta promoção; não tratar esta publicação como evidência desses cenários.
+
 Data da verificação: 21/11/2026 (UTC)
 
 Promoção da rodada de profissionalização: produção `ae1f4100-6d3b-46b2-8506-f444f44b3b44`; smoke pós-publicação aprovado em 22/11/2026. O E2E autenticado e o restore específicos desta versão permanecem pendentes por falta de credenciais de teste nesta sessão.

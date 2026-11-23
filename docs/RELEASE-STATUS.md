@@ -1,5 +1,16 @@
 # Estado do release
 
+## Referência atual — 22/11/2026
+
+- Commit/tag reproduzível: `8c0eb65` / `acolhe-release-2026-11-22`.
+- Produção: `531346eb-065a-46fd-bd2e-86d9aace3c54` — `APP_ENV=production`.
+- Staging: `7d8ba397-b1fb-433d-b42a-cfe24bb8e224` — `APP_ENV=staging`.
+- Origens: `https://acolhetest.luccasuper1.workers.dev` e `https://acolhetest-staging.luccasuper1.workers.dev`.
+- Health GET: HTTP 200 e `database: ok` nos dois ambientes.
+- Gates locais: Worker 85/85; frontend 314/314; TypeScript, lint, build e bundle budget aprovados.
+- O staging foi publicado a partir da mesma build local da produção; os hashes dos assets são idênticos.
+- E2E autenticado e carga não foram executados nesta promoção; permanecem validações separadas, não inventadas.
+
 - Última publicação autorizada: ciclo 678 — preenchimento integral do card de pedido em 22/11/2026.
 - Versão do Worker: `57c02561-a44a-487d-9b39-2a6eaf3b42af`.
 - Origem pública: `https://acolhetest.luccasuper1.workers.dev`.

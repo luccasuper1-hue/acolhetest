@@ -1,5 +1,13 @@
 # Evidências do piloto ponta a ponta
 
+## Estado do release atual — 22/11/2026
+
+- Produção: `531346eb-065a-46fd-bd2e-86d9aace3c54`.
+- Staging: `7d8ba397-b1fb-433d-b42a-cfe24bb8e224`.
+- Ambos respondem health HTTP 200 com banco saudável.
+- O release é reproduzível pelo commit `8c0eb65` e pela tag `acolhe-release-2026-11-22`.
+- E2E autenticado e carga não foram executados nesta rodada; qualquer evidência anterior continua histórica e não é promovida automaticamente.
+
 Este registro deve ser preenchido durante um teste controlado com contas de teste e sem conteúdo clínico real. Nenhuma etapa abaixo é considerada concluída apenas por existir no código.
 
 ## Escopo temporal da evidência
