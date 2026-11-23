@@ -30,6 +30,15 @@ function InsightResultView({ result, details, setDetails, helpful, setHelpful, o
   </section>;
 }
 
+function InsightChatResult({ result, details, setDetails, helpful, setHelpful, onDeepen, busy }) {
+  if (!result) return null;
+  const scopeLabel = { conversa: "Conversa", produto: "Produto", privacidade: "Privacidade", métricas: "Métricas", piloto: "Piloto", professional: "Minha operação" }[result.scope] || "Operação";
+  const grounded = result.sources?.length > 0 && result.confidence !== "blocked";
+  const tag = result.confidence === "blocked" ? "Protegida" : result.confidence === "supported" || grounded ? "Com fontes" : "Leitura limitada";
+  const hasMetricSource = result.sources?.some(source => source.metric !== "knowledge");
+  return <div className="insight-chat-result"><header><span className="insight-kicker">{scopeLabel}</span><span className="mvp-tag">{tag}</span></header><p>{result.answer}</p>{hasMetricSource && <small>{result.period?.start || "—"} a {result.period?.end || "—"} · {result.sources.filter(source => source.metric !== "knowledge").map(source => source.sample_size).join(" · ")} observações</small>}<div className="insight-chat-result-actions"><button type="button" className="button quiet small" onClick={() => setDetails(value => !value)}>{details ? "Ocultar detalhes" : "Ver detalhes"}</button><button type="button" className="button quiet small" onClick={onDeepen} disabled={busy}>{busy ? "Aprofundando…" : "Aprofundar"}</button></div>{details && <div className="insight-chat-result-details"><strong>Limitações e fontes</strong>{(result.limitations || []).map(item => <span key={item}>{item}</span>)}{result.sources?.length > 0 && <span>{result.sources.map(source => source.origin).join(" · ")}</span>}</div>}<footer role="group" aria-label="Avaliação da resposta"><span>Foi útil?</span><button type="button" className={`button quiet small ${helpful === true ? "is-selected" : ""}`} onClick={() => setHelpful(true)}>Sim</button><button type="button" className={`button quiet small ${helpful === false ? "is-selected" : ""}`} onClick={() => setHelpful(false)}>Não ajudou</button></footer></div>;
+}
+
 function InstitutionInsightsLauncher({ question, setQuestion, result, error, busy, details, setDetails, helpful, setHelpful, ask, deepen }) {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef(null);
@@ -50,7 +59,7 @@ function InstitutionInsightsLauncher({ question, setQuestion, result, error, bus
         <div className="mvp-chat-messages" aria-live="polite">
           <div className="mvp-chat-message theirs">Posso explicar o Acolhe, suas políticas ou ajudar a interpretar indicadores agregados. Não acesso conversas e não executo ações.</div>
           {result && question && <div className="mvp-chat-message mine">{question}</div>}
-          {result && <div className="mvp-chat-message theirs institution-insights-answer"><InsightResultView result={result} details={details} setDetails={setDetails} helpful={helpful} setHelpful={setHelpful} onDeepen={deepen} busy={busy} /></div>}
+          {result && <div className="mvp-chat-message theirs institution-insights-answer"><InsightChatResult result={result} details={details} setDetails={setDetails} helpful={helpful} setHelpful={setHelpful} onDeepen={deepen} busy={busy} /></div>}
         </div>
         <div className="insight-suggestions insight-guided-questions" aria-label="Atalhos do Acolhe Insights">
           {INSIGHT_QUESTIONS.map(item => <button type="button" className={`button secondary small ${question === item ? "is-selected" : ""}`} key={item} onClick={event => ask(event, item)} disabled={busy}>{item}</button>)}
@@ -58,7 +67,7 @@ function InstitutionInsightsLauncher({ question, setQuestion, result, error, bus
         <form className="mvp-chat-compose" onSubmit={event => ask(event)}><input id="institution-insight-question" aria-label="Pergunta para o Acolhe Insights" value={question} maxLength={600} onChange={event => setQuestion(event.target.value)} placeholder="Pergunte do seu jeito…" disabled={busy} /><button type="submit" aria-label="Enviar pergunta" className="button small primary" disabled={busy || !question.trim()}><Send size={14} /></button></form>
       </div>
     </div>}
-    <button ref={triggerRef} type="button" className="corner-logo institution-insights-trigger" onClick={() => setOpen(value => !value)} aria-haspopup="dialog" aria-expanded={open} aria-controls="institution-insights-popover" aria-label="Abrir Acolhe Insights"><span className="corner-logo-glow" aria-hidden="true"/><span className="corner-logo-float" aria-hidden="true"><span className="corner-logo-body"><span className="corner-logo-mark"><BrandMark size={30}/></span></span></span><Sparkle className="institution-insights-sparkle" size={16} strokeWidth={2.4} aria-hidden="true"/><span className="corner-logo-tooltip">Conversar com o Acolhe Insights</span></button>
+    {!open && <button ref={triggerRef} type="button" className="corner-logo institution-insights-trigger" onClick={() => setOpen(true)} aria-haspopup="dialog" aria-expanded={open} aria-controls="institution-insights-popover" aria-label="Abrir Acolhe Insights"><span className="corner-logo-glow" aria-hidden="true"/><span className="corner-logo-float" aria-hidden="true"><span className="corner-logo-body"><span className="corner-logo-mark"><BrandMark size={30}/></span></span></span><Sparkle className="institution-insights-sparkle" size={16} strokeWidth={2.4} aria-hidden="true"/><span className="corner-logo-tooltip">Conversar com o Acolhe Insights</span></button>}
   </div>;
 }
 
