@@ -22,7 +22,7 @@ export async function handleInstitutionInsight(input: { env: Env; userId: string
   if (!consumeInsightQuota(input.userId, input.institutionId, fingerprint(checked.question))) return policyResponse("O limite de consultas do Acolhe Insights foi atingido. Tente novamente em instantes ou amanhã.", data, "fallback", "Limite por minuto, usuário, instituição e repetição de perguntas.");
   const started = Date.now(); let result: InsightResponse = fallbackInsight(data, checked.intent, "O modelo de IA está indisponível ou os dados são insuficientes.");
   const provider = await runWorkersAi(input.env, checked.question, data);
-  if (provider.available) { try { result = validateInsightResponse(provider.value, false, data.tools); } catch { result = fallbackInsight(data, checked.intent, "A resposta recebida não passou pela validação de fontes e números."); } }
+  if (provider.available) { try { result = validateInsightResponse(provider.value, false, data.tools); } catch { result = fallbackInsight(data, checked.intent, "A leitura foi calculada diretamente a partir das métricas agregadas disponíveis."); } }
   else if (provider.reason === "missing_binding" || provider.reason === "timeout" || provider.reason === "provider_error") {
     result = fallbackInsight(data, checked.intent, "Não consegui gerar a interpretação agora. Os indicadores básicos continuam disponíveis para consulta.");
   }
