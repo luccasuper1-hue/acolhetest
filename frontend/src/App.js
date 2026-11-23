@@ -497,4 +497,29 @@ function AppRoutes() {
   if (isLegacyPath) return <Navigate to="/entrar" replace />;
   return <div className={`route-fade${homeClass}`} key={location.pathname}><Routes><Route path="/" element={<HomeEntry/>}/><Route path="/login-demo" element={<DemoLogin/>}/><Route path="/entrar" element={<MvpLoginPage/>}/><Route path="/login" element={<Navigate to="/entrar" replace/>}/><Route path="/cadastro" element={<MvpRegisterPage/>}/><Route path="/convite/:token" element={<MvpInvitePage/>}/><Route path="/recuperar-senha" element={<MvpForgotPassword/>}/><Route path="/redefinir-senha" element={<MvpResetPassword/>}/><Route path="/validar-certificado/:code" element={<CertificateValidationPage/>}/><Route path="/aluno" element={<RequireRole role="student"><StudentArea/></RequireRole>}/><Route path="/profissional" element={<RequireRole role="professional"><ProfessionalArea/></RequireRole>}/><Route path="/instituicao" element={<RequireRole role="institution"><InstitutionArea/></RequireRole>}/><Route path="/admin" element={<RequireRole role="admin"><AdminArea/></RequireRole>}/><Route path="/profissional-dashboard" element={<ProfessionalDashboard/>}/><Route path="/como-funciona" element={<InfoPage type="como-funciona"/>}/><Route path="/para-estudantes" element={<InfoPage type="para-estudantes"/>}/><Route path="/profissionais" element={<InfoPage type="profissionais"/>}/><Route path="/instituicoes" element={<InfoPage type="instituicoes"/>}/><Route path="/privacidade" element={<InfoPage type="privacidade"/>}/><Route path="/politica-de-cookies" element={<CookiePolicyPage/>}/><Route path="/ajuda" element={<HelpPage/>}/><Route path="/ajuda/instituicoes" element={<InstitutionOnboardingPage/>}/><Route path="/termos/estudante" element={<RoleTermsPage role="student"/>}/><Route path="/termos/profissional" element={<RoleTermsPage role="professional"/>}/><Route path="/termos/instituicao" element={<RoleTermsPage role="institution"/>}/><Route path="/preciso-ajuda" element={<EmergencyPage/>}/><Route path="/app" element={<AppHome/>}/><Route path="/app/assunto" element={<TopicPage/>}/><Route path="/app/profissionais" element={<ProfessionalsPage/>}/><Route path="/app/profissional/:id" element={<ProfilePage/>}/><Route path="/app/agendamento" element={<BookingPage/>}/><Route path="/app/pagamento" element={<PaymentPage/>}/><Route path="/app/confirmacao" element={<ConfirmationPage/>}/><Route path="/app/sessao" element={<SessionPage/>}/><Route path="/recursos" element={<ResourcesPage/>}/><Route path="/termos" element={<TermsPage/>}/><Route path="/instituicoes/painel" element={<InstitutionDashboard/>}/><Route path="/app/agenda" element={<AgendaPage/>}/><Route path="/app/jornada" element={<JourneyPage/>}/><Route path="/app/pos-conversa" element={<PostConversation/>}/><Route path="*" element={<NotFoundPage/>}/></Routes></div>;
 }
-export default function App() { useIntro(); useEffect(() => { document.title = "Acolhe — Um primeiro passo para cuidar de você"; const meta = document.querySelector('meta[name="description"]'); if (meta) meta.setAttribute("content", "Acolhe é uma proposta de plataforma que aproxima estudantes de profissionais de Psicologia de forma simples, acessível e virtual."); }, []); return <ThemeProvider><MvpAuthProvider><AuthProvider><BookingProvider><BrowserRouter><SkipLink/><AppRoutes/><CommandPalette/><CookieConsent/><Toaster position="bottom-right" gap={10} offset={26} toastOptions={{ className: "acolhe-toast", duration: 3200 }}/></BrowserRouter></BookingProvider></AuthProvider></MvpAuthProvider></ThemeProvider>; }
+export default function App() {
+ useIntro();
+ useEffect(() => {
+  document.title = "Acolhe — Um primeiro passo para cuidar de você";
+  const meta = document.querySelector('meta[name="description"]');
+  if (meta) meta.setAttribute("content", "Acolhe é uma proposta de plataforma que aproxima estudantes de profissionais de Psicologia de forma simples, acessível e virtual.");
+ }, []);
+ useEffect(() => {
+  const email = "mailto:acolheiluminado@gmail.com";
+  const selectors = '[data-testid="footer-contact"], [data-testid="final-contact-button"]';
+  const updateLinks = () => document.querySelectorAll(selectors).forEach((link) => link.setAttribute("href", email));
+  const handleClick = (event) => {
+   const link = event.target.closest?.(selectors);
+   if (!link) return;
+   event.preventDefault();
+   event.stopPropagation();
+   window.location.href = email;
+  };
+  updateLinks();
+  document.addEventListener("click", handleClick, true);
+  const observer = new MutationObserver(updateLinks);
+  observer.observe(document.body, { childList: true, subtree: true });
+  return () => { document.removeEventListener("click", handleClick, true); observer.disconnect(); };
+ }, []);
+ return <ThemeProvider><MvpAuthProvider><AuthProvider><BookingProvider><BrowserRouter><SkipLink/><AppRoutes/><CommandPalette/><CookieConsent/><Toaster position="bottom-right" gap={10} offset={26} toastOptions={{ className: "acolhe-toast", duration: 3200 }}/></BrowserRouter></BookingProvider></AuthProvider></MvpAuthProvider></ThemeProvider>;
+}
