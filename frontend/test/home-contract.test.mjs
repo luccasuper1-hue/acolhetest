@@ -42,7 +42,7 @@ const frontendBudgetScript = await readFile(resolve(root, "..", "ops", "check-fr
 const home = app.slice(app.indexOf("function Home()"), app.indexOf("function InfoPage"));
 
 test("home presents the current MVP rather than a rotating demo", () => {
-  assert.match(home, /Acesso ao Acolhe/);
+  assert.match(home, /Um primeiro passo para buscar apoio/);
   assert.match(home, /Fluxo do Acolhe/);
   assert.match(home, /hero-role-\$\{role\}/);
   assert.doesNotMatch(home, /setInterval\(\(\) => setAutoIndex/);
@@ -450,9 +450,10 @@ test("certificate backfill audits mismatched institution links without overwriti
   assert.match(certificateMigration, /id: certificate\.id, \.\.\.missingInstitution/);
 });
 
-test("primary home actions enter the MVP", () => {
+test("primary home actions present the pilot and keep access available", () => {
   assert.match(home, /data-testid="hero-talk-button"/);
-  assert.match(home, /to="\/entrar" className="button primary"/);
+  assert.match(home, /to="\/como-funciona" className="button primary"/);
+  assert.match(home, /to="\/entrar" className="button quiet"/);
 });
 
 test("role cards lead to the matching audience pages", () => {
@@ -903,7 +904,8 @@ test("expired requests refresh every affected panel scope", () => {
 test("SLA expiration runs on a scheduled worker and is idempotent", () => {
   assert.ok(workerConfig.includes('"crons": ["*/15 * * * *"]'));
   assert.match(workerIndex, /async scheduled\(_controller: ScheduledController/);
-  assert.match(workerIndex, /ctx\.waitUntil\(expirePendingRequests\(db\(env\), env\)\)/);
+  assert.match(workerIndex, /getMaintenanceSnapshot/);
+  assert.match(workerIndex, /expirePendingRequests\(store, env, undefined, snapshot\)/);
   const start = routes.indexOf("async function expirePendingRequestsWork");
   const end = routes.indexOf("function sessionReminderNotifications", start);
   const block = routes.slice(start, end);
@@ -939,7 +941,7 @@ test("notification email delivery retries without duplicating the in-app notific
   assert.match(routes, /email_delivery\.status.*sending/);
   assert.match(routes, /retryNotificationEmails/);
   assert.match(routes, /retry_limit_reached/);
-  assert.match(workerIndex, /ctx\.waitUntil\(retryNotificationEmails\(env, db\(env\)\)\)/);
+  assert.match(workerIndex, /retryNotificationEmails\(env, store, snapshot\.notificationCandidates\)/);
 });
 
 test("institution and admin notification fan-out shares idempotent email delivery", () => {
@@ -1668,8 +1670,8 @@ test("account privacy controls are shared by user panels but excluded from admin
 
 test("admin audit excludes technical email delivery events from operational feed and counts", () => {
   assert.match(routes, /const TECHNICAL_EVENT_TYPES = \["email_delivery_retry_scheduled", "email_delivery_failed"\]/);
-  assert.match(routes, /const filter: Doc = \{ type: \{ \$nin: \[\.\.\.TECHNICAL_EVENT_TYPES\] \} \}/);
-  assert.match(routes, /count\("events", \{ type: \{ \$nin: \[\.\.\.TECHNICAL_EVENT_TYPES\] \}/);
+  assert.match(routes, /TECHNICAL_EVENT_TYPES/);
+  assert.match(routes, /type: \{ \$nin: \[\.\.\.TECHNICAL_EVENT_TYPES\] \}/);
   assert.doesNotMatch(routes, /findMany\("events", \{\}, \{ projection: \{ type: 1, role: 1, institution_id: 1, created_at: 1 \}/);
   assert.match(admin, /TECHNICAL_AUDIT_TYPES = new Set\(\["email_delivery_retry_scheduled", "email_delivery_failed"\]\)/);
   assert.match(admin, /const auditPage = Array\.isArray\(auditResponse\.data\) \? \{ items: auditResponse\.data, has_more: false, next_before: null \} : auditResponse\.data/);
