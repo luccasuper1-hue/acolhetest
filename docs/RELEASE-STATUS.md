@@ -3,7 +3,7 @@
 ## Referência atual — 23/11/2026
 
 - Commit/tag reproduzível: atualização do modelo Workers AI após a publicação de 22/11/2026.
-- Produção: `71656775-cf16-455f-910f-f5d8bc113989` — `APP_ENV=production`.
+- Produção: `818b416b-a9ae-4255-ad81-6cbfeddd2312` — `APP_ENV=production`.
 - Staging: `5402ef6a-759a-46ca-9b5c-b81a3134db6d` — `APP_ENV=staging`.
 - Origens: `https://acolhetest.luccasuper1.workers.dev` e `https://acolhetest-staging.luccasuper1.workers.dev`.
 - Health GET: HTTP 200 e `database: ok` nos dois ambientes.
@@ -14,6 +14,7 @@
 - A interface do resultado foi simplificada: a resposta aparece em texto contínuo; os blocos separados ficam removidos e fontes/limitações permanecem recolhíveis.
 - O parser do provedor agora extrai respostas humanas quando o modelo aninha JSON dentro de `answer`, evitando exibir chaves e estrutura técnica no painel.
 - Saudações simples, erros de digitação e perguntas gerais sobre o projeto agora são reconhecidos antes do fallback de escopo; perguntas naturais não precisam repetir frases pré-programadas.
+- Probes anônimas de `/api/live`, `/api/ready` e `/api/health` agora usam deduplicação no isolate e cache curto no edge; o liveness não consulta o banco.
 - Esta publicação adiciona a base de conhecimento segura do produto e o escopo operacional do profissional.
 - O painel agora deixa visível que o Insights é um assistente do projeto: as sugestões cobrem fluxo do piloto, privacidade, métricas, demanda e gargalos, e cada resposta identifica seu escopo (Produto, Privacidade, Métricas, Piloto ou Operação).
 - A base de conhecimento agora responde tópicos específicos dos painéis, como a finalidade das notificações do estudante, sem mostrar amostra fictícia para respostas documentais.
