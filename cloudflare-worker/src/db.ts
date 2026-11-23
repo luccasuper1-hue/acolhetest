@@ -439,6 +439,20 @@ export class MongoGateway extends DurableObject<Env> {
     return result as RecordDoc | null;
   }
 
+  /** Loads the authenticated account, institution status and role profile in
+   * one gateway RPC. This is a read-only authorization preflight. */
+  async getUserContext(userId: string): Promise<{ user: RecordDoc | null; institution: RecordDoc | null; profile: RecordDoc | null }> {
+    const database = await this.db();
+    const user = await database.collection<RecordDoc>("users").findOne({ id: userId }, { projection: { _id: 0, password_hash: 0 } });
+    if (!user) return { user: null, institution: null, profile: null };
+    const profileCollection = user.role === "student" ? "students" : user.role === "professional" ? "professionals" : null;
+    const [institution, profile] = await Promise.all([
+      user.role !== "admin" && user.institution_id ? database.collection<RecordDoc>("institutions").findOne({ id: user.institution_id }, { projection: { _id: 0, active: 1 } }) : Promise.resolve(null),
+      profileCollection ? database.collection<RecordDoc>(profileCollection).findOne({ user_id: userId }, { projection: { _id: 0 } }) : Promise.resolve(null),
+    ]);
+    return { user, institution, profile };
+  }
+
   async findMany(collection: string, filter: Filter<RecordDoc>, options: { projection?: Record<string, 0 | 1>; sort?: Sort; limit?: number } = {}): Promise<RecordDoc[]> {
     const requestedLimit = options.limit;
     const limit = requestedLimit === undefined ? undefined : Math.min(MAX_QUERY_LIMIT, Math.max(1, Math.trunc(requestedLimit)));
@@ -1109,7 +1123,7 @@ export class MongoGateway extends DurableObject<Env> {
   }
 }
 
-export type Mongo = Pick<MongoGateway, "ping" | "findOne" | "findMany" | "getMaintenanceSnapshot" | "insert" | "insertIfAbsent" | "update" | "recordAnalyticsPageView" | "allowChatMessage" | "updateMany" | "remove" | "deleteAccount" | "count" | "countMany" | "aggregate" | "aggregateMany" | "getStudentDashboard" | "getProfessionalDashboard" | "getInstitutionDashboard" | "getAdminSummary" | "distinct" | "findOneAndUpdate" | "claimNotificationEmail" | "proposeDirectAppointment" | "confirmDirectAppointment" | "reservePublishedCapacity" | "deleteAvailability" | "proposePublishedAppointment" | "reschedulePublishedRequest" | "approveMinorRegistration" | "createStudentRequest" | "createPublishedStudentRequest" | "issueCertificate" | "saveFeedback" | "createAvailabilityBatch" | "recordLoginFailure" | "finalizeLogin" | "savePasswordReset" | "createLead" | "createStudentAccount" | "createProfessionalInvite" | "createInstitution" | "approveInstitutionLead" | "closeSession" | "acceptPublishedRequest" | "declinePublishedRequest" | "cancelAppointmentRequest" | "declineAppointmentRequest" | "expirePublishedRequest" | "expireAppointmentRequest" | "cancelPublishedRequest" | "saveRoomLink" | "saveSessionRoomLink" | "saveReferral">;
+export type Mongo = Pick<MongoGateway, "ping" | "findOne" | "findMany" | "getUserContext" | "getMaintenanceSnapshot" | "insert" | "insertIfAbsent" | "update" | "recordAnalyticsPageView" | "allowChatMessage" | "updateMany" | "remove" | "deleteAccount" | "count" | "countMany" | "aggregate" | "aggregateMany" | "getStudentDashboard" | "getProfessionalDashboard" | "getInstitutionDashboard" | "getAdminSummary" | "distinct" | "findOneAndUpdate" | "claimNotificationEmail" | "proposeDirectAppointment" | "confirmDirectAppointment" | "reservePublishedCapacity" | "deleteAvailability" | "proposePublishedAppointment" | "reschedulePublishedRequest" | "approveMinorRegistration" | "createStudentRequest" | "createPublishedStudentRequest" | "issueCertificate" | "saveFeedback" | "createAvailabilityBatch" | "recordLoginFailure" | "finalizeLogin" | "savePasswordReset" | "createLead" | "createStudentAccount" | "createProfessionalInvite" | "createInstitution" | "approveInstitutionLead" | "closeSession" | "acceptPublishedRequest" | "declinePublishedRequest" | "cancelAppointmentRequest" | "declineAppointmentRequest" | "expirePublishedRequest" | "expireAppointmentRequest" | "cancelPublishedRequest" | "saveRoomLink" | "saveSessionRoomLink" | "saveReferral">;
 
 export function gateway(env: Env): Mongo {
   const gatewayName = gatewayObjectName(env.APP_ENV);

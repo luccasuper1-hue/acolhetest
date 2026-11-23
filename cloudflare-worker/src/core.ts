@@ -141,21 +141,25 @@ export async function listNotifications(env: Env, recipientUserId: string, optio
   return (await listNotificationsPage(env, recipientUserId, options)).items;
 }
 
+const authenticatedProfiles = new WeakMap<object, Doc>();
+
 export async function currentUser(request: Request, env: Env): Promise<Doc | Response> {
   const token = cookieToken(request) || bearerToken(request);
   if (!token) return fail("Não autenticado", 401);
   try {
     const claims = await verifyAccessToken(token, env.JWT_SECRET);
-    const user = await db(env).findOne("users", { id: claims.sub }, { password_hash: 0 });
+    const context = await db(env).getUserContext(String(claims.sub));
+    const user = context.user;
     if (!user) return fail("Usuário não encontrado", 401);
     if (user.active === false) return fail("Acesso desativado", 403);
     if (Number(user.session_version || 0) !== Number(claims.session_version || 0)) return fail("Sessão expirada. Entre novamente.", 401);
     if (user.role !== "admin") {
       if (!user.institution_id) return fail("Instituição não vinculada. Fale com a administração.", 403);
-      const institution = await db(env).findOne("institutions", { id: user.institution_id }, { active: 1 });
+      const institution = context.institution;
       if (!institution) return fail("Instituição não vinculada. Fale com a administração.", 403);
       if (institution.active === false) return fail("Instituição arquivada. Fale com a administração.", 403);
     }
+    if (context.profile) authenticatedProfiles.set(user, context.profile);
     return user;
   } catch { return fail("Sessão expirada ou token inválido", 401); }
 }
@@ -168,6 +172,8 @@ export async function userWithRole(request: Request, env: Env, roles: Role[]): P
 }
 
 export async function profile(env: Env, user: Doc): Promise<Doc | Response> {
+  const cached = authenticatedProfiles.get(user);
+  if (cached) return cached;
   const collection = user.role === "student" ? "students" : "professionals";
   const result = await db(env).findOne(collection, { user_id: user.id });
   return result || fail("Perfil não encontrado", 404);
