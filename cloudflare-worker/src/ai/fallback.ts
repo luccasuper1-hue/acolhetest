@@ -14,7 +14,8 @@ export function fallbackInsight(data: InsightData, intent: string, reason: strin
   }
   if (intent === "bottlenecks") {
     const pending = Number((tool as any)?.pending_requests || 0); const overdue = Number((tool as any)?.overdue_requests || 0);
-    answer = overdue > 0 ? `Há ${overdue} pedidos além de 48 horas e ${pending} pedidos pendentes.` : `Há ${pending} pedidos pendentes; não foram identificados pedidos além de 48 horas.`;
+    const overdueLabel = `${overdue} ${overdue === 1 ? "pedido" : "pedidos"}`; const pendingLabel = `${pending} ${pending === 1 ? "pedido" : "pedidos"}`;
+    answer = overdue > 0 ? `Há ${overdueLabel} além de 48 horas e ${pendingLabel} pendentes.` : `Há ${pendingLabel} pendentes; não foram identificados pedidos além de 48 horas.`;
   }
   if (ready && intent === "attendance" && tool?.rate_percent != null) answer = `O comparecimento agregado foi de ${tool.rate_percent}%.`;
   if (ready && intent === "attendance" && tool?.rate_percent == null) answer = `Há ${sample} registros de comparecimento no período, mas a taxa ainda não está disponível.`;
