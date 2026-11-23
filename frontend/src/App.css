@@ -396,7 +396,7 @@ blockquote { font-family: Fraunces,serif; font-size: 30px; line-height: 1.2; mar
 .cta-inner .section-kicker { color: #e5d8fa; }
 .cta-inner h2 { font-size: 42px; margin: 12px 0 5px; }
 .cta-inner p { color: #eee8fb; margin: 0; }
-.cta-contact-link { color: #fff; border: 1px solid rgba(255,255,255,.42); }
+.cta-contact-link { display: none; color: #fff; border: 1px solid rgba(255,255,255,.42); }
 .cta-contact-link:hover { color: #fff; background: rgba(255,255,255,.12); }
 
 /* Home: menos respiro entre blocos para manter o foco no primeiro passo. */
