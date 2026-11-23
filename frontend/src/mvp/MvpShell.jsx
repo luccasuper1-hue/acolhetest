@@ -38,6 +38,7 @@ export const MvpShell = ({ title, kicker, lead, flow = [], flowStep = 0, childre
   const previousNotificationsOpen = useRef(false);
   const realtimeRefreshTimer = useRef(null);
   const realtimeFallbackAt = useRef(0);
+  const visibilityRefreshAt = useRef(0);
   const dashboardNotificationPageLoaded = useRef(false);
   const notificationBeforeRef = useRef(null);
   const notificationRequestRef = useRef(0);
@@ -218,7 +219,15 @@ export const MvpShell = ({ title, kicker, lead, flow = [], flowStep = 0, childre
   }, [isInstitutionLegacyNotification, loadNotifications, navigate, onNotificationsChange, refreshAfterRealtimeLoss, refreshFromRealtime, signOut, user?.id]);
   useEffect(() => {
     if (!onRefresh || !user?.role) return undefined;
-    const refreshWhenVisible = () => { if (document.visibilityState === "visible") Promise.resolve().then(() => onRefresh()).then(() => setRefreshError("")).catch(() => setRefreshError("Os dados podem estar desatualizados. Tente atualizar novamente.")); };
+    const refreshWhenVisible = () => {
+      if (document.visibilityState !== "visible") return;
+      const now = Date.now();
+      // Switching between tabs can fire visibilitychange repeatedly. Do not
+      // turn that browser behavior into duplicate dashboard/DO requests.
+      if (now - visibilityRefreshAt.current < 15_000) return;
+      visibilityRefreshAt.current = now;
+      Promise.resolve().then(() => onRefresh()).then(() => setRefreshError("")).catch(() => setRefreshError("Os dados podem estar desatualizados. Tente atualizar novamente."));
+    };
     const timer = window.setInterval(refreshWhenVisible, 300_000);
     document.addEventListener("visibilitychange", refreshWhenVisible);
     return () => { window.clearInterval(timer); document.removeEventListener("visibilitychange", refreshWhenVisible); };
