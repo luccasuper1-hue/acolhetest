@@ -1,5 +1,6 @@
 export type InsightSnapshot = Record<string, any>;
 export type InsightData = { period: { start: string; end: string }; tools: Record<string, unknown>; limitations: string[] };
+export { getProductKnowledge, getPrivacyKnowledge, getMetricDefinition, getPilotStatus } from "./knowledge";
 const sample = (value: unknown, fallback = 0) => Number.isFinite(Number(value)) ? Number(value) : fallback;
 const source = (metric: string, value: unknown, size: unknown, origin = "métricas agregadas da instituição") => ({ metric, value: Array.isArray(value) ? value.slice(0, 24).map(item => item && typeof item === "object" ? { month: String((item as any).month || ""), requests: sample((item as any).requests) } : null).filter(Boolean) : value == null ? null : sample(value), sample_size: sample(size), origin });
 const safePeriod = (snapshot: InsightSnapshot) => ({ start: String(snapshot.period_start || new Date().toISOString().slice(0, 10)), end: String(snapshot.period_end || new Date().toISOString().slice(0, 10)) });

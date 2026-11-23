@@ -11,6 +11,9 @@ export type InsightResponse = {
   limitations: string[];
   confidence: InsightConfidence;
   fallback: boolean;
+  scope?: string;
+  intent?: string;
+  can_deepen?: boolean;
 };
 
 const confidence = new Set<InsightConfidence>(["supported", "insufficient_data", "fallback", "blocked", "unavailable"]);
@@ -49,6 +52,6 @@ export function validateInsightResponse(value: unknown, fallback = false, author
     const constants = [0, 1, 5, 12, 15, 24, 30, 48, 60, 100];
     if (answerNumbers.some(number => !constants.includes(number) && !authorizedNumbers.some(allowed => Math.abs(allowed - number) < 0.001))) throw new Error("Número sem fonte");
   }
-  return { answer, observation, interpretation, next_step, sources: safeSources, period, limitations, confidence: selected, fallback: Boolean(row.fallback) || fallback };
+  return { answer, observation, interpretation, next_step, sources: safeSources, period, limitations, confidence: selected, fallback: Boolean(row.fallback) || fallback, scope: typeof row.scope === "string" ? row.scope.slice(0, 40) : undefined, intent: typeof row.intent === "string" ? row.intent.slice(0, 60) : undefined, can_deepen: row.can_deepen !== false };
 }
 

@@ -5,6 +5,7 @@ import { runWorkersAi } from "./provider";
 import { validateInsightResponse, type InsightResponse } from "./schemas";
 import { buildInsightTools, type InsightData } from "./tools";
 import { fallbackInsight } from "./fallback";
+import { lookupKnowledge } from "./knowledge";
 const insightCache = new Map<string, { expires: number; value: InsightResponse }>();
 const fingerprint = (value: string) => value.toLocaleLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim().slice(0, 240);
 const sanitizeContext = (value: unknown) => {
@@ -17,6 +18,7 @@ const sanitizeContext = (value: unknown) => {
 };
 const policyResponse = (answer: string, data: InsightData, confidence: "blocked" | "unavailable" | "fallback", limitation: string): InsightResponse => ({ answer, observation: "Nenhum dado individual foi consultado.", interpretation: "Esta solicitação está fora do escopo operacional seguro do Acolhe Insights.", next_step: "Faça uma pergunta sobre demanda, resposta, comparecimento, capacidade, impacto ou gargalos.", sources: [], period: data.period, limitations: [limitation], confidence, fallback: true });
 const overviewResponse = (data: InsightData): InsightResponse => ({ answer: "O Acolhe organiza pedidos de apoio, agenda e indicadores operacionais para que a instituição enxergue o próximo passo sem acessar conversas ou dados individuais.", observation: "O painel reúne sinais agregados de demanda, resposta, comparecimento e capacidade.", interpretation: "Esses indicadores ajudam a organizar a operação, mas não avaliam pessoas nem substituem decisões da equipe.", next_step: "Você pode perguntar sobre demanda, tempo de resposta, comparecimento, capacidade ou gargalos.", sources: [], period: data.period, limitations: ["Resposta explicativa sobre o escopo do Acolhe; não é uma métrica nem prova de resultado clínico."], confidence: "fallback", fallback: true });
+const knowledgeResponse = (data: InsightData, question: string, intent: string): InsightResponse => { const entry = lookupKnowledge(question); const scope = intent === "privacy_and_policy" ? "privacidade" : intent === "metrics_explanation" ? "métricas" : intent === "pilot_and_roadmap" ? "piloto" : "produto"; return { answer: entry?.answer || "Ainda não encontrei uma explicação documentada para essa pergunta.", observation: `Esta é uma explicação documentada sobre ${scope} do Acolhe.`, interpretation: "A documentação explica o funcionamento previsto; não substitui uma decisão jurídica ou clínica.", next_step: "Se quiser, aprofunde uma parte específica ou pergunte sobre a operação agregada do painel.", sources: entry ? [{ metric: "knowledge", value: null, sample_size: 1, origin: entry.source }] : [], period: data.period, limitations: ["Resposta baseada na documentação operacional versionada; roadmap não representa recurso ativo."], confidence: entry ? "supported" : "insufficient_data", fallback: true, scope, intent, can_deepen: true }; };
 export async function handleInstitutionInsight(input: { env: Env; userId: string; institutionId: string; role: string; question: unknown; context?: unknown; metrics: Record<string, any>; impact: Record<string, any> | null }) {
   const data = buildInsightTools(input.metrics, input.impact);
   let checked;
@@ -25,6 +27,7 @@ export async function handleInstitutionInsight(input: { env: Env; userId: string
   }
   if (!checked.allowed) return policyResponse(checked.reason, data, checked.intent === "clarification" ? "fallback" : "blocked", checked.intent === "clarification" ? "A pergunta precisa de uma clarificação curta antes da leitura." : "A consulta foi bloqueada por privacidade e segurança.");
   if (checked.intent === "overview") return overviewResponse(data);
+  if (["product_help", "privacy_and_policy", "metrics_explanation", "pilot_and_roadmap"].includes(checked.intent)) return knowledgeResponse(data, checked.question, checked.intent);
   const context = sanitizeContext(input.context);
   const key = `${input.institutionId}:${checked.intent}:${data.period.start}:${data.period.end}:${fingerprint(checked.question)}:${fingerprint(context)}`;
   const cached = insightCache.get(key); if (cached && cached.expires > Date.now()) return cached.value;

@@ -8,13 +8,17 @@ const blockedPatterns = [
   /\b(prompt|system message|mensagem do sistema|token|senha|cookie)\b/i,
 ];
 const intentPatterns: [string, RegExp][] = [
+  ["privacy_and_policy", /privacidade|lgpd|cookie|consentimento|menor|adolescente|seguran[cç]a|dados pessoais/i],
+  ["pilot_and_roadmap", /piloto|roadmap|futuro|emerg[eê]ncia|onboard|limite do projeto/i],
+  ["product_help", /como funciona|fluxo|painel|agenda|disponibilidade|notifica[cç][aã]o|certificado|encaminhamento|proposta|confirma[cç][aã]o/i],
+  ["metrics_explanation", /o que significa|como calcula|defini[cç][aã]o|m[eé]trica|indicador/i],
   ["bottlenecks", /gargalo|onde.*trav|problema operacional/i],
   ["response_time", /resposta|tempo médio|tempo de resposta|48\s*h|atrasad|prazo/i],
   ["attendance", /comparecimento|presen[cç]a|aus[eê]ncia/i],
   ["capacity", /capacidade|hor[aá]rio|vaga|disponib|abrir mais/i],
   ["impact", /linha de base|mudou|evolu[íi]u?|evolu[cç][aã]o|impacto|antes|depois|comparar|compara[cç][aã]o|comparativo/i],
   ["demand", /demanda|pedidos|procura|volume|fila/i],
-  ["overview", /acolhe|painel|indicador(?:es)?|m[eé]trica(?:s)?|como funciona|por que usar|pq usar|pr[oó]ximo passo|acompanhar/i],
+  ["overview", /acolhe|por que usar|pq usar|pr[oó]ximo passo|acompanhar/i],
 ];
 const usage = new Map<string, { day: string; count: number; minute: number; minuteCount: number; fingerprints: Map<string, number> }>();
 const dayKey = () => new Date().toISOString().slice(0, 10);
@@ -25,7 +29,11 @@ export function inspectQuestion(raw: unknown) {
   const matched = intentPatterns.filter(([, pattern]) => pattern.test(question)).map(([intent]) => intent);
   const intent = matched.length === 1 ? matched[0] : matched.length > 1 && matched.includes("overview") ? matched.find(item => item !== "overview") : matched[0];
   if (!intent) return { allowed: false as const, question, reason: "Posso ajudar com demanda, tempo de resposta, comparecimento, capacidade, evolução da linha de base ou gargalos operacionais. Qual desses temas você quer analisar?", intent: "clarification" };
-  if (matched.length > 1 && !matched.includes("overview")) return { allowed: false as const, question, reason: "Posso analisar um indicador por vez. Você quer começar por demanda, resposta, comparecimento, capacidade ou gargalos?", intent: "clarification" };
+  if (matched.length > 1 && !matched.includes("overview")) {
+    const knowledge = matched.filter(item => ["product_help", "privacy_and_policy", "metrics_explanation", "pilot_and_roadmap"].includes(item));
+    if (knowledge.length === 1) return { allowed: true as const, question, intent: knowledge[0] };
+    return { allowed: false as const, question, reason: "Posso explicar o produto, privacidade, métricas ou operação. Qual desses temas você quer entender primeiro?", intent: "clarification" };
+  }
   const years = [...question.matchAll(/\b(20\d{2})[-/]?(0[1-9]|1[0-2])\b/g)].map(match => Number(match[1]) * 12 + Number(match[2]));
   const relativeMonths = question.match(/(?:últim[oa]s?|pr[oó]xim[oa]s?)\s+(\d+)\s+mes(?:es|es)?/i)?.[1];
   const yearsAgo = question.match(/(?:últim[oa]s?|pr[oó]xim[oa]s?)\s+(\d+)\s+ano/i)?.[1];
