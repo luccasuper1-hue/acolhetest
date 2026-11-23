@@ -4,6 +4,28 @@ import { Copy, ExternalLink, UserPlus } from "lucide-react";
 import { MvpShell, MvpCard, MvpEmpty, MvpKpi } from "./MvpShell";
 import { api, apiError, formatDate } from "./api";
 
+function InsightResultView({ result, details, setDetails, helpful, setHelpful }) {
+  if (!result) return null;
+  const unavailable = result.confidence === "unavailable" || result.limitations?.some(item => /não consegui gerar|indisponível/i.test(item));
+  const label = unavailable ? "IA temporariamente indisponível" : result.confidence === "blocked" ? "Consulta protegida" : result.fallback ? "Leitura limitada" : "Leitura operacional";
+  const tag = unavailable ? "Fallback seguro" : result.confidence === "supported" ? "Com fontes" : result.confidence === "blocked" ? "Bloqueada" : "Dados insuficientes";
+  return <section className="insight-result-v2" aria-live="polite">
+    <header className="insight-result-v2-head"><div><span className="insight-kicker">Acolhe Insights</span><h3>{label}</h3></div><span className="mvp-tag">{tag}</span></header>
+    <p className="insight-result-v2-answer">{result.answer}</p>
+    <div className="insight-result-v2-grid">
+      <div><strong>O que observamos</strong><p>{result.observation}</p></div>
+      <div><strong>Como interpretar</strong><p>{result.interpretation}</p></div>
+      <div><strong>Próximo passo possível</strong><p>{result.next_step}</p></div>
+    </div>
+    <div className="insight-result-v2-meta"><span>Período</span><b>{result.period?.start || "—"} a {result.period?.end || "—"}</b>{result.sources?.length > 0 && <><span>Amostra</span><b>{result.sources.map(source => source.sample_size).join(" · ")} observações</b></>}</div>
+    <div className="insight-result-v2-actions"><button type="button" className="button quiet small" onClick={() => setDetails(value => !value)}>{details ? "Ocultar cálculo" : "Como calculamos?"}</button><button type="button" className="button quiet small" onClick={() => setDetails(true)}>Aprofundar</button></div>
+    {details && <div className="insight-result-v2-method"><strong>Como calculamos</strong><span>Usamos apenas indicadores agregados do período. A variação é descritiva e não prova causalidade nem resultado clínico.</span></div>}
+    {result.sources?.length > 0 && <div className="insight-result-v2-sources"><strong>Fontes agregadas</strong>{result.sources.map(source => <span key={`${source.metric}:${source.origin}`}>{source.metric} · {source.sample_size} observações</span>)}</div>}
+    <div className="insight-result-v2-limitations"><strong>O que ainda não dá para concluir</strong>{(result.limitations || []).map(item => <span key={item}>{item}</span>)}</div>
+    <footer className="insight-result-v2-feedback" role="group" aria-label="Avaliação da resposta"><span>Foi útil?</span><button type="button" className={`button quiet small ${helpful === true ? "is-selected" : ""}`} onClick={() => setHelpful(true)}>Sim</button><button type="button" className={`button quiet small ${helpful === false ? "is-selected" : ""}`} onClick={() => setHelpful(false)}>Não ajudou</button></footer>
+  </section>;
+}
+
 export default function InstitutionArea() {
   const [metrics, setMetrics] = useState(null);
   const [professionals, setProfessionals] = useState([]);
@@ -21,6 +43,13 @@ export default function InstitutionArea() {
   const [profileBusy, setProfileBusy] = useState(false);
   const [fallbackBusy, setFallbackBusy] = useState(null);
   const [baselineBusy, setBaselineBusy] = useState(false);
+  const [insightQuestion, setInsightQuestion] = useState("");
+  const [insightResult, setInsightResult] = useState(null);
+  const [insightBusy, setInsightBusy] = useState(false);
+  const [insightError, setInsightError] = useState("");
+  const [insightDetails, setInsightDetails] = useState(false);
+  const [insightHelpful, setInsightHelpful] = useState(null);
+  const insightAbortRef = useRef(null);
   const mutationBusyRef = useRef(false);
   const loadRequestRef = useRef(0);
 
@@ -40,6 +69,19 @@ export default function InstitutionArea() {
   }, []);
 
   useEffect(() => { load().catch(e => toast.error(apiError(e))); }, [load]);
+  useEffect(() => () => insightAbortRef.current?.abort(), []);
+
+  const askInsight = async (event, suggestedQuestion) => {
+    event?.preventDefault();
+    const question = String(suggestedQuestion ?? insightQuestion).trim();
+    if (!question || insightBusy) return;
+    insightAbortRef.current?.abort();
+    const controller = new AbortController(); insightAbortRef.current = controller;
+    setInsightQuestion(question); setInsightBusy(true); setInsightError("");
+    try { const { data } = await api.post("/institutions/me/insights", { question }, { signal: controller.signal }); setInsightResult(data); }
+    catch (error) { if (error?.code !== "ERR_CANCELED" && error?.name !== "CanceledError") setInsightError(apiError(error)); }
+    finally { if (!controller.signal.aborted) setInsightBusy(false); }
+  };
 
   const submitInvite = async e => {
     e.preventDefault();
@@ -111,8 +153,13 @@ export default function InstitutionArea() {
   };
   const exportImpactReport = () => {
     if (!impactReport?.metrics?.length) return;
+    const csvCell = value => {
+      const text = String(value);
+      const safe = /^[=+\-@]/.test(text) ? `'${text}` : text;
+      return `"${safe.replaceAll('"', '""')}"`;
+    };
     const rows = [["Relatório de impacto Acolhe"], ["Período", `${impactReport.period_start || "—"} a ${impactReport.period_end || "—"}`], ["Aviso", "Dados agregados; sem identificadores; variação observada, sem prova de causalidade."], [], ["Indicador", "Linha de base", "Atual", "Variação observada"], ...impactReport.metrics.map(item => [item.label, item.baseline ?? "—", item.current ?? "—", item.delta == null ? "—" : item.delta])];
-    const csv = rows.map(row => row.map(value => `"${String(value).replaceAll('"', '""')}"`).join(",")).join("\n");
+    const csv = rows.map(row => row.map(csvCell).join(",")).join("\n");
     const url = URL.createObjectURL(new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" }));
     const link = document.createElement("a"); link.href = url; link.download = "relatorio-impacto-acolhe.csv"; link.click(); window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
@@ -144,8 +191,8 @@ export default function InstitutionArea() {
     >
       <MvpCard title="Situação do piloto" subtitle={nextStep} testid="inst-next-step-card" className="institution-next-step">
         <div className="institution-readiness" aria-live="polite">
-          <div><span className={linkedProfessionals ? "ready" : "pending"}>{linkedProfessionals ? "Pronto" : "Atenção"}</span><strong>Profissional vinculado</strong><small>{linkedProfessionals ? `${linkedProfessionals} profissional(is) na instituição.` : "Ainda não há profissional vinculado."}</small></div>
-          <div><span className={scheduledRequests ? "ready" : "waiting"}>{scheduledRequests ? "Ativo" : "Aguardando"}</span><strong>Conversas agendadas</strong><small>{scheduledRequests ? `${scheduledRequests} conversa(s) agendada(s).` : "Ainda não há conversas agendadas."}</small></div>
+          <div><span className={linkedProfessionals ? "ready" : "pending"}>{linkedProfessionals ? "Pronto" : "Atenção"}</span><strong>Profissional vinculado</strong><small>{linkedProfessionals ? `${linkedProfessionals} ${linkedProfessionals === 1 ? "profissional" : "profissionais"} na instituição.` : "Ainda não há profissional vinculado."}</small></div>
+          <div><span className={scheduledRequests ? "ready" : "waiting"}>{scheduledRequests ? "Ativo" : "Aguardando"}</span><strong>Conversas agendadas</strong><small>{scheduledRequests ? `${scheduledRequests} ${scheduledRequests === 1 ? "conversa agendada" : "conversas agendadas"}.` : "Ainda não há conversas agendadas."}</small></div>
           <div><span className={linkedProfessionals ? "ready" : "pending"}>{linkedProfessionals ? "Ativo" : "Atenção"}</span><strong>Pedidos de estudantes</strong><small>{linkedProfessionals ? "Estudantes podem escolher um profissional e enviar um pedido." : "Vincule um profissional para liberar os pedidos."}</small></div>
         </div>
       </MvpCard>
@@ -198,19 +245,32 @@ export default function InstitutionArea() {
         <MvpKpi label="Solicitações" value={metrics?.requests_total} testid="inst-kpi-requests" />
         <MvpKpi label="Conversas realizadas" value={metrics?.sessions_completed} testid="inst-kpi-sessions" />
         <MvpKpi label="Tempo médio até resposta" value={metrics?.response_time_minutes_avg == null ? "—" : `${Math.round(metrics.response_time_minutes_avg)} min`} note={metrics?.response_time_minutes_avg == null ? `aguardando ${metrics?.minimum_sample_size ?? 5} casos` : `${metrics.responses_within_48h}% em até 48h`} testid="inst-kpi-response-time" />
-        <MvpKpi label="Comparecimento" value={metrics?.attendance_rate == null ? "—" : `${metrics.attendance_rate}%`} note={metrics?.attendance_rate == null ? `aguardando ${metrics?.minimum_sample_size ?? 5} encontros` : (metrics?.sessions_no_show ? `${metrics.sessions_no_show} ausência(s)` : "sem ausências registradas")} testid="inst-kpi-attendance" />
+        <MvpKpi label="Comparecimento" value={metrics?.attendance_rate == null ? "—" : `${metrics.attendance_rate}%`} note={metrics?.attendance_rate == null ? `aguardando ${metrics?.minimum_sample_size ?? 5} encontros` : (metrics?.sessions_no_show ? `${metrics.sessions_no_show} ${metrics.sessions_no_show === 1 ? "ausência" : "ausências"}` : "sem ausências registradas")} testid="inst-kpi-attendance" />
         <MvpKpi label="Profissionais vinculados" value={metrics?.professionals_linked} note={`${metrics?.professionals_accessed ?? 0} já acessaram`} testid="inst-kpi-professionals" />
         <MvpKpi label="Encaminhamentos" value={metrics?.referrals_total} testid="inst-kpi-referrals" />
         </div>
       </details>
 
-      <MvpCard title="Relatório do piloto" subtitle="Leitura operacional, sem avaliação clínica ou ranking de profissionais." testid="inst-impact-report-card" aria-live="polite">
+      <MvpCard title="Relatório do piloto" subtitle="Leitura operacional, sem avaliação clínica ou ranking de profissionais." testid="inst-impact-report-card" ariaLive="polite">
         <div className="mvp-row"><div className="mvp-row-main"><strong>Período atual</strong><span>{metrics?.metrics_period_label || "Desde o início do piloto"}</span></div><span className="mvp-tag">{metrics?.requests_total || 0} pedidos</span></div>
         <div className="mvp-row"><div className="mvp-row-main"><strong>Linha de base</strong><span>{metrics?.baseline_available ? "Disponível para comparação" : "Ainda não registrada"}</span></div><span className="mvp-tag wait">{metrics?.baseline_available ? "PRONTA" : "PENDENTE"}</span></div>
-        <p className="mvp-note">As métricas de velocidade e comparecimento só aparecem com pelo menos {metrics?.minimum_sample_size ?? 5} casos. O período e a população são registrados em cada comparação. As 48 horas são uma meta operacional do piloto, não uma garantia clínica, de disponibilidade ou de resultado terapêutico.</p>
+        <p className="mvp-note">{metrics?.metrics_note || `As métricas de velocidade e comparecimento só aparecem com pelo menos ${metrics?.minimum_sample_size ?? 5} casos.`} O período e a população são registrados em cada comparação. As 48 horas são uma meta operacional do piloto, não uma garantia clínica, de disponibilidade ou de resultado terapêutico.</p>
         <div className="impact-report-actions">
             {!impactReport?.baseline_available ? <><p className="mvp-note">Registre uma linha de base antes de iniciar o uso ampliado para medir a evolução do piloto.</p><button className="button primary small" type="button" onClick={captureBaseline} disabled={baselineBusy} aria-busy={baselineBusy} data-testid="inst-capture-baseline">{baselineBusy ? "Registrando…" : "Registrar linha de base"}</button></> : <><div className="mvp-row"><div className="mvp-row-main"><strong>Variação observada</strong><span>{impactReport.period_start} a {impactReport.period_end} · base registrada em {formatDate(impactReport.captured_at)}</span></div><span className="mvp-tag ok">ATIVA</span></div><p className="mvp-note">{impactReport.interpretation}</p><div className="mvp-row"><div className="mvp-row-main"><strong>População observada</strong><span>Antes: {impactReport.population?.baseline?.requests ?? "—"} pedidos · Agora: {impactReport.population?.current?.requests ?? "—"} pedidos</span></div><span className="mvp-tag">Agregado</span></div><div className="impact-report-table">{impactReport.metrics.map(item => <div className="mvp-row" key={item.key}><div className="mvp-row-main"><strong>{item.label}</strong><span>Antes: {item.baseline ?? "—"} · Agora: {item.current ?? "—"}</span></div><span className={`mvp-tag ${item.delta == null ? "wait" : item.delta > 0 ? "ok" : item.delta < 0 ? "off" : ""}`}>{item.delta == null ? "—" : `${item.delta > 0 ? "+" : ""}${item.delta}`}</span></div>)}</div><button className="button secondary small" type="button" onClick={exportImpactReport} aria-label="Exportar relatório de impacto agregado em CSV" data-testid="inst-export-impact">Exportar CSV agregado</button></>}
         </div>
+      </MvpCard>
+
+      <MvpCard title="Acolhe Insights" subtitle="Pergunte sobre indicadores operacionais agregados. O copiloto não acessa conversas, nomes ou dados individuais." testid="inst-insights-card" className="institution-insights-card">
+        <form onSubmit={askInsight} className="insight-form">
+          <label htmlFor="institution-insight-question">Sua pergunta</label>
+          <div className="insight-input-row"><input id="institution-insight-question" value={insightQuestion} maxLength={600} onChange={event => setInsightQuestion(event.target.value)} placeholder="Como está nossa demanda?" disabled={insightBusy} /><button className="button primary" type="submit" disabled={insightBusy || !insightQuestion.trim()}>{insightBusy ? "Analisando…" : "Perguntar"}</button></div>
+        </form>
+        <div className="insight-suggestions" aria-label="Perguntas sugeridas">
+          {["Como está nossa demanda?", "Qual foi o tempo médio de resposta?", "Como está o comparecimento?", "O que mudou desde a linha de base?", "Onde estão os gargalos operacionais?"].map(question => <button type="button" className="button secondary small" key={question} onClick={event => askInsight(event, question)} disabled={insightBusy}>{question}</button>)}
+        </div>
+        {insightError && <div className="mvp-error" role="alert">{insightError} <button type="button" className="button quiet small" onClick={event => askInsight(event)}>Tentar novamente</button></div>}
+        <InsightResultView result={insightResult} details={insightDetails} setDetails={setInsightDetails} helpful={insightHelpful} setHelpful={setInsightHelpful} />
+        {insightResult && <div className="insight-result" aria-live="polite"><div className="insight-result-header"><strong>{insightResult.fallback ? "Leitura limitada" : "Leitura operacional"}</strong><span className="mvp-tag">{insightResult.confidence === "supported" ? "Com fontes" : insightResult.confidence === "blocked" ? "Bloqueada" : "Dados insuficientes"}</span></div><p className="insight-answer">{insightResult.answer}</p><div className="insight-narrative"><div><strong>O que observamos</strong><span>{insightResult.observation}</span></div><div><strong>Como interpretar</strong><span>{insightResult.interpretation}</span></div><div><strong>Próximo passo possível</strong><span>{insightResult.next_step}</span></div></div><small>Período: {insightResult.period?.start || "—"} a {insightResult.period?.end || "—"}</small><div className="insight-actions"><button type="button" className="button quiet small" onClick={() => setInsightDetails(value => !value)}>{insightDetails ? "Ocultar cálculo" : "Como calculamos?"}</button><button type="button" className="button quiet small" onClick={() => setInsightDetails(true)}>Aprofundar</button></div>{insightDetails && <div className="insight-method"><strong>Como calculamos</strong><span>Fórmula, período e população vêm das métricas agregadas do piloto. O conteúdo não é clínico e a variação observada não prova causalidade.</span>{insightResult.sources?.length > 0 && <span>Amostra: {insightResult.sources.map(source => source.sample_size).join(", ")} observações · origem: métricas operacionais agregadas.</span>}</div>}{insightResult.sources?.some(source => Array.isArray(source.value) && source.value.length > 0) && <div className="insight-series" aria-label="Série mensal agregada"><strong>Evolução no período</strong>{insightResult.sources.filter(source => Array.isArray(source.value)).flatMap(source => source.value).map((point, index) => <div className="insight-series-row" key={`${point.month || index}`}><span>{point.month || "Período"}</span><span className="insight-series-bar"><i style={{ width: `${Math.min(100, Math.max(0, Number(point.requests || 0) * 5))}%` }} /></span><b>{point.requests ?? "—"}</b></div>)}</div>}{insightResult.sources?.length > 0 && <div className="insight-sources"><strong>Fontes agregadas</strong>{insightResult.sources.map(source => <span key={`${source.metric}:${source.origin}`}>{source.metric} · amostra {source.sample_size}</span>)}</div>}<ul className="insight-limitations"><strong>O que ainda não dá para concluir</strong>{(insightResult.limitations || []).map(item => <li key={item}>{item}</li>)}</ul><div className="insight-feedback" role="group" aria-label="Avaliação da resposta"><span>Foi útil?</span><button type="button" className={`button quiet small ${insightHelpful === true ? "is-selected" : ""}`} onClick={() => setInsightHelpful(true)}>Sim</button><button type="button" className={`button quiet small ${insightHelpful === false ? "is-selected" : ""}`} onClick={() => setInsightHelpful(false)}>Não ajudou</button></div></div>}
       </MvpCard>
 
       <div className="mvp-grid institution-operations-grid">

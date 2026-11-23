@@ -395,10 +395,10 @@ export const ImpactSection = () => (
 export const AiSection = () => (
   <section className="section" data-testid="ai-section">
     <div className="section-kicker">Tecnologia</div>
-    <h2>Inteligência artificial como <em>infraestrutura,</em> não como terapeuta.</h2>
+    <h2>IA para dar clareza ao cuidado, <em>sem ocupar o lugar de ninguém.</em></h2>
     <p className="section-intro">
-      A IA pode organizar, orientar caminhos e reduzir trabalho operacional. Ela não avalia pessoas,
-      não conduz atendimento e não substitui profissionais.
+      O Acolhe Insights já ajuda instituições a ler indicadores operacionais agregados e encontrar
+      próximos passos. Ele não avalia pessoas, não acessa conversas, não conduz atendimento e não substitui profissionais.
     </p>
     <div className="ai-grid">
       {aiUses.map(use => (
@@ -414,8 +414,10 @@ export const AiSection = () => (
     <div className="ai-limit" data-testid="ai-limit">
       <ShieldCheck size={17}/>
       <span>
-        A versão atual não usa nenhuma IA ativa: esta seção é apenas uma visão conceitual do futuro.
-        A Acolhe não pretende oferecer “IA terapeuta”; o cuidado continua sendo responsabilidade de
+        No piloto, o Acolhe Insights usa IA para interpretar indicadores institucionais agregados,
+        com fontes, limitações e fallback quando a amostra é insuficiente. O Radar do profissional
+        organiza prioridades operacionais com base nos dados do painel, sem avaliar pessoas, acessar
+        conversas ou executar ações automaticamente. O cuidado continua sendo responsabilidade de
         pessoas habilitadas.
       </span>
     </div>

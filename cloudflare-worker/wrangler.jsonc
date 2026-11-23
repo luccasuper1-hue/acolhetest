@@ -8,8 +8,10 @@
     "crons": ["*/15 * * * *"]
   },
   "vars": {
-    "FRONTEND_URL": "https://acolhetest.luccasuper1.workers.dev"
+    "FRONTEND_URL": "https://acolhetest.luccasuper1.workers.dev",
+    "APP_ENV": "production"
   },
+  "ai": { "binding": "AI" },
   "assets": {
     "directory": "../frontend/build",
     "binding": "ASSETS",

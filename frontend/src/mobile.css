@@ -413,13 +413,19 @@
   .resource-card > button { padding: 20px 18px; gap: 12px; }
   .resource-card > p { padding: 0 18px 22px; }
   .faq-item button { padding: 16px 15px; }
-  .footer { padding: 34px 20px 20px; }
-  .footer-main { gap: 24px; }
-  .footer-links { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 12px; max-width: none; width: 100%; justify-content: stretch; }
-  .footer-group { min-width: 0; gap: 2px; }
-  .footer-group-title { padding-left: 11px; }
-  .footer-group a { padding-top: 7px; padding-bottom: 7px; }
-  .footer-bottom { margin-top: 30px; }
+  .footer { padding: 24px 20px calc(18px + env(safe-area-inset-bottom)); }
+  .footer-main { gap: 18px; }
+  .footer-main > div:first-child { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 5px 10px; }
+  .footer-main > div:first-child .logo { grid-column: 1; grid-row: 1; }
+  .footer-main > div:first-child p { grid-column: 1 / -1; grid-row: 2; margin: 0; }
+  .footer-main > div:first-child .footer-badge { grid-column: 2; grid-row: 1; margin: 0; }
+  .footer-links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 8px; max-width: none; width: 100%; justify-content: stretch; }
+  .footer-group { min-width: 0; gap: 0; }
+  .footer-group-title { padding-left: 8px; }
+  .footer-group a, .footer-cookie-settings { min-height: 44px; padding: 6px 8px; line-height: 1.35; display: inline-flex; align-items: center; }
+  .footer-group:last-child { grid-column: 1 / -1; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 8px; row-gap: 2px; }
+  .footer-group:last-child .footer-group-title { grid-column: 1 / -1; }
+  .footer-bottom { margin-top: 18px; padding-top: 14px; gap: 8px; }
 }
 
 /* ------------------------------------------------------------
@@ -483,10 +489,25 @@
 
 /* Camada final da home mobile: mantém uma única decisão para os pontos críticos. */
 @media (max-width: 600px) {
+  /* Adia a pintura das seções fora da primeira dobra; elas continuam no DOM
+     e acessíveis, mas não competem com o hero durante o primeiro scroll. */
+  .home-route > main > section:not(.hero) {
+    content-visibility: auto;
+    contain-intrinsic-size: 420px;
+  }
   .home-route .hero-lead {
     display: block;
     overflow: visible;
   }
+  /* O mockup continua decorativo, mas não deve forçar repaints pesados no
+     celular durante a rolagem da home. */
+  .home-route .hero-product,
+  .home-route .hero-product .product-window { box-shadow: var(--shadow-sm); }
+  .home-route .hero-product .blob-a,
+  .home-route .hero-product .blob-b,
+  .home-route .hero-product .mark-halo,
+  .home-route .hero-product .mark-shadow { filter: none; box-shadow: none; }
+  .home-route .hero-product .mark-scene { will-change: auto; }
   .home-route .mark-scene,
   .home-route .blob-a,
   .home-route .blob-b,
@@ -555,3 +576,38 @@ html[data-theme="dark"] .mvp-notification-panel {
   box-shadow: 0 20px 46px rgba(8, 5, 14, .42);
 }
 html[data-theme="dark"] .mvp-notification-item.read { color: #d4ccdf; opacity: .82; }
+
+/* Banner de cookies compacto em telas estreitas: mantém o acesso às três
+   escolhas sem ocupar a página inteira. */
+@media (max-width: 650px) {
+  .cookie-banner {
+    max-height: min(48dvh, 390px);
+    overflow-y: auto;
+    padding: 12px 14px;
+    border-radius: 20px;
+    gap: 8px;
+  }
+  .cookie-banner-icon { width: 34px; height: 34px; border-radius: 11px; }
+  .cookie-banner-copy strong { font-size: 13px; }
+  .cookie-banner-copy p { margin-top: 3px; font-size: 11px; line-height: 1.4; }
+  .cookie-banner-actions { gap: 6px; margin-top: 2px; }
+  .cookie-banner-actions .button { min-height: 42px; padding: 9px 12px; font-size: 13px; border-radius: 999px; }
+}
+
+/* Consentimento móvel: mantém as escolhas visíveis sem transformar o banner
+   em um painel que cobre metade da tela. As ações neutras compartilham a
+   primeira linha; a escolha principal continua com destaque e largura total. */
+@media (max-width: 650px) {
+  .cookie-banner-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+  }
+  .cookie-banner-actions .button {
+    min-width: 0;
+    white-space: normal;
+    line-height: 1.2;
+  }
+  .cookie-banner-actions .button.primary {
+    grid-column: 1 / -1;
+  }
+}

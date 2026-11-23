@@ -15,14 +15,27 @@ jobs:
     timeout-minutes: 2
     env:
       ACOLHE_BASE_URL: ${{ vars.ACOLHE_BASE_URL }}
+      ACOLHE_ENV: ${{ vars.ACOLHE_ENV || 'production' }}
     steps:
       - name: Check home and health endpoint
         shell: bash
         run: |
           set -euo pipefail
           test -n "${ACOLHE_BASE_URL:-}" || { echo "ACOLHE_BASE_URL is not configured" >&2; exit 1; }
+          [[ "${ACOLHE_ENV:-}" =~ ^(staging|production)$ ]] || { echo "ACOLHE_ENV must be staging or production" >&2; exit 1; }
           base="$ACOLHE_BASE_URL"
           base="${base%/}"
-          curl --fail --silent --show-error --location --max-time 20 "$base/" >/dev/null
-          health="$(curl --fail --silent --show-error --location --max-time 20 "$base/api/health")"
+          [[ "$base" =~ ^https://[^/?#@]+$ ]] || { echo "ACOLHE_BASE_URL must be an HTTPS origin without path, query, fragment or credentials" >&2; exit 1; }
+          curl --proto '=https' --proto-redir '=https' --fail --silent --show-error --location --retry 2 --retry-delay 2 --max-time 20 "$base/" >/dev/null
+          curl --proto '=https' --proto-redir '=https' --fail --silent --show-error --location --retry 2 --retry-delay 2 --max-time 20 "$base/api/live" | grep -q '"ok":true'
+          health="$(curl --proto '=https' --proto-redir '=https' --fail --silent --show-error --location --retry 2 --retry-delay 2 --max-time 20 "$base/api/health")"
           echo "$health" | grep -q '"ok":true'
+          curl --proto '=https' --proto-redir '=https' --fail --silent --show-error --location --max-time 20 --head "$base/api/health" | grep -i '^cache-control:.*no-store' >/dev/null
+          curl --proto '=https' --proto-redir '=https' --fail --silent --show-error --location --max-time 20 --head "$base/api/health" | grep -i '^x-content-type-options:.*nosniff' >/dev/null
+          curl --proto '=https' --proto-redir '=https' --fail --silent --show-error --location --max-time 20 --head "$base/" | grep -i '^x-content-type-options:.*nosniff' >/dev/null
+          robots_type="$(curl --proto '=https' --proto-redir '=https' --fail --silent --show-error --location --max-time 20 -o /dev/null -w '%{content_type}' "$base/robots.txt")"
+          test "$robots_type" = "text/plain" || { echo "robots.txt must be text/plain" >&2; exit 1; }
+          curl --proto '=https' --proto-redir '=https' --fail --silent --show-error --location --max-time 20 "$base/robots.txt" | grep -Fq "Sitemap: $base/sitemap.xml" || { echo "robots.txt must point to the configured sitemap" >&2; exit 1; }
+          sitemap_type="$(curl --proto '=https' --proto-redir '=https' --fail --silent --show-error --location --max-time 20 -o /dev/null -w '%{content_type}' "$base/sitemap.xml")"
+          [[ "$sitemap_type" == application/xml* || "$sitemap_type" == text/xml* ]] || { echo "sitemap.xml must be XML" >&2; exit 1; }
+          curl --proto '=https' --proto-redir '=https' --fail --silent --show-error --location --max-time 20 "$base/sitemap.xml" | grep -Fq "<loc>$base/</loc>" || { echo "sitemap.xml must include the site root" >&2; exit 1; }

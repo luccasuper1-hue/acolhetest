@@ -61,6 +61,8 @@
   "scripts": {
     "start": "vite",
     "dev": "vite",
+    "lint": "eslint src --no-error-on-unmatched-pattern",
+    "check:budget": "node ../ops/check-frontend-budget.mjs build/assets",
     "build": "vite build",
     "preview": "vite preview",
     "test": "node --test"

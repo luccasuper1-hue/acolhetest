@@ -20,6 +20,7 @@ const parseBrazilianDate = value => {
     ? `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}` : null;
 };
 const sessionStarted = session => scheduledTimeHasStarted(session?.date, session?.time);
+const todayIso = () => new Date().toISOString().slice(0, 10);
 const escapeHtml = value => String(value ?? "").replace(/[&<>\"']/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[character]));
 
 export default function ProfessionalArea() {
@@ -28,6 +29,9 @@ export default function ProfessionalArea() {
   const [notifications, setNotifications] = useState(undefined);
   const [notificationUnreadCount, setNotificationUnreadCount] = useState(null);
   const [sessions, setSessions] = useState([]);
+  const [availability, setAvailability] = useState([]);
+  const [serverRadar, setServerRadar] = useState([]);
+  const [professionalMetrics, setProfessionalMetrics] = useState(null);
   const [certificate, setCertificate] = useState(null);
   const [certificateEligibility, setCertificateEligibility] = useState({ eligible: false, completed_count: 0, required_count: 5 });
   const [links, setLinks] = useState({});
@@ -48,23 +52,31 @@ export default function ProfessionalArea() {
   const [chatReadAt, setChatReadAt] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
+  const [drafts, setDrafts] = useState({ confirmation: "Olá! Seu horário está confirmado. Até lá, você poderá acompanhar os detalhes da conversa por aqui.", reminder: "Olá! Passando para lembrar nossa conversa agendada. Se precisar, confira o horário e a modalidade no Acolhe.", change: "Olá! Precisamos revisar o horário combinado. Vou propor uma nova opção pelo Acolhe.", room: "Olá! O link da sala está disponível no Acolhe. Se tiver dificuldade para acessar, me avise por aqui.", linkRequest: "Olá! Para facilitar o acesso, poderia atualizar ou confirmar o link da sala da nossa conversa?" });
   const chatMessagesRef = useRef(null);
   const chatSendRef = useRef(null);
+  const chatTypingTimerRef = useRef(null);
   const chatSessionRef = useRef(null);
   const lastReadSentRef = useRef(null);
   const loadRequestRef = useRef(0);
+  const updateChatTyping = active => { if (chatTypingTimerRef.current) window.clearTimeout(chatTypingTimerRef.current); chatSendRef.current?.({ type: "typing", active: Boolean(active) }); if (active) chatTypingTimerRef.current = window.setTimeout(() => { chatTypingTimerRef.current = null; chatSendRef.current?.({ type: "typing", active: false }); }, 1800); };
 
   const load = useCallback(async () => {
     const requestId = ++loadRequestRef.current;
     try {
-      const [{ data }, certificateResponse] = await Promise.all([api.get("/professionals/me/dashboard"), api.get("/professionals/me/certificate")]);
+      const { data } = await api.get("/professionals/me/dashboard");
       if (requestId !== loadRequestRef.current) return;
-      setRequests(data.requests || []); setSessions(data.sessions || []); setAppointmentRequests(data.appointment_requests || []);
+      setRequests(data.requests || []); setSessions(data.sessions || []); setAvailability(data.availability || []); setAppointmentRequests(data.appointment_requests || []);
+      setServerRadar(Array.isArray(data.radar) ? data.radar : []); setProfessionalMetrics(data.metrics || null);
       setNotifications(data.notifications || []);
       setNotificationUnreadCount(typeof data.notification_unread_count === "number" ? data.notification_unread_count : null);
-      setCertificate(certificateResponse.data?.certificate || null);
-      setCertificateEligibility({ eligible: Boolean(certificateResponse.data?.eligible), completed_count: certificateResponse.data?.completed_count || 0, required_count: certificateResponse.data?.required_count || 5 });
       setLoadError("");
+      // Certificate eligibility is secondary and must not block the agenda.
+      void api.get("/professionals/me/certificate").then(({ data: certificateData }) => {
+        if (requestId !== loadRequestRef.current) return;
+        setCertificate(certificateData?.certificate || null);
+        setCertificateEligibility({ eligible: Boolean(certificateData?.eligible), completed_count: certificateData?.completed_count || 0, required_count: certificateData?.required_count || 5 });
+      }).catch(() => { if (requestId === loadRequestRef.current) setCertificateEligibility(current => ({ ...current, error: "Certificado indisponível no momento." })); });
     } catch (error) {
       if (requestId !== loadRequestRef.current) return;
       setLoadError(apiError(error));
@@ -77,9 +89,11 @@ export default function ProfessionalArea() {
     if (actionBusyRef.current) return;
     actionBusyRef.current = true;
     setActionBusy(true);
-    try { await fn(); if (okMsg) toast.success(okMsg); await load(); }
-    catch (e) { toast.error(apiError(e)); }
-    finally { actionBusyRef.current = false; setActionBusy(false); }
+    try { await fn(); if (okMsg) toast.success(okMsg); }
+    catch (e) { toast.error(apiError(e)); actionBusyRef.current = false; setActionBusy(false); return; }
+    actionBusyRef.current = false;
+    setActionBusy(false);
+    load().catch(() => toast.error("A ação foi concluída, mas o painel não atualizou. Recarregue a página."));
   };
   const issueCertificate = async () => {
     try { const { data } = await api.post("/professionals/me/certificate", {}); setCertificate(data.certificate); toast.success("Certificado emitido."); }
@@ -87,7 +101,7 @@ export default function ProfessionalArea() {
   };
   const printCertificate = (preview = false) => {
     if ((!certificate && !preview) || typeof window === "undefined") return;
-    const printable = certificate || { title: "Certificado de participação no piloto Acolhe", professional_name: "Nome do profissional", institution_name: "Instituição participante", completed_count: 5, issued_at: new Date().toISOString(), code: "PRÉVIA-ACOLHE" };
+    const printable = { ...(certificate || { title: "Certificado de participação no piloto Acolhe", professional_name: "Nome do profissional", institution_name: "Instituição participante", completed_count: 5, issued_at: new Date().toISOString(), code: "PRÉVIA-ACOLHE" }) };
     const popup = window.open("", "_blank", "width=700,height=900");
     if (!popup) { toast.error("Permita pop-ups para imprimir o certificado."); return; }
     const brandMarkUrl = `${window.location.origin}/brand-mark.png`;
@@ -99,6 +113,7 @@ export default function ProfessionalArea() {
     printable.professional_name = escapeHtml(printable.professional_name);
     printable.institution_name = escapeHtml(printable.institution_name);
     printable.code = escapeHtml(printable.code);
+    printable.completed_count = Number.isFinite(Number(printable.completed_count)) ? Math.max(0, Math.trunc(Number(printable.completed_count))) : 0;
     popup.document.write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap" rel="stylesheet"><title>${printable.title}</title><style>@page{size:A4 portrait;margin:0}*{box-sizing:border-box}body{margin:0;background:#f7f4fb;color:#30243f;font-family:Arial,sans-serif;display:grid;place-items:center;min-height:100vh}.certificate{position:relative;width:min(560px,calc(100vw - 64px));min-height:790px;padding:86px 46px 64px;text-align:center;background:white;border:10px solid #eee4fb;outline:1px solid #7650c8;outline-offset:-22px}.brand-header{position:absolute;top:30px;left:34px;display:flex;align-items:center;gap:9px;color:#52358d;font-size:22px;font-weight:700;letter-spacing:-.6px}.brand-header img{width:32px;height:32px;object-fit:contain;filter:drop-shadow(0 4px 8px rgba(76,52,124,.2))}.eyebrow{color:#7650c8;letter-spacing:3px;text-transform:uppercase;font-size:12px;font-weight:700}.title{font-size:30px;line-height:1.18;margin:30px auto 18px;max-width:680px}.name{font-size:28px;font-weight:700}.meta{color:#716780;line-height:1.7;margin-top:24px}.meta strong{color:#52358d}.period{font-size:13px;color:#8a7b99;margin-top:4px}.qr-block{position:absolute;right:38px;bottom:64px;display:grid;justify-items:center;gap:4px;color:#7650c8;font-size:9px;letter-spacing:.3px}.qr-block img{width:72px;height:72px;padding:5px;background:#fff;border:1px solid #ded0f2;border-radius:8px}.qr-code{max-width:130px;overflow-wrap:anywhere;font-size:8px;line-height:1.2}.signature{position:absolute;left:64px;bottom:78px;text-align:left;color:#716780;font-size:11px;line-height:1.35}.signature:before{content:"";display:block;width:150px;border-top:1px solid #b9a5d3;margin-bottom:7px}.signature strong{display:block;color:#52358d;font-size:12px}.preview{position:absolute;inset:45% auto auto 50%;transform:translate(-50%,-50%) rotate(-18deg);font-size:54px;letter-spacing:8px;color:rgba(118,80,200,.055);font-weight:800;pointer-events:none}@media print{html,body{width:210mm;height:auto;min-height:0;background:white;display:block}.certificate{width:210mm;height:297mm;min-height:0;margin:0 auto;padding:78px 54px 100px;border-width:8px;box-shadow:none;break-inside:avoid;page-break-inside:avoid}.brand-header{top:36px;left:46px;font-size:30px;gap:12px}.brand-header img{width:42px;height:42px}.eyebrow{font-size:15px;letter-spacing:4px}.title{font-size:42px;line-height:1.16;margin:44px auto 28px;max-width:760px}.name{font-size:36px}.meta{font-size:18px;line-height:1.65;margin-top:30px}.period{font-size:16px;margin-top:8px}.qr-block{bottom:55mm;right:48px;font-size:12px;gap:6px}.qr-block img{width:96px;height:96px;padding:6px}.qr-code{max-width:170px;font-size:10px}.signature{bottom:55mm;left:72px;font-size:15px;line-height:1.45}.signature:before{width:190px;margin-bottom:9px}.signature strong{font-size:16px}}</style></head><body><main class="certificate">${preview ? '<div class="preview">PRÉVIA</div>' : ''}<div class="brand-header"><img src="${brandMarkUrl}" alt=""><span>Acolhe</span></div><div class="eyebrow">Piloto institucional</div><h1 class="title">Reconhecemos sua participação <em style="color:#7650c8;font-family:Fraunces,Georgia,serif;font-style:italic">no piloto Acolhe.</em></h1><div class="name">${printable.professional_name}</div><p class="meta">Sua contribuição em <strong>${printable.completed_count} conversas concluídas</strong> ajudou a construir este piloto.<br>${printable.institution_name}</p><div class="period">Período de participação · Piloto institucional 2026<br>Emitido em ${formatDate(printable.issued_at)}</div><div class="signature"><strong>Equipe Acolhe</strong>Um primeiro passo para buscar apoio.</div><div class="qr-block"><img src="${qrUrl}" alt="QR Code para validar o certificado"><span>Validar certificado</span><span class="qr-code">Código: ${printable.code}</span></div></main><script>window.onload=()=>window.print()</script></body></html>`);
     popup.document.close();
     const cert = popup.document.querySelector(".certificate");
@@ -121,8 +136,14 @@ export default function ProfessionalArea() {
   const proposeAppointment = async requestId => {
     const custom = appointmentCustom[requestId] || {};
     if (!custom.date || !custom.time) { toast.error("Escolha uma data e hora para propor."); return; }
-    await run(() => api.post(`/professionals/me/appointment-requests/${requestId}/propose`, { date: custom.date, time: custom.time }), "Proposta enviada ao estudante.");
+    await run(async () => {
+      await api.post(`/professionals/me/appointment-requests/${requestId}/propose`, { date: custom.date, time: custom.time, ...(custom.availability_id ? { availability_id: custom.availability_id } : {}) }, { timeout: 30_000 });
+      setAppointmentRequests(current => current.map(item => item.id === requestId
+        ? { ...item, status: "proposed", date: custom.date, time: custom.time, next_step: "Aguardando confirmação do estudante.", response_overdue: false, response_state: "responded" }
+        : item));
+    }, "Proposta enviada ao estudante.");
   };
+  const availableOptions = item => availability.filter(slot => slot.status === "open" && (!item.meeting_mode || item.meeting_mode !== "presencial" || slot.mode === "presencial")).slice(0, 3);
   const declineAppointment = async requestId => {
     if (typeof window !== "undefined" && !window.confirm("Recusar este pedido de atendimento?")) return;
     await run(() => api.post(`/professionals/me/appointment-requests/${requestId}/decline`), "Pedido recusado.");
@@ -146,7 +167,7 @@ export default function ProfessionalArea() {
   const sendChat = async sessionId => {
     const body = chatDraft.trim(); if (!body || chatBusy || chatLoading) return;
     setChatBusy(true);
-    try { chatSendRef.current?.({ type: "typing", active: false }); const { data } = await api.post(`/professionals/me/sessions/${sessionId}/messages`, { body }); if (chatSessionRef.current === sessionId) { setChatMessages(current => current.some(message => message.id === data.id) ? current : [...current, data]); setChatDraft(""); } }
+    try { updateChatTyping(false); const { data } = await api.post(`/professionals/me/sessions/${sessionId}/messages`, { body }); if (chatSessionRef.current === sessionId) { setChatMessages(current => current.some(message => message.id === data.id) ? current : [...current, data]); setChatDraft(""); } }
     catch (e) { toast.error(apiError(e)); }
     finally { setChatBusy(false); }
   };
@@ -178,7 +199,7 @@ export default function ProfessionalArea() {
         setChatMessages(current => current.some(message => message.id === event.message.id) ? current : [...current, event.message]);
       }
       if (event?.type === "presence") setChatOnline(Boolean(event.online));
-      if (event?.type === "typing" && event.userId) setChatTyping(Boolean(event.active));
+      if (event?.type === "typing") setChatTyping(Boolean(event.active));
       if (event?.type === "message_read" && event.messageId) setChatReadAt(event.readAt || new Date().toISOString());
       if (event?.type === "notification") load().catch(() => {});
     }, status => { const connected = status === "open"; setChatRealtimeConnected(connected); if (!connected) { lastReadSentRef.current = null; setChatOnline(false); setChatTyping(false); } }, controls => { chatSendRef.current = controls.send; });
@@ -198,6 +219,26 @@ export default function ProfessionalArea() {
   const scheduled = sessions.filter(s => s.status === "scheduled");
   const completed = sessions.filter(s => s.status === "completed");
   const hasOperation = appointmentRequests.length > 0 || pending.length > 0 || scheduled.length > 0 || completed.length > 0;
+  const overdue = [...pending, ...appointmentRequests].filter(item => item.response_overdue);
+  const dueSoon = [...pending, ...appointmentRequests].filter(item => !item.response_overdue && item.response_state === "due_soon");
+  const todaySessions = scheduled.filter(item => item.date === todayIso());
+  const missingRoom = scheduled.filter(item => item.meeting_mode !== "presencial" && !item.room_link);
+  const pendingReferral = completed.filter(item => !item.referral);
+  const upcomingOpen = availability.filter(item => item.status === "open").slice(0, 3);
+  const computedRadarItems = [
+    ...(overdue.length ? [{ priority: "Alta", tone: "off", description: `${overdue.length} pedido${overdue.length === 1 ? " está" : "s estão"} além de 48 horas.`, reason: "O prazo operacional já foi ultrapassado.", action: "Responder agora", target: "professional-requests" }] : []),
+    ...(dueSoon.length ? [{ priority: "Atenção", tone: "wait", description: `${dueSoon.length} pedido${dueSoon.length === 1 ? " está" : "s estão"} próximo${dueSoon.length === 1 ? "" : "s"} do prazo.`, reason: "Uma resposta antes de 48 horas evita atraso.", action: "Revisar pedidos", target: "professional-requests" }] : []),
+    ...(todaySessions.length ? [{ priority: "Hoje", tone: "ok", description: `${todaySessions.length} conversa${todaySessions.length === 1 ? "" : "s"} agendada${todaySessions.length === 1 ? "" : "s"} para hoje.`, reason: "Prepare a modalidade e a sala antes do horário.", action: "Abrir agenda", target: "professional-sessions-card" }] : []),
+    ...(missingRoom.length ? [{ priority: "Atenção", tone: "wait", description: `${missingRoom.length} conversa${missingRoom.length === 1 ? " está" : "s estão"} sem link de sala.`, reason: "O estudante precisa de uma orientação prática para entrar.", action: "Configurar sala", target: "professional-sessions-card" }] : []),
+    ...(pendingReferral.length ? [{ priority: "Depois da conversa", tone: "wait", description: `${pendingReferral.length} encerramento${pendingReferral.length === 1 ? "" : "s"} ainda não tem encaminhamento operacional.`, reason: "O registro ajuda a manter a continuidade do fluxo.", action: "Revisar histórico", target: "professional-completed-card" }] : []),
+    ...(upcomingOpen.length ? [{ priority: "Capacidade", tone: "ok", description: `${upcomingOpen.length} horário${upcomingOpen.length === 1 ? " livre" : "s livres"} próximo${upcomingOpen.length === 1 ? "" : "s"}.`, reason: "Horários publicados podem receber novas solicitações.", action: "Ver horários", target: "professional-capacity-card" }] : []),
+  ];
+  const radarItems = serverRadar.length ? serverRadar.map(item => ({ priority: item.priority === "high" ? "Alta" : item.priority === "medium" ? "Atenção" : "Depois", tone: item.priority === "high" ? "off" : item.priority === "medium" ? "wait" : "ok", description: item.title, reason: item.reason, action: item.next_step, target: item.type === "pending_request" ? "professional-requests" : item.type === "today_session" || item.type === "missing_room_link" ? "professional-sessions-card" : item.type === "pending_referral" ? "professional-completed-card" : "professional-capacity-card" })) : computedRadarItems;
+  const reservedSlots = Number.isFinite(professionalMetrics?.availability_reserved) ? professionalMetrics.availability_reserved : availability.filter(item => item.status === "reserved").length;
+  const openSlots = Number.isFinite(professionalMetrics?.availability_open) ? professionalMetrics.availability_open : availability.filter(item => item.status === "open").length;
+  const publishedSlots = Number.isFinite(professionalMetrics?.availability_published) ? professionalMetrics.availability_published : availability.length;
+  const capacityTotal = openSlots + reservedSlots;
+  const utilization = Number.isFinite(professionalMetrics?.utilization_percent) ? professionalMetrics.utilization_percent : capacityTotal ? Math.round((reservedSlots / capacityTotal) * 100) : null;
   const conversations = scheduled.map(session => ({
     id: session.id,
     title: "Conversa agendada",
@@ -207,7 +248,7 @@ export default function ProfessionalArea() {
   const renderFloatingChat = (sessionId, close) => <div className="mvp-floating-chat">{chatError && chatSession === sessionId && <div className="mvp-chat-error" role="alert"><span>{chatError}</span><button type="button" className="button quiet small" onClick={() => retryChat(sessionId)}>Tentar novamente</button></div>}
     <div className="mvp-chat-head"><strong>Chat da conversa</strong><small>{chatOnline ? "Online agora" : "Converse apenas sobre a organização do encontro. O conteúdo não é visível para a instituição."}{chatTyping ? " · Digitando…" : ""}</small></div>
     <div className="mvp-chat-messages" ref={chatMessagesRef}>{chatLoading && chatSession === sessionId ? <MvpEmpty>Carregando mensagens…</MvpEmpty> : chatSession === sessionId && chatMessages.length ? chatMessages.map(message => <div className={`mvp-chat-message ${message.sender_role === "professional" ? "mine" : "theirs"}`} key={message.id}>{message.body}{message.sender_role === "professional" && chatReadAt && <small className="mvp-chat-read">✓✓</small>}</div>) : <MvpEmpty>Nenhuma mensagem ainda.</MvpEmpty>}</div>
-    <div className="mvp-chat-compose"><input aria-label="Mensagem para a conversa" value={chatSession === sessionId ? chatDraft : ""} maxLength={1000} placeholder="Escreva uma mensagem prática…" onChange={e => { setChatDraft(e.target.value); chatSendRef.current?.({ type: "typing", active: Boolean(e.target.value.trim()) }); }} onBlur={() => chatSendRef.current?.({ type: "typing", active: false })} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendChat(sessionId); } }} /><button type="button" aria-label="Enviar mensagem" className="button small primary" onClick={() => sendChat(sessionId)} disabled={chatBusy || !chatDraft.trim()}><Send size={14} /></button></div>
+    <div className="mvp-chat-compose"><input aria-label="Mensagem para a conversa" value={chatSession === sessionId ? chatDraft : ""} maxLength={1000} placeholder="Escreva uma mensagem prática…" onChange={e => { setChatDraft(e.target.value); updateChatTyping(Boolean(e.target.value.trim())); }} onBlur={() => updateChatTyping(false)} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendChat(sessionId); } }} /><button type="button" aria-label="Enviar mensagem" className="button small primary" onClick={() => sendChat(sessionId)} disabled={chatBusy || !chatDraft.trim()}><Send size={14} /></button></div>
     <button type="button" className="mvp-floating-chat-close" onClick={() => { chatSessionRef.current = null; setFloatingChatSession(null); setChatSession(null); close(); }}>Fechar conversa</button>
   </div>;
 
@@ -231,11 +272,21 @@ export default function ProfessionalArea() {
       onOpenConversation={openFloatingChat}
       renderConversation={renderFloatingChat}
     >
+      <MvpCard title="Radar de hoje" subtitle="O que merece sua atenção agora, com base apenas no estado operacional da sua agenda." testid="pro-radar-card" className="professional-radar-card">
+        {radarItems.length ? <div className="professional-radar-list">{radarItems.map((item, index) => <div className="professional-radar-item" key={`${item.target}:${index}`}><div className="professional-radar-copy"><span className={`mvp-tag ${item.tone}`}>{item.priority}</span><strong>{item.description}</strong><small>{item.reason}</small><em>Ação sugerida: {item.action}</em></div><a className="button quiet small" href={`#${item.target}`}>Abrir contexto</a></div>)}</div> : <MvpEmpty>Nenhum alerta operacional agora. Quando houver algo a revisar, ele aparecerá aqui.</MvpEmpty>}
+      </MvpCard>
+
+      <MvpCard id="professional-capacity-card" title="Minha capacidade" subtitle="Somente os seus horários publicados no piloto; sem ranking entre profissionais." testid="pro-capacity-card" className="professional-capacity-card">
+        <div className="mvp-kpis professional-capacity-kpis"><div><strong>{publishedSlots}</strong><span>Horários publicados</span></div><div><strong>{reservedSlots}</strong><span>Reservados</span></div><div><strong>{openSlots}</strong><span>Livres</span></div><div><strong>{utilization == null ? "—" : `${utilization}%`}</strong><span>Utilização</span></div></div>
+        <p className="mvp-note">Pedidos recusados especificamente por falta de disponibilidade: não foi possível determinar com os registros atuais. A distribuição semanal detalhada aparecerá quando houver dados suficientes; o painel não expõe comparações individuais.</p>
+      </MvpCard>
+
       {appointmentRequests.length > 0 && <MvpCard id="professional-requests" title="Pedidos diretos de atendimento" subtitle="Estudantes que escolheram você para propor uma data e horário." testid="pro-appointment-requests-card" className="professional-requests-card">
         {appointmentRequests.map(item => <div className="mvp-row professional-appointment-request" key={item.id} data-testid={`pro-appointment-request-${item.id}`}>
           <div className="mvp-row-main"><strong>{item.student_name}</strong><span>{reasonLabel(item.reason_code)} · {item.meeting_mode === "presencial" ? "Presencial" : "Online"}</span>{item.note && <span>“{item.note}”</span>}{item.status === "proposed" && <span>Proposta enviada: {formatDate(item.date)} · {item.time}</span>}<small className="mvp-next-step">{item.response_overdue ? "Resposta atrasada — priorize este pedido." : item.response_state === "due_soon" ? "Prazo próximo — responda antes de 48h." : `Próximo passo: ${item.next_step}`}</small></div>
           {item.status === "pending" ? <div className="mvp-row-actions professional-appointment-actions">
-            <div className="appointment-custom-choice"><label>Data proposta <input type="text" inputMode="numeric" placeholder="dd/mm/aaaa" value={appointmentCustom[item.id]?.dateText || ""} onChange={e => { const dateText = formatBrazilianDateInput(e.target.value); setAppointmentCustom(current => ({ ...current, [item.id]: { ...current[item.id], dateText, date: parseBrazilianDate(dateText) || "" } })); }} /></label><label>Hora <select value={appointmentCustom[item.id]?.time || ""} onChange={e => setAppointmentCustom(current => ({ ...current, [item.id]: { ...current[item.id], time: e.target.value } }))}><option value="">Escolha</option>{TIME_OPTIONS.map(time => <option key={time} value={time}>{time}</option>)}</select></label></div>
+            <div className="appointment-custom-choice"><label>Data proposta <input type="text" inputMode="numeric" placeholder="dd/mm/aaaa" value={appointmentCustom[item.id]?.dateText || ""} onChange={e => { const dateText = formatBrazilianDateInput(e.target.value); setAppointmentCustom(current => ({ ...current, [item.id]: { ...current[item.id], availability_id: "", dateText, date: parseBrazilianDate(dateText) || "" } })); }} /></label><label>Hora <select value={appointmentCustom[item.id]?.time || ""} onChange={e => setAppointmentCustom(current => ({ ...current, [item.id]: { ...current[item.id], availability_id: "", time: e.target.value } }))}><option value="">Escolha</option>{TIME_OPTIONS.map(time => <option key={time} value={time}>{time}</option>)}</select></label></div>
+            {availableOptions(item).length > 0 && <div className="professional-slot-suggestions"><small>Usar disponibilidade publicada (até 3 opções)</small>{availableOptions(item).map(slot => <button type="button" className={`button quiet small ${appointmentCustom[item.id]?.availability_id === slot.id ? "is-selected" : ""}`} key={slot.id} onClick={() => setAppointmentCustom(current => ({ ...current, [item.id]: { ...current[item.id], availability_id: slot.id, date: slot.date, time: slot.time, dateText: slot.date.split("-").reverse().join("/") } }))}>{slot.date.split("-").reverse().join("/")} · {slot.time} · {slot.mode === "presencial" ? "Presencial" : "Online"}</button>)}</div>}
             <div className="appointment-action-buttons"><button type="button" className="button small primary" onClick={() => proposeAppointment(item.id)} disabled={actionBusy || !(appointmentCustom[item.id]?.date && appointmentCustom[item.id]?.time)} aria-busy={actionBusy}>Propor horário</button><button type="button" className="button small quiet" onClick={() => declineAppointment(item.id)} disabled={actionBusy} aria-busy={actionBusy}>Recusar</button></div>
           </div> : <div className="mvp-row-actions"><span className="mvp-tag wait">Aguardando aluno</span></div>}
         </div>)}
@@ -264,7 +315,7 @@ export default function ProfessionalArea() {
         {certificate ? <div className="professional-certificate-ready"><div><strong>{certificate.title}</strong><span>{certificate.completed_count} conversas concluídas · código {certificate.code}</span></div><button type="button" className="button small secondary" onClick={() => printCertificate(false)}><Award size={14}/> Imprimir / salvar PDF</button></div> : <div className="professional-certificate-progress"><div><strong>{certificateEligibility.eligible ? "Seu certificado está pronto." : "Certificado de participação"}</strong><span>{certificateEligibility.eligible ? "Emita quando quiser." : `${certificateEligibility.completed_count} de ${certificateEligibility.required_count} conversas concluídas.`}</span></div>{certificateEligibility.eligible ? <button type="button" className="button small primary" onClick={issueCertificate}><Award size={14}/> Emitir certificado</button> : <div className="professional-certificate-actions"><button type="button" className="button small secondary" onClick={() => printCertificate(true)}><Award size={14}/> Ver prévia</button><small>Disponível após 5 conversas concluídas.</small></div>}</div>}
       </MvpCard>
 
-      {scheduled.length > 0 && <MvpCard title="Próximas conversas" subtitle="Prepare a sala externa e marque a conversa como realizada ao final." testid="pro-sessions-card" className="professional-sessions-card">
+      {scheduled.length > 0 && <MvpCard id="professional-sessions-card" title="Próximas conversas" subtitle="Prepare a sala externa e marque a conversa como realizada ao final." testid="pro-sessions-card" className="professional-sessions-card">
         {scheduled.map(s => (
           <div className="mvp-row professional-session-row" key={s.id} style={{ display: "block" }} data-testid={`pro-session-${s.id}`}>
             <div className="mvp-row" style={{ borderTop: 0, padding: 0 }}>
@@ -278,6 +329,7 @@ export default function ProfessionalArea() {
                 <button type="button" className="button secondary small" onClick={() => run(() => api.post(`/professionals/me/sessions/${s.id}/room-link`, { room_link: links[s.id] || s.room_link }), "Link salvo.")} data-testid={`save-room-link-${s.id}`}>Salvar link</button>
               </div>
             </details>
+            <div className="professional-checklist" aria-label="Checklist pré-conversa"><strong>Pré-conversa</strong><span className="is-done">✓ Horário confirmado</span><span className={s.meeting_mode ? "is-done" : ""}>{s.meeting_mode ? "✓ Modalidade definida" : "○ Modalidade pendente"}</span><span className={s.room_link || s.meeting_mode === "presencial" ? "is-done" : ""}>{s.room_link || s.meeting_mode === "presencial" ? "✓ Sala ou local configurado" : "○ Link da sala pendente"}</span><span className="is-done">✓ Informações práticas prontas</span></div>
           </div>
         ))}
       </MvpCard>}
@@ -287,7 +339,7 @@ export default function ProfessionalArea() {
         <MvpEmpty>Nenhuma solicitação ou conversa para acompanhar ainda.</MvpEmpty>
       </MvpCard>}
 
-      {completed.length > 0 && <details className="mvp-card mvp-collapsible-card professional-completed-card" data-testid="pro-completed-card">
+      {completed.length > 0 && <details id="professional-completed-card" className="mvp-card mvp-collapsible-card professional-completed-card" data-testid="pro-completed-card">
         <summary className="mvp-card-head"><div><h2>Conversas realizadas e encaminhamentos</h2><p>Registro operacional simples — sem prontuário clínico.</p></div></summary>
         <div className="mvp-collapsible-body">
         {completed.map(s => (
@@ -318,10 +370,16 @@ export default function ProfessionalArea() {
                 }), "Encaminhamento registrado.")}
                 data-testid={`save-referral-${s.id}`}>Registrar</button>
             </div>
+            <div className="professional-checklist" aria-label="Checklist pós-conversa"><strong>Pós-conversa</strong><span className="is-done">✓ Conversa encerrada</span><span className={s.referral ? "is-done" : "is-pending"}>{s.referral ? "✓ Encaminhamento operacional registrado" : "○ Encaminhamento operacional pendente"}</span><span className="is-done">✓ Sessão pronta para fechamento</span></div>
           </div>
         ))}
         </div>
       </details>}
+
+      <MvpCard title="Rascunhos de mensagens práticas" subtitle="Modelos editáveis para você revisar e enviar manualmente. Nada é enviado automaticamente." testid="pro-message-drafts-card" className="professional-message-drafts-card">
+        <div className="professional-drafts-grid">{Object.entries({ confirmation: "Confirmação de horário", reminder: "Lembrete da conversa", change: "Alteração de horário", room: "Instrução para acessar a sala", linkRequest: "Solicitação de atualização do link" }).map(([key, label]) => <label key={key}>{label}<textarea rows="2" value={drafts[key]} onChange={event => setDrafts(current => ({ ...current, [key]: event.target.value }))} maxLength={500} /></label>)}</div>
+        <p className="mvp-note">Use apenas para organização do encontro. Não inclua diagnósticos, interpretações ou informações clínicas.</p>
+      </MvpCard>
     </MvpShell>
   );
 }

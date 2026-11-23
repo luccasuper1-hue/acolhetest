@@ -1,5 +1,5 @@
-# Template local seguro — substitua pelos valores do seu ambiente.
-# Este arquivo é excluído dos pacotes de release pelo ops/package-release.ps1.
-MONGODB_URI="mongodb+srv://usuario:senha@cluster.example.mongodb.net/?retryWrites=true&w=majority"
-MONGODB_DB="acolhe_local"
-FRONTEND_URL="https://seu-worker.seu-subdominio.workers.dev"
+# Template local seguro. Nunca substitua estes valores por credenciais reais.
+MONGO_URL=mongodb+srv://<user>:<password>@<cluster>/<database>
+DB_NAME=acolhe_local
+JWT_SECRET=replace-with-a-long-random-local-secret
+FRONTEND_URL=http://localhost:5173

@@ -1,0 +1,70 @@
+name: Quality checks
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  frontend:
+    name: Frontend tests and build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm test
+      - run: npm run lint
+      - run: npm run build
+      - run: npm run check:budget
+
+  worker:
+    name: Worker tests and typecheck
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: cloudflare-worker
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: cloudflare-worker/package-lock.json
+      - run: npm ci
+      - run: npm test
+      - run: npm run check
+      - run: node --check ../ops/migrations/backfill-certificate-institution.mjs
+
+  release-package:
+    name: Release package verification
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Build frontend assets
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+      - name: Create and verify release package
+        shell: pwsh
+        run: |
+          $zip = Join-Path $env:RUNNER_TEMP "acolhe-release.zip"
+          ./ops/package-release.ps1 -OutputPath $zip -Force
+          ./ops/verify-release.ps1 -ZipPath $zip

@@ -10,6 +10,8 @@ export default function StudentArea() {
   const [professionals, setProfessionals] = useState([]);
   const [requests, setRequests] = useState([]);
   const [appointmentRequests, setAppointmentRequests] = useState([]);
+  const [historyLoaded, setHistoryLoaded] = useState(false);
+  const [historyLoading, setHistoryLoading] = useState(false);
   const [notifications, setNotifications] = useState(undefined);
   const [notificationUnreadCount, setNotificationUnreadCount] = useState(null);
   const [reason, setReason] = useState(REASONS[0].code);
@@ -32,21 +34,25 @@ export default function StudentArea() {
   const [chatRealtimeConnected, setChatRealtimeConnected] = useState(false);
   const [chatReadAt, setChatReadAt] = useState(null);
   const chatSendRef = useRef(null);
+  const chatTypingTimerRef = useRef(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const chatMessagesRef = useRef(null);
   const chatSessionRef = useRef(null);
   const lastReadSentRef = useRef(null);
   const loadRequestRef = useRef(0);
+  const historyControllerRef = useRef(null);
+  const updateChatTyping = active => { if (chatTypingTimerRef.current) window.clearTimeout(chatTypingTimerRef.current); chatSendRef.current?.({ type: "typing", active: Boolean(active) }); if (active) chatTypingTimerRef.current = window.setTimeout(() => { chatTypingTimerRef.current = null; chatSendRef.current?.({ type: "typing", active: false }); }, 1800); };
 
   const load = useCallback(async () => {
     const requestId = ++loadRequestRef.current;
     try {
-      const { data } = await api.get("/students/me/dashboard");
+      const { data } = await api.get("/students/me/dashboard?summary=1");
       if (requestId !== loadRequestRef.current) return;
       setProfessionals(data.professionals || []);
       setRequests(data.requests || []);
       setAppointmentRequests(data.appointment_requests || []);
+      setHistoryLoaded(false);
       setNotifications(data.notifications || []);
       setNotificationUnreadCount(typeof data.notification_unread_count === "number" ? data.notification_unread_count : null);
       setLoadError("");
@@ -56,6 +62,30 @@ export default function StudentArea() {
       throw error;
     } finally { if (requestId === loadRequestRef.current) setLoading(false); }
   }, []);
+
+  const loadHistory = useCallback(async () => {
+    if (historyLoaded || historyLoading) return;
+    historyControllerRef.current?.abort();
+    const controller = new AbortController();
+    historyControllerRef.current = controller;
+    setHistoryLoading(true);
+    try {
+      const [legacy, direct] = await Promise.all([
+        api.get("/students/me/requests?paged=1&limit=50", { signal: controller.signal }),
+        api.get("/students/me/appointment-requests", { signal: controller.signal }),
+      ]);
+      if (controller.signal.aborted) return;
+      setRequests(legacy.data?.items || legacy.data || []);
+      setAppointmentRequests(direct.data || []);
+      setHistoryLoaded(true);
+    } catch (error) {
+      if (!controller.signal.aborted) toast.error(apiError(error));
+    } finally {
+      if (historyControllerRef.current === controller) { historyControllerRef.current = null; setHistoryLoading(false); }
+    }
+  }, [historyLoaded, historyLoading]);
+
+  useEffect(() => () => historyControllerRef.current?.abort(), []);
 
   useEffect(() => { load().catch(e => toast.error(apiError(e))); }, [load]);
   const cancel = async id => {
@@ -97,9 +127,15 @@ export default function StudentArea() {
   const confirmAppointmentProposal = async id => {
     if (actionBusyRef.current) return;
     actionBusyRef.current = true;
-    try { await api.post(`/students/me/appointment-requests/${id}/confirm`); toast.success("Horário confirmado."); await load(); }
-    catch (e) { toast.error(apiError(e)); await load(); }
-    finally { actionBusyRef.current = false; }
+    try {
+      const { data: session } = await api.post(`/students/me/appointment-requests/${id}/confirm`, {}, { timeout: 30_000 });
+      setAppointmentRequests(current => current.map(item => item.id === id ? { ...item, status: "accepted", session } : item));
+      toast.success("Horário confirmado.");
+    } catch (e) {
+      toast.error(apiError(e));
+      return;
+    } finally { actionBusyRef.current = false; }
+    load().catch(() => toast.error("O horário foi confirmado, mas o painel não atualizou. Recarregue a página."));
   };
   const cancelAppointmentRequest = async id => {
     if (typeof window !== "undefined" && !window.confirm("Cancelar este pedido de atendimento?")) return;
@@ -140,7 +176,7 @@ export default function StudentArea() {
   const sendChat = async sessionId => {
     const body = chatDraft.trim(); if (!body || chatBusy || chatLoading) return;
     setChatBusy(true);
-    try { chatSendRef.current?.({ type: "typing", active: false }); const { data } = await api.post(`/students/me/sessions/${sessionId}/messages`, { body }); if (chatSessionRef.current === sessionId) { setChatMessages(current => current.some(message => message.id === data.id) ? current : [...current, data]); setChatDraft(""); } }
+    try { updateChatTyping(false); const { data } = await api.post(`/students/me/sessions/${sessionId}/messages`, { body }); if (chatSessionRef.current === sessionId) { setChatMessages(current => current.some(message => message.id === data.id) ? current : [...current, data]); setChatDraft(""); } }
     catch (e) { toast.error(apiError(e)); }
     finally { setChatBusy(false); }
   };
@@ -172,7 +208,7 @@ export default function StudentArea() {
         setChatMessages(current => current.some(message => message.id === event.message.id) ? current : [...current, event.message]);
       }
       if (event?.type === "presence") setChatOnline(Boolean(event.online));
-      if (event?.type === "typing" && event.userId) setChatTyping(Boolean(event.active));
+      if (event?.type === "typing") setChatTyping(Boolean(event.active));
       if (event?.type === "message_read" && event.messageId) setChatReadAt(event.readAt || new Date().toISOString());
       if (event?.type === "notification") load().catch(() => {});
     }, status => { const connected = status === "open"; setChatRealtimeConnected(connected); if (!connected) { lastReadSentRef.current = null; setChatOnline(false); setChatTyping(false); } }, controls => { chatSendRef.current = controls.send; });
@@ -207,7 +243,7 @@ export default function StudentArea() {
   const renderFloatingChat = (sessionId, close) => <div className="mvp-floating-chat">{chatError && chatSession === sessionId && <div className="mvp-chat-error" role="alert"><span>{chatError}</span><button type="button" className="button quiet small" onClick={() => retryChat(sessionId)}>Tentar novamente</button></div>}
     <div className="mvp-chat-head"><strong>Chat da conversa</strong><small>{chatOnline ? "Online agora" : "Use para combinar detalhes práticos. O chat é privado entre vocês."}{chatTyping ? " · Digitando…" : ""}</small></div>
     <div className="mvp-chat-messages" ref={chatMessagesRef}>{chatLoading && chatSession === sessionId ? <MvpEmpty>Carregando mensagens…</MvpEmpty> : chatSession === sessionId && chatMessages.length ? chatMessages.map(message => <div className={`mvp-chat-message ${message.sender_role === "student" ? "mine" : "theirs"}`} key={message.id}>{message.body}{message.sender_role === "student" && chatReadAt && <small className="mvp-chat-read">✓✓</small>}</div>) : <MvpEmpty>Nenhuma mensagem ainda. Você pode escrever antes do encontro.</MvpEmpty>}</div>
-    <div className="mvp-chat-compose"><input aria-label="Mensagem para a conversa" value={chatSession === sessionId ? chatDraft : ""} maxLength={1000} placeholder="Escreva uma mensagem prática…" onChange={e => { setChatDraft(e.target.value); chatSendRef.current?.({ type: "typing", active: Boolean(e.target.value.trim()) }); }} onBlur={() => chatSendRef.current?.({ type: "typing", active: false })} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendChat(sessionId); } }} /><button type="button" aria-label="Enviar mensagem" className="button small primary" onClick={() => sendChat(sessionId)} disabled={chatBusy || !chatDraft.trim()}><Send size={14} /></button></div>
+    <div className="mvp-chat-compose"><input aria-label="Mensagem para a conversa" value={chatSession === sessionId ? chatDraft : ""} maxLength={1000} placeholder="Escreva uma mensagem prática…" onChange={e => { setChatDraft(e.target.value); updateChatTyping(Boolean(e.target.value.trim())); }} onBlur={() => updateChatTyping(false)} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendChat(sessionId); } }} /><button type="button" aria-label="Enviar mensagem" className="button small primary" onClick={() => sendChat(sessionId)} disabled={chatBusy || !chatDraft.trim()}><Send size={14} /></button></div>
     <button type="button" className="mvp-floating-chat-close" onClick={() => { chatSessionRef.current = null; setFloatingChatSession(null); setChatSession(null); close(); }}>Fechar conversa</button>
   </div>;
   const flowStep = 0;
@@ -256,21 +292,21 @@ export default function StudentArea() {
         {upcoming.length > 0 && <p className="student-active-note">Você já tem um encontro marcado. O painel de novos pedidos ficará disponível depois que ele terminar.</p>}
       </MvpCard> : <MvpCard title="Pedir uma conversa" subtitle="Conte o que você precisa. O profissional organiza uma data e horário para vocês." testid="student-direct-request-card" className="student-direct-request-card">
         <div className="mvp-form">
-          <label>Qual motivo geral descreve melhor o que você busca?
+          <label className="student-request-reason">Qual motivo geral descreve melhor o que você busca?
             <select value={reason} onChange={e => setReason(e.target.value)} data-testid="reason-select">
               {REASONS.map(r => <option key={r.code} value={r.code}>{r.label}</option>)}
             </select>
           </label>
-          <label>Quer deixar um recado para o profissional? (opcional)
+          <label className="student-request-note">Quer deixar um recado para o profissional? (opcional)
             <textarea value={note} onChange={e => setNote(e.target.value)} placeholder="Escreva apenas o que ajudar a organizar a conversa." data-testid="reason-note-input" />
           </label>
-          <label>Profissional
+          <label className="student-request-professional">Profissional
             <select value={appointmentProfessional} onChange={e => setAppointmentProfessional(e.target.value)} data-testid="direct-appointment-professional">
               <option value="">Escolha um profissional</option>
               {professionals.map(item => <option key={item.id} value={item.id}>{item.name}{item.specialty ? ` · ${item.specialty}` : ""}</option>)}
             </select>
           </label>
-          <label>Formato preferido
+          <label className="student-request-mode">Formato preferido
             <select value={meetingMode} onChange={e => setMeetingMode(e.target.value)} data-testid="direct-appointment-mode"><option value="online">Online</option><option value="presencial">Presencial · na instituição</option></select>
           </label>
           <small className="student-privacy-note">Este pedido é enviado apenas ao profissional escolhido. A instituição não vê o conteúdo da conversa.</small>
@@ -282,9 +318,10 @@ export default function StudentArea() {
         <MvpEmpty testid="student-journey-empty">Você ainda não tem uma conversa agendada. Quando enviar um pedido, o profissional organizará os próximos detalhes por aqui.</MvpEmpty>
       </MvpCard>}
 
-      {history.length > 0 && <details className="mvp-card mvp-collapsible-card student-history-card" data-testid="student-history-card">
+      {(history.length > 0 || !historyLoaded) && <details className="mvp-card mvp-collapsible-card student-history-card" data-testid="student-history-card" onToggle={event => { if (event.currentTarget.open) loadHistory(); else historyControllerRef.current?.abort(); }}>
         <summary className="mvp-card-head"><div><h2>Histórico e orientações</h2><p>Depois da conversa, o profissional pode registrar uma orientação.</p></div></summary>
         <div className="mvp-collapsible-body">
+        {historyLoading && <MvpEmpty>Carregando histórico…</MvpEmpty>}
         {history.map(r => (
           <div className="mvp-row" key={r.id} style={{ display: "block" }} data-testid={`student-history-${r.id}`}>
             <div className="mvp-row" style={{ borderTop: 0, padding: 0 }}>
@@ -298,6 +335,7 @@ export default function StudentArea() {
             {r.status === "completed" && r.session && !r.feedback && (
               <div style={{ marginTop: 12 }} data-testid={`feedback-form-${r.session.id}`}>
                 <p style={{ fontSize: 13, opacity: .75, marginBottom: 8 }}>Como foi sua experiência com o Acolhe?</p>
+                <small className="mvp-feedback-note">Comentário opcional e operacional; não inclua conteúdo sensível da conversa.</small>
                 <div className="mvp-scale">
                   {[1, 2, 3, 4, 5].map(n => (
                     <button key={n}

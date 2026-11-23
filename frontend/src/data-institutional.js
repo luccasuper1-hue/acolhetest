@@ -170,12 +170,12 @@ export const impactIndicators = [
 ];
 
 export const aiUses = [
-  { title: "Navegação e organização", text: "Ajudar a organizar informações e orientar a pessoa até o caminho adequado." },
-  { title: "Recomendação de recursos", text: "Sugerir conteúdos de apoio compatíveis com o que a pessoa trouxe." },
-  { title: "Automação administrativa", text: "Reduzir trabalho operacional de agendamento, organização e registros." },
-  { title: "Organização de encaminhamentos", text: "Apoiar a estruturação do direcionamento feito por profissionais." },
-  { title: "Análise de dados agregados", text: "Identificar padrões gerais de utilização, sem expor pessoas." },
-  { title: "Apoio operacional aos profissionais", text: "Diminuir tarefas repetitivas para sobrar tempo de atuação." },
+  { title: "Acolhe Insights", text: "Responder perguntas institucionais sobre demanda, resposta, comparecimento e capacidade." },
+  { title: "Leitura de indicadores", text: "Transformar métricas agregadas em uma leitura clara, com período e tamanho da amostra." },
+  { title: "Próximo passo operacional", text: "Sugerir caminhos proporcionais para organizar o acesso, sem executar ações automaticamente." },
+  { title: "Fontes e limitações", text: "Mostrar de onde vem cada leitura e o que ainda não dá para concluir." },
+  { title: "Privacidade por desenho", text: "Trabalhar sem conversas, notas, diagnósticos, nomes ou avaliações individuais." },
+  { title: "Fallback responsável", text: "Quando faltam dados ou a IA está indisponível, informar isso sem inventar uma resposta." },
 ];
 
 export const howByAudience = [

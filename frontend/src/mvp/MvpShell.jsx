@@ -7,6 +7,7 @@ import { api, apiError, connectRealtime, formatNotificationTime } from "./api";
 import { toast } from "sonner";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { lockOverlayScroll } from "../overlayScrollLock";
+import { openCookieSettings } from "../components/CookieConsent";
 
 const ROLE_LABEL = {
   student: "Estudante",
@@ -47,7 +48,7 @@ export const MvpShell = ({ title, kicker, lead, flow = [], flowStep = 0, childre
   const unreadNotifications = notifications.filter(item => !item.read);
   const displayedUnreadCount = unreadCount === null ? unreadNotifications.length : unreadCount;
   const unreadConversationCount = notifications.filter(item => !item.read && item.type === "chat_message_received" && conversations.some(conversation => conversation.id === item.meta?.session_id)).length;
-  const isInstitutionLegacyNotification = item => user?.role === "institution" && ["availability_published", "availability_published_for_request"].includes(item?.type);
+  const isInstitutionLegacyNotification = useCallback(item => user?.role === "institution" && ["availability_published", "availability_published_for_request"].includes(item?.type), [user?.role]);
   const exit = async () => { await signOut(); navigate("/"); };
   useEffect(() => { notificationsRef.current = notifications; }, [notifications]);
   useEffect(() => { notificationsOpenRef.current = notificationsOpen; }, [notificationsOpen]);
@@ -114,7 +115,7 @@ export const MvpShell = ({ title, kicker, lead, flow = [], flowStep = 0, childre
       setNotificationError("");
       return true;
     } catch { if (requestId !== notificationRequestRef.current) return false; setNotificationPage(current => ({ ...current, loading: false })); setNotificationsLoading(false); setNotificationError("Não foi possível atualizar as notificações agora."); return false; }
-  }, [notificationPath, onNotificationsChange, user?.role]);
+  }, [isInstitutionLegacyNotification, notificationPath, onNotificationsChange, user?.role]);
   useEffect(() => {
     if (!dashboardNotificationsReady) return;
     const next = dashboardNotifications.filter(item => !isInstitutionLegacyNotification(item)).map(item => pendingReadIds.current.has(item.id) ? { ...item, read: true } : item);
@@ -127,7 +128,7 @@ export const MvpShell = ({ title, kicker, lead, flow = [], flowStep = 0, childre
     });
     setNotificationsLoading(false);
     setNotificationError("");
-  }, [dashboardNotificationUnreadCount, dashboardNotifications, dashboardNotificationsReady, notificationPage.before, user?.role]);
+  }, [dashboardNotificationUnreadCount, dashboardNotifications, dashboardNotificationsReady, isInstitutionLegacyNotification, notificationPage.before, user?.role]);
   useEffect(() => {
     if (loading && !dashboardNotificationsReady) setNotificationsLoading(true);
   }, [dashboardNotificationsReady, loading]);
@@ -176,6 +177,11 @@ export const MvpShell = ({ title, kicker, lead, flow = [], flowStep = 0, childre
     }, 100);
   }, [onRefresh, user?.role]);
   const refreshAfterRealtimeLoss = useCallback(status => {
+    if (status === "open") {
+      loadNotifications();
+      refreshFromRealtime();
+      return;
+    }
     if (status !== "error" && status !== "closed") return;
     if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
     const nowMs = Date.now();
@@ -188,13 +194,16 @@ export const MvpShell = ({ title, kicker, lead, flow = [], flowStep = 0, childre
   useEffect(() => {
     if (!user?.id) return undefined;
     return connectRealtime(null, event => {
-      if (event?.type === "data_changed") { refreshFromRealtime(); return; }
+      if (event?.type === "data_changed") { if (event.scope === "account_access" && event.active === false) { signOut().finally(() => navigate("/entrar?acesso=desativado")); return; } if (event.scope === "session_invalidated") { signOut().finally(() => navigate("/entrar?acesso=sessao-invalidada")); return; } refreshFromRealtime(); return; }
       if (event?.type === "notifications_changed") { loadNotifications(); refreshFromRealtime(); return; }
       if (event?.type !== "notification" || !event.notification) return;
+      const notificationId = String(event.notification.id || "").trim();
+      if (!notificationId) return;
       if (!isInstitutionLegacyNotification(event.notification)) {
         const current = notificationsRef.current;
-        if (!current.some(item => item.id === event.notification.id)) {
-          const merged = [event.notification, ...current];
+        if (!current.some(item => item.id === notificationId)) {
+          const safeNotification = { ...event.notification, id: notificationId };
+          const merged = [safeNotification, ...current];
           notificationsRef.current = merged;
           setNotifications(merged);
           // A direct realtime notification is already known to be unread.
@@ -206,7 +215,7 @@ export const MvpShell = ({ title, kicker, lead, flow = [], flowStep = 0, childre
       }
       refreshFromRealtime();
     }, refreshAfterRealtimeLoss);
-  }, [onNotificationsChange, refreshAfterRealtimeLoss, refreshFromRealtime, user?.id]);
+  }, [isInstitutionLegacyNotification, loadNotifications, navigate, onNotificationsChange, refreshAfterRealtimeLoss, refreshFromRealtime, signOut, user?.id]);
   useEffect(() => {
     if (!onRefresh || !user?.role) return undefined;
     const refreshWhenVisible = () => { if (document.visibilityState === "visible") Promise.resolve().then(() => onRefresh()).then(() => setRefreshError("")).catch(() => setRefreshError("Os dados podem estar desatualizados. Tente atualizar novamente.")); };
@@ -235,13 +244,15 @@ export const MvpShell = ({ title, kicker, lead, flow = [], flowStep = 0, childre
     const batches = [];
     for (let index = 0; index < unread.length; index += 100) batches.push(unread.slice(index, index + 100));
     const results = await Promise.allSettled(batches.map(batch => api.post(`${notificationPath}/read`, { ids: batch.map(item => item.id) })));
-    const failed = results.reduce((total, result, index) => total + (result.status === "rejected" ? batches[index].length : 0), 0);
-    unread.forEach(item => pendingReadIds.current.delete(item.id));
+    const failedIds = new Set(results.flatMap((result, index) => result.status === "rejected" ? batches[index].map(item => item.id) : []));
+    const failed = failedIds.size;
+    unread.filter(item => !failedIds.has(item.id)).forEach(item => pendingReadIds.current.delete(item.id));
     if (failed) {
       setNotificationError("Não foi possível salvar a leitura. Tentaremos novamente.");
-      // Reconcile with the server; pending ids remain protected until this
-      // request completes, so a stale response cannot re-add the badge.
+      // Reconcile with the server while failed ids remain protected, so a
+      // stale response cannot re-add the badge before the retry state is shown.
       await loadNotifications();
+      failedIds.forEach(id => pendingReadIds.current.delete(id));
     }
   };
   const readNotification = async notification => { await markNotificationsRead([notification]); };
@@ -300,7 +311,7 @@ export const MvpShell = ({ title, kicker, lead, flow = [], flowStep = 0, childre
             {notificationsOpen && <div className="mvp-notification-panel is-expanded" id="mvp-notification-panel" role="dialog" aria-modal="false" aria-labelledby="mvp-notification-title" aria-busy={notificationsLoading || notificationPage.loading}>
               <div className="mvp-notification-panel-head"><strong id="mvp-notification-title">Notificações{displayedUnreadCount > 0 ? ` (${displayedUnreadCount})` : ""}</strong><button ref={notificationCloseRef} type="button" className="mvp-notification-close" onClick={() => setNotificationsOpen(false)} aria-label="Fechar notificações"><X size={15} /></button></div>
               {typeof window !== "undefined" && "Notification" in window && Notification.permission !== "granted" && <button type="button" className="mvp-notification-enable" onClick={enableBrowserNotifications}>Ativar avisos na tela</button>}
-              {notificationError && <div className="mvp-notification-error" role="status"><span>{notificationError}</span><button type="button" onClick={loadNotifications}>Tentar novamente</button></div>}
+              {notificationError && <div className="mvp-notification-error" role="status"><span>{notificationError}</span><button type="button" onClick={loadNotifications} disabled={notificationsLoading} aria-busy={notificationsLoading}>Tentar novamente</button></div>}
               <div className="mvp-notification-filters" role="group" aria-label="Filtrar notificações">{[["all", "Todas"], ["messages", "Mensagens"], ["appointments", "Atendimentos"], ["updates", "Atualizações"]].map(([value, label]) => <button type="button" aria-pressed={notificationFilter === value} className={notificationFilter === value ? "active" : ""} key={value} onClick={() => setNotificationFilter(value)}>{label}</button>)}</div>
               <div id="mvp-notification-items" role="region" aria-label="Lista de notificações">{notificationsLoading && !notifications.length ? <small className="mvp-notification-empty" role="status" aria-live="polite">Carregando notificações…</small> : visibleNotifications.length ? visibleNotifications.map(notification => <button type="button" className={`mvp-notification-item ${notification.read ? "read" : "unread"}`} key={notification.id} onClick={() => handleNotificationClick(notification)} aria-label={`${notification.title}. ${notification.body}. ${formatNotificationTime(notification.created_at)}${notification.read ? ". Lida" : ". Não lida"}`}><span className="mvp-notification-item-title">{!notification.read && <i className="mvp-notification-unread-dot" aria-hidden="true" />}{notification.title}</span><small>{notification.body}</small><time dateTime={notification.created_at}>{formatNotificationTime(notification.created_at)}</time></button>) : <small className="mvp-notification-empty" role="status">Nenhuma atualização por enquanto.</small>}</div>
               {notificationPage.hasMore && <button type="button" className="mvp-notification-view-all" onClick={loadMoreNotifications} disabled={notificationPage.loading} aria-busy={notificationPage.loading}>{notificationPage.loading ? "Carregando…" : "Carregar notificações mais antigas"}</button>}
@@ -328,14 +339,14 @@ export const MvpShell = ({ title, kicker, lead, flow = [], flowStep = 0, childre
             <span>{institution?.name || "Rede Acolhe"}</span>
           </div>}
         </div>
-        {(notificationError || refreshError) && <div className="mvp-sync-warning" role="status"><span>{notificationError || refreshError}</span><button type="button" onClick={() => { setNotificationError(""); setRefreshError(""); loadNotifications(); if (onRefresh) Promise.resolve().then(() => onRefresh()).catch(() => setRefreshError("Ainda não foi possível atualizar os dados.")); }}>Atualizar</button></div>}
+        {(notificationError || refreshError) && <div className="mvp-sync-warning" role="status" aria-live="polite" aria-atomic="true"><span>{notificationError || refreshError}</span><button type="button" onClick={() => { setNotificationError(""); setRefreshError(""); loadNotifications(); if (onRefresh) Promise.resolve().then(() => onRefresh()).catch(() => setRefreshError("Ainda não foi possível atualizar os dados.")); }}>Atualizar</button></div>}
         {loading ? <MvpDashboardSkeleton role={user?.role} /> : error ? <MvpLoadError message={error} onRetry={onRetry} /> : <div className="mvp-workspace-content">{children}</div>}
         <PasswordChangeCard collapsed={collapsePassword} />
         {user?.role !== "admin" && <AccountPrivacyCard onDeleted={async () => { await signOut(); navigate("/"); }} />}
         {(user?.role === "student" || user?.role === "professional") && <ConversationLauncher conversations={conversations} unreadCount={unreadConversationCount} onOpenConversation={openConversation} renderConversation={renderConversation} />}
         <p className="mvp-foot-note">
-          <ShieldCheck size={15} /> Piloto Acolhe · a instituição nunca acessa o conteúdo das conversas.
-          Revisão jurídica/LGPD necessária antes de uso com dados reais.
+          <ShieldCheck size={15} /> <span>Piloto Acolhe · a instituição nunca acessa o conteúdo das conversas.<br />Revisão jurídica/LGPD necessária antes de uso ampliado.</span>
+          <button type="button" className="mvp-cookie-settings" onClick={openCookieSettings}>Preferências de cookies</button>
         </p>
       </main>
     </div>
@@ -425,7 +436,7 @@ function ConversationLauncher({ conversations, unreadCount, onOpenConversation, 
         <span className="mvp-conversation-avatar"><MessageCircle size={16} /></span>
         <span className="mvp-conversation-copy"><strong>{item.title}</strong><small>{item.subtitle}</small><em>{item.meta || "Chat disponível"}</em></span>
         <ChevronRight size={16} />
-      </button>) : <p className="mvp-conversation-empty">Nenhuma conversa ativa ainda.</p>}</>}
+      </button>) : <p className="mvp-conversation-empty" role="status">Nenhuma conversa ativa ainda.</p>}</>}
     </div>}
     {!selectedId && <button ref={conversationTriggerRef} type="button" className="mvp-conversation-trigger" onClick={() => setOpen(value => !value)} aria-haspopup="dialog" aria-expanded={open} aria-controls="mvp-conversation-panel" aria-label="Mensagens">
       <MessageCircle size={17} /><span>Mensagens</span>{unreadCount > 0 && <b>{unreadCount > 9 ? "9+" : unreadCount}</b>}

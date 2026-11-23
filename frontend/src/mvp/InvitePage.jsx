@@ -46,10 +46,10 @@ export default function InvitePage() {
         {invite && (
           <form className="mvp-form" onSubmit={submit}>
             <label>Nova senha (mínimo 8 caracteres)
-              <input type="password" required minLength={8} value={password} onChange={e => setPassword(e.target.value)} data-testid="invite-password-input" />
+              <input type="password" required minLength={8} value={password} onChange={e => setPassword(e.target.value)} autoComplete="new-password" data-testid="invite-password-input" />
             </label>
             <label>Confirmar senha
-              <input type="password" required minLength={8} value={confirm} onChange={e => setConfirm(e.target.value)} data-testid="invite-confirm-input" />
+              <input type="password" required minLength={8} value={confirm} onChange={e => setConfirm(e.target.value)} autoComplete="new-password" data-testid="invite-confirm-input" />
             </label>
             {error && <div className="mvp-error" role="alert" aria-live="assertive" data-testid="invite-error">{error}</div>}
             <button type="submit" className="button primary full" disabled={busy} data-testid="invite-submit-button">

@@ -112,6 +112,10 @@ test_result.md
 .mypy_cache/
 .ruff_cache/
 .coverage
+test-output.txt
+home-mobile-*.png
+loop-home-*.png
+mobile-check.png
 *.pyc
 *.pyo
 frontend/node_modules/.cache/default-development/6.pack

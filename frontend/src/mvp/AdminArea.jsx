@@ -1,8 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Archive, Ban, Building2, Check, Mail, RotateCcw, Trash2 } from "lucide-react";
+import { Activity, Archive, Ban, Building2, Check, Clock3, History, Mail, RotateCcw, Trash2 } from "lucide-react";
 import { MvpShell, MvpCard, MvpEmpty, MvpKpi } from "./MvpShell";
 import { api, apiError, formatDate, formatDateTime, STATUS_LABELS } from "./api";
+
+const AUDIT_LABELS = {
+  student_registered: "Estudante cadastrado", invite_accepted: "Convite aceito", access: "Acesso registrado",
+  request_created: "Pedido criado", appointment_request_created: "Pedido direto criado", request_accepted: "Pedido aceito",
+  request_declined: "Pedido recusado", request_cancelled: "Pedido cancelado", session_completed: "Conversa concluída",
+  session_no_show: "Ausência registrada", feedback_submitted: "Feedback recebido", professional_invited: "Profissional convidado",
+  certificate_revoked: "Certificado revogado", institution_created: "Instituição criada", institution_archived: "Instituição arquivada",
+  institution_restored: "Instituição reativada", user_access_toggled: "Acesso de usuário alterado", request_fallback_reviewed: "Próximo passo revisado",
+};
+const TECHNICAL_AUDIT_TYPES = new Set(["email_delivery_retry_scheduled", "email_delivery_failed"]);
 
 export default function AdminArea() {
   const [users, setUsers] = useState([]);
@@ -12,6 +22,12 @@ export default function AdminArea() {
   const [leads, setLeads] = useState([]);
   const [certificates, setCertificates] = useState([]);
   const [metrics, setMetrics] = useState(null);
+  const [analytics, setAnalytics] = useState(null);
+  const [auditEvents, setAuditEvents] = useState([]);
+  const [auditBefore, setAuditBefore] = useState(null);
+  const [auditHasMore, setAuditHasMore] = useState(false);
+  const [auditLoading, setAuditLoading] = useState(false);
+  const [analyticsPeriod, setAnalyticsPeriod] = useState("30");
   const [leadFilter, setLeadFilter] = useState("active");
   const [userQuery, setUserQuery] = useState("");
   const [certificateQuery, setCertificateQuery] = useState("");
@@ -27,18 +43,41 @@ export default function AdminArea() {
   const load = useCallback(async () => {
     const requestId = ++loadRequestRef.current;
     try {
+      // The operational summary is the critical path. Analytics and audit are
+      // secondary sections and must not delay the first usable dashboard.
       const { data } = await api.get("/admin/dashboard");
       if (requestId !== loadRequestRef.current) return;
       setUsers(data.users || []); setInstitutions(data.institutions || []); setArchivedInstitutions(data.archived_institutions || []); setRequests(data.requests || []); setLeads(data.leads || []); setCertificates(data.certificates || []); setMetrics(data.metrics || null);
       setLoadError("");
+      void Promise.all([api.get("/admin/analytics", { params: { days: analyticsPeriod } }), api.get("/admin/audit", { params: { limit: 30 } })]).then(([analyticsResponse, auditResponse]) => {
+        if (requestId !== loadRequestRef.current) return;
+        setAnalytics(analyticsResponse.data || null);
+        const auditPage = Array.isArray(auditResponse.data) ? { items: auditResponse.data, has_more: false, next_before: null } : auditResponse.data;
+        setAuditEvents((auditPage?.items || []).filter(event => !TECHNICAL_AUDIT_TYPES.has(event?.type)));
+        setAuditHasMore(Boolean(auditPage?.has_more));
+        setAuditBefore(auditPage?.next_before || null);
+      }).catch(() => { if (requestId === loadRequestRef.current) toast.error("Algumas métricas secundárias não puderam ser carregadas."); });
     } catch (error) {
       if (requestId !== loadRequestRef.current) return;
       setLoadError(apiError(error));
       throw error;
     } finally { if (requestId === loadRequestRef.current) setLoading(false); }
-  }, []);
+  }, [analyticsPeriod]);
 
   useEffect(() => { load().catch(e => toast.error(apiError(e))); }, [load]);
+
+  const loadMoreAudit = async () => {
+    if (!auditBefore || auditLoading) return;
+    setAuditLoading(true);
+    try {
+      const { data } = await api.get("/admin/audit", { params: { limit: 30, before: auditBefore } });
+      const page = Array.isArray(data) ? { items: data, has_more: false, next_before: null } : data;
+      setAuditEvents(previous => [...previous, ...(page?.items || []).filter(event => !TECHNICAL_AUDIT_TYPES.has(event?.type))]);
+      setAuditHasMore(Boolean(page?.has_more));
+      setAuditBefore(page?.next_before || null);
+    } catch (error) { toast.error(apiError(error)); }
+    finally { setAuditLoading(false); }
+  };
 
   const runAction = async (key, action, successMessage) => {
     if (busyActionRef.current) return;
@@ -112,6 +151,8 @@ export default function AdminArea() {
     return matchesQuery && (userRole === "all" || user.role === userRole) && (userState === "all" || (userState === "active" ? user.active : !user.active));
   });
   const visibleCertificates = certificates.filter(certificate => certificateQuery.trim() === "" || [certificate.code, certificate.professional_name, certificate.institution_name].filter(Boolean).some(value => value.toLocaleLowerCase("pt-BR").includes(certificateQuery.trim().toLocaleLowerCase("pt-BR"))));
+  const formatPercent = value => value === null || value === undefined ? "—" : `${String(value).replace(".", ",")}%`;
+  const funnelReady = Number(analytics?.unique_visitors || 0) >= 10 && analytics?.conversion_rate !== null && analytics?.conversion_rate !== undefined;
 
   return (
     <MvpShell
@@ -126,13 +167,43 @@ export default function AdminArea() {
       onRetry={() => { setLoading(true); return load(); }}
       onRefresh={load}
     >
-      <MvpCard title="Situação operacional" subtitle={pendingLeads.length ? `${pendingLeads.length} pendência(s) aguardando revisão.` : "Nenhuma pendência crítica aguardando revisão."} testid="admin-operations-card" className="admin-operations-card" aria-live="polite">
+      <MvpCard title="Situação operacional" subtitle={pendingLeads.length ? `${pendingLeads.length} ${pendingLeads.length === 1 ? "pendência" : "pendências"} aguardando revisão.` : "Nenhuma pendência crítica aguardando revisão."} testid="admin-operations-card" className="admin-operations-card" ariaLive="polite">
         <div className="admin-operations-grid">
-          <div><span className={pendingLeads.length ? "pending" : "ready"}>{pendingLeads.length ? "Revisar agora" : "Em dia"}</span><strong>Interesses recebidos</strong><small>{pendingLeads.length ? `${pendingLeads.length} interesse(s) pendente(s) de decisão.` : "Nenhum interesse pendente."}</small></div>
+          <div><span className={pendingLeads.length ? "pending" : "ready"}>{pendingLeads.length ? "Revisar agora" : "Em dia"}</span><strong>Interesses recebidos</strong><small>{pendingLeads.length ? `${pendingLeads.length} ${pendingLeads.length === 1 ? "interesse pendente" : "interesses pendentes"} de decisão.` : "Nenhum interesse pendente."}</small></div>
           <div><span className={studentsRegistered && studentsAccessed < studentsRegistered ? "pending" : "ready"}>{studentsRegistered ? `${studentsAccessed}/${studentsRegistered}` : "—"}</span><strong>Acesso dos estudantes</strong><small>{studentsRegistered ? "Estudantes que já entraram na plataforma." : "Aguardando os primeiros cadastros."}</small></div>
-          <div><span className={(metrics?.professionals || 0) ? "ready" : "pending"}>{metrics?.professionals || 0}</span><strong>Profissionais cadastrados</strong><small>{metrics?.pending_invites || 0} convite(s) ainda pendente(s).</small></div>
+          <div><span className={(metrics?.professionals || 0) ? "ready" : "pending"}>{metrics?.professionals || 0}</span><strong>Profissionais cadastrados</strong><small>{metrics?.pending_invites || 0} {(metrics?.pending_invites || 0) === 1 ? "convite pendente" : "convites pendentes"}.</small></div>
         </div>
       </MvpCard>
+
+      <MvpCard title="Alcance e cadastros" subtitle="Métricas agregadas de acesso ao site e conversão em contas, sem identificação individual." testid="admin-analytics-card" className="admin-analytics-card">
+        <div className="admin-analytics-toolbar"><span>Período: {analytics?.period_start || "—"} a {analytics?.period_end || "—"}</span><label>Mostrar<select value={analyticsPeriod} onChange={event => setAnalyticsPeriod(event.target.value)}><option value="7">7 dias</option><option value="30">30 dias</option><option value="90">90 dias</option></select></label></div>
+        <div className="mvp-kpis admin-analytics-kpis">
+          <MvpKpi label="Visitantes únicos" value={analytics?.unique_visitors} note="Após consentimento de medição" testid="admin-analytics-visitors" />
+          <MvpKpi label="Acessos ao site" value={analytics?.page_views} testid="admin-analytics-pageviews" />
+          <MvpKpi label="Cadastros concluídos" value={analytics?.registrations} note={`${analytics?.student_registrations || 0} estudantes · ${analytics?.professional_registrations || 0} profissionais`} testid="admin-analytics-registrations" />
+          <MvpKpi label="Conversão pública" value={formatPercent(analytics?.conversion_rate)} note={analytics?.conversion_note || "Cadastros / visitantes únicos"} testid="admin-analytics-conversion" />
+        </div>
+        <div className="admin-funnel" aria-label="Resumo de adoção"><div><strong>{funnelReady ? analytics?.funnel?.visitors : "—"}</strong><span>Visitantes medidos</span></div><i>→</i><div><strong>{funnelReady ? analytics?.funnel?.registrations : "—"}</strong><span>Cadastros no período</span></div><i>→</i><div><strong>{funnelReady ? analytics?.funnel?.first_access : "—"}</strong><span>Contas que acessaram</span></div><i>→</i><div><strong>{funnelReady ? analytics?.funnel?.first_request : "—"}</strong><span>Contas com pedido</span></div><i>→</i><div><strong>{funnelReady ? analytics?.funnel?.conversations_completed : "—"}</strong><span>Conversas concluídas</span></div></div>
+        <p className="admin-analytics-note">{funnelReady ? "Resumo operacional do período: os cadastros e acessos não são atribuídos individualmente aos visitantes públicos." : "Resumo temporariamente oculto: são necessários pelo menos 10 visitantes medidos para uma leitura confiável. Totais de cadastros e acessos continuam disponíveis acima."} O Acolhe não usa publicidade nem mostra identificadores individuais neste painel.</p>
+      </MvpCard>
+
+      <MvpCard title="Saúde da operação" subtitle="Indicadores agregados para acompanhar acesso e continuidade, sem conteúdo clínico." testid="admin-operational-metrics-card" className="admin-operational-metrics-card">
+        <div className="mvp-kpis admin-analytics-kpis">
+          <MvpKpi label="Pedidos pendentes" value={metrics?.pending_requests} note="Disponibilidade + pedidos diretos" testid="admin-metric-pending" />
+          <MvpKpi label="Atrasados > 48h" value={metrics?.overdue_requests} note="Meta operacional do piloto" testid="admin-metric-overdue" />
+          <MvpKpi label="Encontros ativos" value={metrics?.scheduled_sessions} note="Agendados e ainda não encerrados" testid="admin-metric-scheduled" />
+          <MvpKpi label="Comparecimento" value={formatPercent(metrics?.attendance_rate)} note={metrics?.attendance_sample_size >= 5 ? `${metrics.attendance_sample_size} encontros encerrados` : "Exibido após 5 encontros encerrados"} testid="admin-metric-attendance" />
+        </div>
+        <p className="admin-analytics-note"><Clock3 size={14} /> {metrics?.metrics_note || "O SLA de 48 horas é uma meta operacional: o relógio começa na criação do pedido e considera horas corridas. Comparecimento = encontros realizados ÷ (realizados + ausências); a taxa fica oculta com amostra pequena."}</p>
+      </MvpCard>
+
+      <details className="mvp-security-details admin-audit-details" data-testid="admin-audit-card">
+        <summary><span><History size={16} /> Auditoria recente</span><span aria-live="polite">{auditEvents.length ? `${auditEvents.length} eventos` : "Sem eventos"}</span></summary>
+        {!auditEvents.length && <MvpEmpty>Nenhuma atividade administrativa ou operacional registrada ainda.</MvpEmpty>}
+        {auditEvents.map(event => <div className="mvp-row" key={event.id}><div className="mvp-row-main"><strong>{AUDIT_LABELS[event.type] || "Atividade operacional"}</strong><span>{event.role ? `${roleLabel[event.role] || "Perfil interno"} · ` : ""}{formatDateTime(event.created_at)}</span></div><Activity size={15} aria-hidden="true" /></div>)}
+        {auditHasMore && <button className="mvp-button mvp-button-secondary" type="button" onClick={loadMoreAudit} disabled={auditLoading}>{auditLoading ? "Carregando…" : "Carregar mais"}</button>}
+        <p className="admin-analytics-note">A auditoria mostra apenas tipo, perfil e horário. Identificadores de usuário e conteúdo de conversa não são exibidos.</p>
+      </details>
 
       <MvpCard title="Pendências para revisar" subtitle="Interesses recentes que precisam de uma decisão administrativa." testid="admin-pending-leads-card" className="admin-leads-card admin-pending-leads-card">
         {!pendingLeads.length && <MvpEmpty>Está tudo em dia. Novos interesses aparecerão aqui para decisão.</MvpEmpty>}
@@ -243,7 +314,7 @@ export default function AdminArea() {
         </MvpCard>
 
         {archivedInstitutions.length > 0 && <details className="mvp-security-details admin-archived-details" data-testid="admin-archived-institutions-card">
-          <summary>Instituições arquivadas <span>{archivedInstitutions.length} arquivada(s)</span></summary>
+          <summary>Instituições arquivadas <span>{archivedInstitutions.length} {archivedInstitutions.length === 1 ? "arquivada" : "arquivadas"}</span></summary>
           <p>Arquivadas não aparecem na lista ativa e podem ser reativadas.</p>
           {archivedInstitutions.map(i => (
             <div className="mvp-row" key={i.id} data-testid={`admin-archived-institution-${i.id}`}>

@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
-import { api, apiError, clearToken } from "./api";
+import { api, apiError, clearToken, resetPendingGets } from "./api";
 
 const MvpAuthContext = createContext(null);
 
@@ -33,6 +33,7 @@ export function MvpAuthProvider({ children }) {
   useEffect(() => { refresh(); }, [refresh]);
 
   const signIn = useCallback(async (email, password) => {
+    resetPendingGets();
     const { data } = await api.post("/auth/login", { email, password });
     setAccount({ user: data.user, institution: data.institution || null });
     setChecking(false);
@@ -40,6 +41,7 @@ export function MvpAuthProvider({ children }) {
   }, []);
 
   const signUp = useCallback(async payload => {
+    resetPendingGets();
     const { data } = await api.post("/auth/register", payload);
     if (data?.pending_guardian) return data;
     setAccount({ user: data.user, institution: data.institution || null });

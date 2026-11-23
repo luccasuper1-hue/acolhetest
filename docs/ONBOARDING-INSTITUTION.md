@@ -14,6 +14,7 @@
 - Compartilhe o código em **Acesso dos estudantes**.
 - Use **Situação do piloto** para verificar se o fluxo está pronto.
 - Consulte indicadores agregados; não solicite conteúdo de conversa.
+- Ao pedir suporte, envie somente horário, rota, versão e ID anonimizado; não compartilhe mensagens, motivo detalhado, nomes, e-mails ou screenshots com dados pessoais.
 - Revise certificados e encaminhamentos como registros operacionais.
 
 ## Depois de cada ciclo

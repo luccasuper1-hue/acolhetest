@@ -3,7 +3,7 @@
 Data: 14/11/2026  
 Ambiente: `acolhetest.luccasuper1.workers.dev`
 
-Última revalidação operacional: 17/11/2026 · Worker `3a52e214-402c-4100-8bb2-5d13b7336506` · suíte frontend: 112 testes aprovados.
+Registro histórico de 17/11/2026. Os números desta auditoria não representam a revalidação local mais recente; consulte `docs/INCIDENT-DRILL-RESULTS.md` para o estado atual.
 
 ## Cobertura executada
 
@@ -71,8 +71,8 @@ Os itens de código listados na auditoria inicial estão corrigidos no estado at
 
 ## Status desta rodada
 
-Esta auditoria inicial foi superada pelas revalidações posteriores. O estado publicado atual é o Worker `3a52e214-402c-4100-8bb2-5d13b7336506`, com 112 testes frontend aprovados.
+Esta auditoria inicial foi superada pelas revalidações posteriores. O estado publicado descrito nesta seção é histórico; não deve ser usado como versão atual sem confirmação do deploy autorizado.
 
 ## Revalidação posterior
 
-Em 17/11/2026, a revalidação atual passou com 112 testes e o Worker foi publicado na versão `3a52e214-402c-4100-8bb2-5d13b7336506`. Ela também confirmou a proteção atômica contra sobreposição de capacidade, a aprovação infantil transacional e o bloqueio de rolagem compartilhado e idempotente nos overlays; os itens externos de staging continuam pendentes conforme a seção de limitações.
+Em 17/11/2026, a revalidação histórica passou com 112 testes e o Worker foi publicado na versão então registrada. Ela também confirmou a proteção atômica contra sobreposição de capacidade, a aprovação infantil transacional e o bloqueio de rolagem compartilhado e idempotente nos overlays; os itens externos de staging continuam pendentes conforme a seção de limitações.

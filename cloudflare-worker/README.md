@@ -8,6 +8,29 @@ Um único Worker entrega os arquivos estáticos do React e atende as chamadas em
 
 - `MONGO_URL`
 - `DB_NAME`
+
+## Conexões MongoDB no ambiente serverless
+
+O Worker não abre uma conexão nova por requisição e não usa PgBouncer ou Prisma
+Accelerate (esses serviços são voltados a PostgreSQL/ORMs e não se aplicam ao
+MongoDB Atlas usado pelo Acolhe). O caminho oficial é um `MongoClient` mantido
+no Durable Object nomeado `acolhe-mongodb`; o driver reutiliza esse cliente e
+seu pool entre as requisições.
+
+Limites atuais por Durable Object:
+
+- `minPoolSize: 0`: não mantém sockets ociosos artificialmente;
+- `maxPoolSize: 4`: limita a concorrência de operações Mongo;
+- `maxConnecting: 2`: limita aberturas simultâneas durante aquecimento;
+- `maxIdleTimeMS: 30000`: libera conexões sem uso;
+- `waitQueueTimeoutMS: 15000`: falha de forma controlada quando a fila satura;
+- timeouts de seleção, conexão e socket evitam requests presos indefinidamente.
+
+Não chame `close()` ao final de cada request: isso destruiria o reuso e criaria
+o padrão de conexão por requisição que queremos evitar. O encerramento de
+sockets ociosos é responsabilidade do driver por `maxIdleTimeMS`; o cliente
+permanece vivo no ciclo de vida do Durable Object e é recriado apenas quando
+uma nova instância é inicializada.
 - `JWT_SECRET`
 - `FRONTEND_URL`
 - `GMAIL_CLIENT_ID`
@@ -33,6 +56,10 @@ No diretório `frontend`, instale as dependências e execute `npm run build`. Is
 No diretório desta pasta, `npm run verify` valida o Worker e seu pacote de assets, sem publicar. O comando `npm run deploy` primeiro gera o frontend e então publica a versão oficial no Cloudflare; execute-o somente após os testes e a revisão operacional.
 
 Antes de qualquer teste contra um Atlas de desenvolvimento novo, execute `npm run indexes` nesta pasta com `MONGO_URL` e `DB_NAME` temporariamente definidos no seu terminal. Ele mantém os mesmos índices únicos que o seed Python criava; não execute esse comando contra produção sem revisar o banco.
+
+O comando verifica primeiro se existem códigos de certificado duplicados. Se encontrar algum, ele aborta antes de criar o índice único e lista os códigos que precisam de saneamento; não tente contornar essa proteção apagando registros sem backup e auditoria.
+
+Para auditar ou corrigir certificados legados, use `npm run migrate:certificates` a partir desta pasta, com `MONGODB_URI` e `MONGODB_DB` definidos. `MONGODB_URI` é uma variável exclusiva do utilitário local; o Worker em produção usa `MONGO_URL`. O comando faz dry-run por padrão; aplicar exige `APPLY_MIGRATION=yes` e `CONFIRM_MIGRATION=yes`, além de backup recente e revisão de qualquer saída `review_required`.
 
 Para CI do Cloudflare, o repositório deve ter o diretório raiz na raiz do projeto e usar uma etapa que instale dependências de `frontend` e de `cloudflare-worker`, gere `frontend/build` e execute `wrangler deploy` a partir de `cloudflare-worker`. O diretório de assets é deliberadamente `../frontend/build`.
 

@@ -9,8 +9,9 @@
     "check": "tsc --noEmit",
     "test": "node --test",
     "indexes": "node scripts/create-indexes.mjs",
+    "migrate:certificates": "node ../ops/migrations/backfill-certificate-institution.mjs",
     "verify": "npm run check && wrangler deploy --dry-run",
-    "deploy": "npm run build:frontend && wrangler deploy"
+    "deploy": "npm run check && npm test && npm run build:frontend && wrangler deploy"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",

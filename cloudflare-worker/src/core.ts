@@ -1,21 +1,35 @@
 import { bearerToken, cookieToken, type Role, verifyAccessToken } from "./auth";
 import { gateway, type Mongo, type RecordDoc } from "./db";
 import type { Env } from "./index";
+import { logOperational } from "./observability";
+import { gatewayObjectName } from "./runtime";
+export { logOperational } from "./observability";
+export { gatewayObjectName } from "./runtime";
 
 export type Doc = Record<string, any>;
 export const id = () => crypto.randomUUID();
 export const now = () => new Date().toISOString();
-export const json = (body: unknown, status = 200, headers: HeadersInit = {}) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json; charset=utf-8", ...headers } });
+export const json = (body: unknown, status = 200, headers: HeadersInit = {}) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", ...headers } });
 export const fail = (detail: string, status: number) => json({ detail }, status);
 export const db = (env: Env): Mongo => gateway(env);
-export const publicUser = (user: Doc) => ({ id: user.id, name: user.name, email: user.email, role: user.role, institution_id: user.institution_id, active: user.active });
+export const publicUser = (user: Doc) => ({ id: user.id, name: user.name, email: user.email, role: user.role, active: user.active });
 export const publicInstitution = (institution: Doc | null) => institution ? ({ id: institution.id, name: institution.name, code: institution.code, plan: institution.plan, active: institution.active !== false }) : null;
 export const cookie = (token: string) => ({ "set-cookie": `access_token=${token}; HttpOnly; Secure; SameSite=Lax; Max-Age=604800; Path=/` });
 export const clearCookie = () => ({ "set-cookie": "access_token=; HttpOnly; Secure; SameSite=Lax; Max-Age=0; Path=/" });
 
+const MAX_JSON_BODY_BYTES = 256 * 1024;
+
+/** Parse JSON request bodies with an explicit size ceiling.  Cloudflare's
+ * runtime will accept a much larger body by default, but the application only
+ * needs small operational payloads and should reject oversized input before
+ * handing it to Mongo or downstream adapters. */
 export async function requestBody(request: Request): Promise<Doc | null> {
   try {
-    const data = await request.json();
+    const contentLength = Number(request.headers.get("content-length") || 0);
+    if (Number.isFinite(contentLength) && contentLength > MAX_JSON_BODY_BYTES) return null;
+    const raw = await request.arrayBuffer();
+    if (raw.byteLength > MAX_JSON_BODY_BYTES) return null;
+    const data = JSON.parse(new TextDecoder().decode(raw));
     return data && typeof data === "object" && !Array.isArray(data) ? data as Doc : null;
   } catch { return null; }
 }
@@ -37,31 +51,56 @@ export async function hashToken(token: string) {
 }
 
 export async function logEvent(env: Env, type: string, user?: Doc, institutionId?: string, meta: Doc = {}) {
-  await db(env).insert("events", { id: id(), type, user_id: user?.id, role: user?.role, institution_id: institutionId || user?.institution_id, meta, created_at: now() });
+  try {
+    await db(env).insert("events", { id: id(), type, user_id: user?.id, role: user?.role, institution_id: institutionId || user?.institution_id, meta, created_at: now() });
+  } catch (error) {
+    // Audit enrichment must never turn a successful user action into a false
+    // failure after the primary state transition has already committed.
+    logOperational("audit_persistence_failed", { event_type: type, error_name: error instanceof Error ? error.name : "unknown" });
+  }
 }
+
+const publicNotification = (notification: Doc) => ({ id: notification.id, type: notification.type, title: notification.title, body: notification.body, read: notification.read === true, created_at: notification.created_at, ...(notification.type === "chat_message_received" && notification.meta?.session_id ? { meta: { session_id: String(notification.meta.session_id) } } : {}) });
 
 export async function createNotification(env: Env, recipientUserId: string, type: string, title: string, body: string, meta: Doc = {}) {
   const notification = {
     id: id(), recipient_user_id: recipientUserId, type, title, body, meta,
+    email_delivery: { status: "pending", attempts: 0, next_attempt_at: now() },
     read: false, created_at: now(),
   };
-  await db(env).insert("notifications", notification);
-  await broadcastRealtime(env, { userId: recipientUserId, event: { type: "notification", notification } });
+  try {
+    const dedupeKey = typeof meta.dedupe_key === "string" ? meta.dedupe_key : "";
+    const inserted = dedupeKey
+      ? await db(env).insertIfAbsent("notifications", { recipient_user_id: recipientUserId, type, "meta.dedupe_key": dedupeKey }, notification, `${recipientUserId}:${type}:${dedupeKey}`)
+      : (await db(env).insert("notifications", notification), true);
+    if (!inserted) return null;
+    const safeNotification = publicNotification(notification);
+    await broadcastRealtime(env, { userId: recipientUserId, event: { type: "notification", notification: safeNotification } });
+    return notification;
+  } catch (error) {
+    logOperational("notification_persistence_failed", { notification_type: type, error_name: error instanceof Error ? error.name : "unknown" });
+    return null;
+  }
 }
 
 export async function createNotifications(env: Env, recipientUserIds: string[], type: string, title: string, body: string, meta: Doc = {}) {
   const recipients = [...new Set(recipientUserIds.filter(Boolean))];
   if (!recipients.length) return;
   const notifications = recipients.map(recipient_user_id => ({ id: id(), recipient_user_id, type, title, body, meta, read: false, created_at: now() }));
-  await Promise.all(notifications.map(notification => db(env).insert("notifications", notification)));
+  const results = await Promise.allSettled(notifications.map(notification => db(env).insert("notifications", notification)));
+  if (results.some(result => result.status === "rejected")) logOperational("notification_fanout_partial_failure", { notification_type: type });
   // The payload is intentionally generic: each browser reloads only its own
   // notification list, so no recipient can observe another user's content.
-  await broadcastRealtime(env, { userIds: recipients, event: { type: "notifications_changed" } });
+  // Do not wake sockets whose notification write failed; they would refresh
+  // needlessly and could miss the event on a transient retry.
+  const persistedRecipients = recipients.filter((_, index) => results[index]?.status === "fulfilled");
+  if (persistedRecipients.length) await broadcastRealtime(env, { userIds: persistedRecipients, event: { type: "notifications_changed" } });
 }
 
-export async function broadcastRealtime(env: Env, payload: { sessionId?: string; userId?: string; userIds?: string[]; event: Doc }) {
+export async function broadcastRealtime(env: Env, payload: { sessionId?: string; userId?: string; userIds?: string[]; institutionId?: string; event: Doc }) {
   try {
-    const stub = env.MONGO_GATEWAY.get(env.MONGO_GATEWAY.idFromName("acolhe-mongodb"));
+    const gatewayName = gatewayObjectName(env.APP_ENV);
+    const stub = env.MONGO_GATEWAY.get(env.MONGO_GATEWAY.idFromName(gatewayName));
     await stub.fetch("https://realtime.internal/realtime/broadcast", {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -71,7 +110,7 @@ export async function broadcastRealtime(env: Env, payload: { sessionId?: string;
   } catch (error) {
     // Realtime is an enhancement. A transient socket/gateway failure must not
     // roll back a valid message or state transition that was already persisted.
-    console.error("Realtime broadcast failed", error);
+    logOperational("realtime_broadcast_failed", { error_name: error instanceof Error ? error.name : "unknown" });
   }
 }
 
@@ -86,9 +125,14 @@ export async function listNotificationsPage(env: Env, recipientUserId: string, o
   if (cursorDate && options.before?.includes("|") && !cursorId) { cursorDate = ""; }
   if (cursorDate && cursorId) filter.$or = [{ created_at: { $lt: cursorDate } }, { created_at: cursorDate, id: { $lt: cursorId } }];
   else if (cursorDate) filter.created_at = { $lt: cursorDate };
-  const rows = await db(env).findMany("notifications", filter, { sort: { created_at: -1, id: -1 }, limit: 41 });
-  const unread_count = options.includeUnreadCount && !options.before ? await db(env).count("notifications", { ...baseFilter, read: { $ne: true } }) : undefined;
-  const items = rows.slice(0, 40);
+  const store = db(env);
+  const [rows, unread_count] = await Promise.all([
+    store.findMany("notifications", filter, { sort: { created_at: -1, id: -1 }, limit: 41 }),
+    options.includeUnreadCount && !options.before
+      ? store.count("notifications", { ...baseFilter, read: { $ne: true } })
+      : Promise.resolve(undefined),
+  ]);
+  const items = rows.slice(0, 40).map(publicNotification);
   const last = items.at(-1);
   return { items, has_more: rows.length > items.length, next_before: last ? `${last.created_at}|${last.id}` : null, ...(typeof unread_count === "number" ? { unread_count } : {}) };
 }

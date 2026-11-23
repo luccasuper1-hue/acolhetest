@@ -8,6 +8,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: mongodb-backup
+  cancel-in-progress: false
+
 jobs:
   backup:
     runs-on: ubuntu-latest
@@ -17,11 +21,14 @@ jobs:
         env:
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
           MONGODB_DB: ${{ secrets.MONGODB_DB }}
+          APP_ENV: ${{ vars.APP_ENV || 'production' }}
         shell: bash
         run: |
           set -euo pipefail
+          umask 077
           test -n "$MONGODB_URI"
           test -n "$MONGODB_DB"
+          [[ "${APP_ENV:-}" =~ ^(staging|production)$ ]] || { echo "APP_ENV must be staging or production" >&2; exit 1; }
           mkdir -p backup
           docker run --rm \
             -e MONGODB_URI \
@@ -29,9 +36,20 @@ jobs:
             -v "$PWD/backup:/backup" \
             mongo:7.0 \
             sh -c 'mongodump --uri "$MONGODB_URI" --db "$MONGODB_DB" --archive=/backup/acolhe.archive.gz --gzip --excludeCollection=login_attempts'
+          test -s backup/acolhe.archive.gz || { echo "backup archive is empty" >&2; exit 1; }
       - name: Upload private artifact
         uses: actions/upload-artifact@v4
         with:
           name: acolhe-mongodb-${{ github.run_id }}
           path: backup/acolhe.archive.gz
-          retention-days: 14
+          if-no-files-found: error
+          overwrite: false
+          retention-days: ${{ vars.BACKUP_RETENTION_DAYS || 14 }}
+      - name: Report backup failure
+        if: failure()
+        shell: bash
+        run: echo "::error::MongoDB backup workflow failed; inspect the run without exposing URI, database name or credentials."
+      - name: Remove runner copy
+        if: always()
+        shell: bash
+        run: rm -f backup/acolhe.archive.gz

@@ -93,6 +93,7 @@ export const LeadForm = ({ variant = "institution", anchorId }) => {
   const [values, setValues] = useState({});
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
+  const [privacyConsent, setPrivacyConsent] = useState(false);
 
   const set = (name, value) => setValues(prev => ({ ...prev, [name]: value }));
 
@@ -108,9 +109,13 @@ export const LeadForm = ({ variant = "institution", anchorId }) => {
       setError(`${tooShort.label} precisa ter pelo menos ${tooShort.minLength} caracteres.`);
       return;
     }
+    if (!privacyConsent) {
+      setError("Aceite o uso dos dados para que possamos analisar este contato.");
+      return;
+    }
     setError("");
     try {
-      await api.post(`/leads/${variant}`, values);
+      await api.post(`/leads/${variant}`, { ...values, consent_version: "pilot-v1", consent_accepted_at: new Date().toISOString() });
       setSent(true);
       toast.success(copy.toast, { description: "A operação do Acolhe recebeu seu contato." });
     } catch (submissionError) {
@@ -137,13 +142,18 @@ export const LeadForm = ({ variant = "institution", anchorId }) => {
 
           {error && <p className="lead-error" data-testid={`${copy.testid}-error`}>{error}</p>}
 
+          <label className="mvp-check lead-consent">
+            <input type="checkbox" required checked={privacyConsent} onChange={e => setPrivacyConsent(e.target.checked)} data-testid={`${copy.testid}-consent`} />
+            <span>Li a <a href="/privacidade">Política de privacidade</a> e autorizo o uso destes dados para analisar este contato (<a href={variant === "institution" ? "/termos/instituicao" : "/termos/profissional"}>Termos de uso do Acolhe · versão 1</a>).</span>
+          </label>
+
           {sent
             ? <div className="lead-success" data-testid={`${copy.testid}-success`}>
                 <Check size={17}/>
                 <span>{copy.success}</span>
               </div>
             : <div className="lead-foot">
-                <small>Campos marcados com * são obrigatórios apenas nesta demonstração.</small>
+                <small>Campos marcados com * são obrigatórios para registrar seu interesse nesta fase do piloto.</small>
                 <button className="button primary" type="submit" data-testid={`${copy.testid}-submit`}>
                   {copy.submit} <ArrowRight size={16}/>
                 </button>
