@@ -9,6 +9,7 @@ const blockedPatterns = [
 ];
 const intentPatterns: [string, RegExp][] = [
   ["privacy_and_policy", /privacidade|lgpd|cookie|consentimento|menor|adolescente|seguran[cç]a|dados pessoais/i],
+  ["professional_operations", /minha agenda|minha aten[cç][aã]o|meus pedidos|fechar uma conversa|hor[aá]rios livres|o que est[aá] pendente/i],
   ["pilot_and_roadmap", /piloto|roadmap|futuro|emerg[eê]ncia|onboard|limite do projeto/i],
   ["product_help", /como funciona|fluxo|painel|agenda|disponibilidade|notifica[cç][aã]o|certificado|encaminhamento|proposta|confirma[cç][aã]o/i],
   ["metrics_explanation", /o que significa|como calcula|defini[cç][aã]o|m[eé]trica|indicador/i],
