@@ -11,7 +11,7 @@ const intentPatterns: [string, RegExp][] = [
   ["privacy_and_policy", /privacidade|lgpd|cookie|consentimento|menor|adolescente|seguran[cç]a|dados pessoais/i],
   ["professional_operations", /minha agenda|minha aten[cç][aã]o|meus pedidos|fechar uma conversa|hor[aá]rios livres|o que est[aá] pendente/i],
   ["pilot_and_roadmap", /piloto|roadmap|futuro|emerg[eê]ncia|onboard|limite do projeto/i],
-  ["product_help", /como funciona|fluxo|painel|agenda|disponibilidade|notifica[cç][aã]o|certificado|encaminhamento|proposta|confirma[cç][aã]o/i],
+  ["product_help", /como funciona|fluxo|painel|agenda|disponibilidade|notifica[cç][aã]o|certificado|encaminhamento|proposta|confirma[cç][aã]|pra que .*acolhe|para que .*acolhe|por que .*acolhe|porque .*acolhe|usaria .*acolhe|serve .*acolhe|utilidade .*acolhe/i],
   ["metrics_explanation", /o que significa|como calcula|defini[cç][aã]o|m[eé]trica|indicador/i],
   ["bottlenecks", /gargalo|onde.*trav|problema operacional/i],
   ["response_time", /resposta|tempo médio|tempo de resposta|48\s*h|atrasad|prazo/i],
@@ -19,7 +19,7 @@ const intentPatterns: [string, RegExp][] = [
   ["capacity", /capacidade|hor[aá]rio|vaga|disponib|abrir mais/i],
   ["impact", /linha de base|mudou|evolu[íi]u?|evolu[cç][aã]o|impacto|antes|depois|comparar|compara[cç][aã]o|comparativo/i],
   ["demand", /demanda|pedidos|procura|volume|fila/i],
-  ["overview", /acolhe|por que usar|pq usar|vale a pena|recomenda|opini[aã]o|pr[oó]ximo passo|acompanhar/i],
+  ["overview", /por que usar|pq usar|vale a pena|recomenda|opini[aã]o|pr[oó]ximo passo|acompanhar/i],
 ];
 const usage = new Map<string, { day: string; count: number; minute: number; minuteCount: number; fingerprints: Map<string, number> }>();
 const dayKey = () => new Date().toISOString().slice(0, 10);
