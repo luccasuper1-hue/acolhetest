@@ -92,7 +92,10 @@ function parseModelOutput(candidate: unknown, data: InsightData): unknown {
 export async function runWorkersAi(env: Env, question: string, data: InsightData, context = ""): Promise<AiProviderResult> {
   if (!env.AI?.run) return { value: null, available: false, reason: "missing_binding" };
   try {
-    const result = await Promise.race([env.AI.run(MODEL, { prompt: buildPrompt(question, data, context), max_tokens: 500 }), new Promise<never>((_, reject) => setTimeout(() => reject(new Error("ai_timeout")), 5_000))]);
+    // Workers AI can occasionally need a few seconds to warm a model. Keep the
+    // budget below the client's 15s request timeout while avoiding an eager
+    // fallback that makes an active binding look unavailable.
+    const result = await Promise.race([env.AI.run(MODEL, { prompt: buildPrompt(question, data, context), max_tokens: 320 }), new Promise<never>((_, reject) => setTimeout(() => reject(new Error("ai_timeout")), 12_000))]);
     const candidate = result && typeof result === "object" && "response" in result ? (result as { response: unknown }).response : result;
     const value = parseModelOutput(candidate, data);
     return value ? { value, available: true } : { value: null, available: true, reason: "invalid_output" };
