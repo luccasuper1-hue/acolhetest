@@ -2,12 +2,13 @@
 
 ## Referência atual — 23/11/2026
 
-- Commit/tag reproduzível: correção de contato direto por e-mail após a publicação de 23/11/2026.
-- Produção: `b901b5ec-907c-4e4a-a96a-e5c3bd15df41` — `APP_ENV=production`.
+- Commit/tag reproduzível: `5feb756` — remoção da IA ativa e preservação dos fluxos determinísticos.
+- Produção: `e3029b12-0947-4153-9a25-ed3b68971fc6` — `APP_ENV=production`.
 - Staging: `5402ef6a-759a-46ca-9b5c-b81a3134db6d` — `APP_ENV=staging`.
 - Origens: `https://acolhetest.luccasuper1.workers.dev` e `https://acolhetest-staging.luccasuper1.workers.dev`.
 - Health GET: HTTP 200 e `database: ok` nos dois ambientes.
-- Gates locais: Worker 89/89; frontend 314/314; TypeScript, lint, build e bundle budget aprovados.
+- Gates locais: Worker 84/84; frontend 315/315; TypeScript, lint, build e bundle budget aprovados.
+- Smoke pós-publicação: endpoints públicos responderam, mas o verificador parou porque `/api/health` retorna cache curto (`public, max-age=5`) enquanto o script exige `no-store`; divergência de política de cache pendente.
 - O staging continua na versão anterior; esta correção foi promovida somente para produção, conforme a autorização de publicação.
 - As alterações históricas do antigo Insights conversacional permanecem registradas abaixo apenas para rastreabilidade; não fazem parte do estado atual e não representam recurso disponível.
 - Probes anônimas de `/api/live`, `/api/ready` e `/api/health` agora usam deduplicação no isolate e cache curto no edge; o liveness não consulta o banco.

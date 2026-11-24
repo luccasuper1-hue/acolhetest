@@ -2,7 +2,7 @@
 
 ## Estado do release atual — 23/11/2026
 
-- Produção: `b901b5ec-907c-4e4a-a96a-e5c3bd15df41`.
+- Produção: `e3029b12-0947-4153-9a25-ed3b68971fc6`.
 - Staging: `5402ef6a-759a-46ca-9b5c-b81a3134db6d`.
 - Ambos respondem health HTTP 200 com banco saudável.
 - A IA conversacional não está ativa nesta versão: não há binding, rota ou envio de dados a modelo. Não houve E2E remoto nesta alteração.
