@@ -9,7 +9,6 @@
     "FRONTEND_URL": "https://acolhetest-staging.luccasuper1.workers.dev",
     "APP_ENV": "staging"
   },
-  "ai": { "binding": "AI" },
   "assets": {
     "directory": "../frontend/build",
     "binding": "ASSETS",

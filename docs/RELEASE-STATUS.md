@@ -9,11 +9,7 @@
 - Health GET: HTTP 200 e `database: ok` nos dois ambientes.
 - Gates locais: Worker 89/89; frontend 314/314; TypeScript, lint, build e bundle budget aprovados.
 - O staging continua na versão anterior; esta correção foi promovida somente para produção, conforme a autorização de publicação.
-- A correção publicada remove a renderização duplicada do resultado do Insights, evitando que a versão legada sobrescreva a leitura operacional com “Leitura limitada”.
-- Esta publicação adiciona perguntas livres, classificação natural de intenções, clarificação de perguntas ambíguas e aprofundamento contextualizado sem memória persistente.
-- A interface do resultado foi simplificada: a resposta aparece em texto contínuo; os blocos separados ficam removidos e fontes/limitações permanecem recolhíveis.
-- O parser do provedor agora extrai respostas humanas quando o modelo aninha JSON dentro de `answer`, evitando exibir chaves e estrutura técnica no painel.
-- Saudações simples, erros de digitação e perguntas gerais sobre o projeto agora são reconhecidos antes do fallback de escopo; perguntas naturais não precisam repetir frases pré-programadas.
+- As alterações históricas do antigo Insights conversacional permanecem registradas abaixo apenas para rastreabilidade; não fazem parte do estado atual e não representam recurso disponível.
 - Probes anônimas de `/api/live`, `/api/ready` e `/api/health` agora usam deduplicação no isolate e cache curto no edge; o liveness não consulta o banco.
 - O shell autenticado limita refresh disparado por troca de aba a uma janela de 15 segundos, evitando bursts de chamadas duplicadas.
 - O dashboard profissional passou a buscar relações auxiliares no mesmo RPC agregado do `MongoGateway`, reduzindo round-trips sem alterar o contrato público.
@@ -27,17 +23,9 @@
 - A home pública agora é a landing principal do Acolhe: apresenta o piloto, mantém o acesso existente como ação secundária e oferece contato no CTA final e no footer.
 - Os contatos “Falar com a equipe” do footer e do CTA final agora abrem diretamente `mailto:acolheiluminado@gmail.com`.
 - O CTA final voltou a exibir somente “Começar agora”; o contato permanece disponível no footer.
-- O Workers AI agora aguarda até 12 segundos pelo aquecimento do modelo, evitando fallback prematuro de indisponibilidade.
-- Esta publicação adiciona a base de conhecimento segura do produto e o escopo operacional do profissional.
-- O painel agora deixa visível que o Insights é um assistente do projeto: as sugestões cobrem fluxo do piloto, privacidade, métricas, demanda e gargalos, e cada resposta identifica seu escopo (Produto, Privacidade, Métricas, Piloto ou Operação).
-- A base de conhecimento agora responde tópicos específicos dos painéis, como a finalidade das notificações do estudante, sem mostrar amostra fictícia para respostas documentais.
-- O Insights institucional foi movido para um launcher flutuante com o ícone oficial: o painel principal fica compacto e o chat abre sob demanda com atalhos e pergunta livre.
-- O launcher agora reutiliza exatamente o componente visual `corner-logo` já usado nas subpáginas, incluindo moldura, glow, animação e tooltip.
-- O launcher do Insights recebeu uma estrela de quatro pontas amarela no canto superior direito, preservando o `corner-logo` original.
-- O chat do Insights agora reutiliza o shell autenticado dos outros painéis, com bolhas, composer inferior, rolagem e chips compactos.
-- A resposta do Insights foi refinada para uma bolha compacta, com detalhes e fontes sob demanda, evitando relatório grande dentro do chat.
-- O parser do Workers AI agora normaliza JSON textual aninhado antes da validação, impedindo que chaves técnicas apareçam na conversa.
-- O Acolhe Insights usa `@cf/meta/llama-3.1-8b-instruct-fast`; a variante AWQ anterior estava depreciada e causava fallback seguro.
+- A IA conversacional foi removida do produto nesta revisão. Não há binding de IA, rota de Insights, provider, prompt ou envio de dados a modelo.
+- O ícone flutuante com a marca e a estrela amarela permanece apenas como marcador visual de automação futura; ele não abre chat nem executa chamadas.
+- O Radar profissional, as métricas institucionais e os demais fluxos operacionais permanecem determinísticos.
 - E2E autenticado e carga não foram executados nesta promoção; permanecem validações separadas, não inventadas.
 
 - Última publicação autorizada: ciclo 678 — preenchimento integral do card de pedido em 22/11/2026.

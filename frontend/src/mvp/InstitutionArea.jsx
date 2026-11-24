@@ -1,73 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Copy, ExternalLink, Send, Sparkle, UserPlus, X } from "lucide-react";
+import { Copy, ExternalLink, Sparkle, UserPlus } from "lucide-react";
 import BrandMark from "../components/BrandMark";
 import { MvpShell, MvpCard, MvpEmpty, MvpKpi } from "./MvpShell";
 import { api, apiError, formatDate } from "./api";
 
-const INSIGHT_QUESTIONS = [
-  "Como funciona o fluxo do piloto?",
-  "Como protegemos a privacidade dos estudantes?",
-  "Como calculamos o comparecimento?",
-  "Como está nossa demanda?",
-  "Onde estão os gargalos operacionais?",
-];
-
-function InsightResultView({ result, details, setDetails, helpful, setHelpful, onDeepen, busy }) {
-  if (!result) return null;
-  const unavailable = result.confidence === "unavailable" || result.limitations?.some(item => /não consegui gerar|indisponível/i.test(item));
-  const grounded = result.sources?.length > 0 && result.confidence !== "blocked";
-  const label = unavailable ? "IA temporariamente indisponível" : result.confidence === "blocked" ? "Consulta protegida" : result.fallback && !grounded ? "Leitura limitada" : "Leitura operacional";
-  const tag = unavailable ? "Fallback seguro" : result.confidence === "supported" || grounded ? "Com fontes" : result.confidence === "blocked" ? "Bloqueada" : "Dados insuficientes";
-  const scopeLabel = { conversa: "Conversa", produto: "Produto", privacidade: "Privacidade", métricas: "Métricas", piloto: "Piloto", professional: "Minha operação" }[result.scope] || "Operação";
-  return <section className="insight-result-v2" aria-live="polite">
-    <header className="insight-result-v2-head"><div><span className="insight-kicker">Acolhe Insights · {scopeLabel}</span><h3>{label}</h3></div><span className="mvp-tag">{tag}</span></header>
-    <p className="insight-result-v2-answer">{result.answer}</p>
-    <div className="insight-result-v2-meta"><span>Período</span><b>{result.period?.start || "—"} a {result.period?.end || "—"}</b>{result.sources?.some(source => source.metric !== "knowledge") && <><span>Amostra</span><b>{result.sources.filter(source => source.metric !== "knowledge").map(source => source.sample_size).join(" · ")} observações</b></>}</div>
-    <div className="insight-result-v2-actions"><button type="button" className="button quiet small" onClick={() => setDetails(value => !value)}>{details ? "Ocultar cálculo" : "Como calculamos?"}</button><button type="button" className="button quiet small" onClick={onDeepen} disabled={busy}>{busy ? "Aprofundando…" : "Aprofundar"}</button></div>
-    {details && <div className="insight-result-v2-details"><div className="insight-result-v2-method"><strong>Como calculamos</strong><span>Usamos apenas indicadores agregados do período. A variação é descritiva e não prova causalidade nem resultado clínico.</span></div>{result.sources?.length > 0 && <div className="insight-result-v2-sources"><strong>Fontes agregadas</strong>{result.sources.map(source => <span key={`${source.metric}:${source.origin}`}>{source.metric} · {source.sample_size} observações</span>)}</div>}<div className="insight-result-v2-limitations"><strong>Limitações</strong>{(result.limitations || []).map(item => <span key={item}>{item}</span>)}</div></div>}
-    <footer className="insight-result-v2-feedback" role="group" aria-label="Avaliação da resposta"><span>Foi útil?</span><button type="button" className={`button quiet small ${helpful === true ? "is-selected" : ""}`} onClick={() => setHelpful(true)}>Sim</button><button type="button" className={`button quiet small ${helpful === false ? "is-selected" : ""}`} onClick={() => setHelpful(false)}>Não ajudou</button></footer>
-  </section>;
-}
-
-function InsightChatResult({ result, details, setDetails, helpful, setHelpful, onDeepen, busy }) {
-  if (!result) return null;
-  const scopeLabel = { conversa: "Conversa", produto: "Produto", privacidade: "Privacidade", métricas: "Métricas", piloto: "Piloto", professional: "Minha operação" }[result.scope] || "Operação";
-  const grounded = result.sources?.length > 0 && result.confidence !== "blocked";
-  const tag = result.confidence === "blocked" ? "Protegida" : result.confidence === "supported" || grounded ? "Com fontes" : "Leitura limitada";
-  const hasMetricSource = result.sources?.some(source => source.metric !== "knowledge");
-  return <div className="insight-chat-result"><header><span className="insight-kicker">{scopeLabel}</span><span className="mvp-tag">{tag}</span></header><p>{result.answer}</p>{hasMetricSource && <small>{result.period?.start || "—"} a {result.period?.end || "—"} · {result.sources.filter(source => source.metric !== "knowledge").map(source => source.sample_size).join(" · ")} observações</small>}<div className="insight-chat-result-actions"><button type="button" className="button quiet small" onClick={() => setDetails(value => !value)}>{details ? "Ocultar detalhes" : "Ver detalhes"}</button><button type="button" className="button quiet small" onClick={onDeepen} disabled={busy}>{busy ? "Aprofundando…" : "Aprofundar"}</button></div>{details && <div className="insight-chat-result-details"><strong>Limitações e fontes</strong>{(result.limitations || []).map(item => <span key={item}>{item}</span>)}{result.sources?.length > 0 && <span>{result.sources.map(source => source.origin).join(" · ")}</span>}</div>}<footer role="group" aria-label="Avaliação da resposta"><span>Foi útil?</span><button type="button" className={`button quiet small ${helpful === true ? "is-selected" : ""}`} onClick={() => setHelpful(true)}>Sim</button><button type="button" className={`button quiet small ${helpful === false ? "is-selected" : ""}`} onClick={() => setHelpful(false)}>Não ajudou</button></footer></div>;
-}
-
-function InstitutionInsightsLauncher({ question, setQuestion, result, error, busy, details, setDetails, helpful, setHelpful, ask, deepen }) {
-  const [open, setOpen] = useState(false);
-  const triggerRef = useRef(null);
-  const closeRef = useRef(null);
-  const wasOpen = useRef(false);
-  useEffect(() => { if (open) closeRef.current?.focus(); else if (wasOpen.current) triggerRef.current?.focus(); wasOpen.current = open; }, [open]);
-  useEffect(() => {
-    if (!open) return undefined;
-    const close = event => { if (event.key === "Escape") setOpen(false); };
-    document.addEventListener("keydown", close);
-    return () => document.removeEventListener("keydown", close);
-  }, [open]);
-  return <div className={`institution-insights-launcher ${open ? "is-open" : ""}`}>
-    {open && <div className="institution-insights-popover mvp-conversation-panel" id="institution-insights-popover" role="dialog" aria-modal="false" aria-labelledby="institution-insights-title">
-      <header className="mvp-conversation-panel-head"><div><strong id="institution-insights-title">Acolhe Insights</strong><small>Converse sobre o produto e a operação</small></div><button ref={closeRef} type="button" className="mvp-conversation-close" onClick={() => setOpen(false)} aria-label="Fechar Acolhe Insights"><X size={17} /></button></header>
-      <div className="mvp-floating-chat institution-insights-chat">
-        {error && <div className="mvp-chat-error" role="alert"><span>{error}</span><button type="button" className="button quiet small" onClick={event => ask(event)}>Tentar novamente</button></div>}
-        <div className="mvp-chat-messages" aria-live="polite">
-          <div className="mvp-chat-message theirs">Posso explicar o Acolhe, suas políticas ou ajudar a interpretar indicadores agregados. Não acesso conversas e não executo ações.</div>
-          {result && question && <div className="mvp-chat-message mine">{question}</div>}
-          {result && <div className="mvp-chat-message theirs institution-insights-answer"><InsightChatResult result={result} details={details} setDetails={setDetails} helpful={helpful} setHelpful={setHelpful} onDeepen={deepen} busy={busy} /></div>}
-        </div>
-        <div className="insight-suggestions insight-guided-questions" aria-label="Atalhos do Acolhe Insights">
-          {INSIGHT_QUESTIONS.map(item => <button type="button" className={`button secondary small ${question === item ? "is-selected" : ""}`} key={item} onClick={event => ask(event, item)} disabled={busy}>{item}</button>)}
-        </div>
-        <form className="mvp-chat-compose" onSubmit={event => ask(event)}><input id="institution-insight-question" aria-label="Pergunta para o Acolhe Insights" value={question} maxLength={600} onChange={event => setQuestion(event.target.value)} placeholder="Pergunte do seu jeito…" disabled={busy} /><button type="submit" aria-label="Enviar pergunta" className="button small primary" disabled={busy || !question.trim()}><Send size={14} /></button></form>
-      </div>
-    </div>}
-    {!open && <button ref={triggerRef} type="button" className="corner-logo institution-insights-trigger" onClick={() => setOpen(true)} aria-haspopup="dialog" aria-expanded={open} aria-controls="institution-insights-popover" aria-label="Abrir Acolhe Insights"><span className="corner-logo-glow" aria-hidden="true"/><span className="corner-logo-float" aria-hidden="true"><span className="corner-logo-body"><span className="corner-logo-mark"><BrandMark size={30}/></span></span></span><Sparkle className="institution-insights-sparkle" size={16} strokeWidth={2.4} aria-hidden="true"/><span className="corner-logo-tooltip">Conversar com o Acolhe Insights</span></button>}
+function FutureInsightsLauncher() {
+  return <div className="institution-insights-launcher" aria-label="Automação futura do Acolhe">
+    <span className="corner-logo institution-insights-trigger" role="img" aria-label="Recursos de automação futuros"><span className="corner-logo-glow" aria-hidden="true"/><span className="corner-logo-float" aria-hidden="true"><span className="corner-logo-body"><span className="corner-logo-mark"><BrandMark size={30}/></span></span></span><Sparkle className="institution-insights-sparkle" size={16} strokeWidth={2.4} aria-hidden="true"/><span className="corner-logo-tooltip">Recursos de automação em avaliação futura</span></span>
   </div>;
 }
 
@@ -88,13 +28,6 @@ export default function InstitutionArea() {
   const [profileBusy, setProfileBusy] = useState(false);
   const [fallbackBusy, setFallbackBusy] = useState(null);
   const [baselineBusy, setBaselineBusy] = useState(false);
-  const [insightQuestion, setInsightQuestion] = useState("");
-  const [insightResult, setInsightResult] = useState(null);
-  const [insightBusy, setInsightBusy] = useState(false);
-  const [insightError, setInsightError] = useState("");
-  const [insightDetails, setInsightDetails] = useState(false);
-  const [insightHelpful, setInsightHelpful] = useState(null);
-  const insightAbortRef = useRef(null);
   const mutationBusyRef = useRef(false);
   const loadRequestRef = useRef(0);
 
@@ -114,24 +47,6 @@ export default function InstitutionArea() {
   }, []);
 
   useEffect(() => { load().catch(e => toast.error(apiError(e))); }, [load]);
-  useEffect(() => () => insightAbortRef.current?.abort(), []);
-
-  const askInsight = async (event, suggestedQuestion, context = null) => {
-    event?.preventDefault();
-    const question = String(suggestedQuestion ?? insightQuestion).trim();
-    if (!question || question.length > 600 || insightBusy) return;
-    insightAbortRef.current?.abort();
-    const controller = new AbortController(); insightAbortRef.current = controller;
-    setInsightQuestion(question); setInsightBusy(true); setInsightError("");
-    try { const { data } = await api.post("/institutions/me/insights", { question, ...(context ? { context } : {}) }, { signal: controller.signal }); setInsightResult(data); setInsightDetails(false); }
-    catch (error) { if (error?.code !== "ERR_CANCELED" && error?.name !== "CanceledError") setInsightError(apiError(error)); }
-    finally { if (!controller.signal.aborted) setInsightBusy(false); }
-  };
-
-  const deepenInsight = event => {
-    const context = insightResult ? { answer: insightResult.answer, observation: insightResult.observation, interpretation: insightResult.interpretation, next_step: insightResult.next_step, period: insightResult.period, limitations: insightResult.limitations } : null;
-    askInsight(event, `${insightQuestion} Explique melhor o que sustenta essa leitura e qual é o próximo passo proporcional.`, context);
-  };
 
   const submitInvite = async e => {
     e.preventDefault();
@@ -310,7 +225,7 @@ export default function InstitutionArea() {
         </div>
       </MvpCard>
 
-      <InstitutionInsightsLauncher question={insightQuestion} setQuestion={setInsightQuestion} result={insightResult} error={insightError} busy={insightBusy} details={insightDetails} setDetails={setInsightDetails} helpful={insightHelpful} setHelpful={setInsightHelpful} ask={askInsight} deepen={deepenInsight} />
+      <FutureInsightsLauncher />
 
       <div className="mvp-grid institution-operations-grid">
         <MvpCard title="Capacidade e gargalos" subtitle="Visão agregada dos horários e da fila operacional." testid="inst-capacity-card">

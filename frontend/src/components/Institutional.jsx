@@ -395,10 +395,11 @@ export const ImpactSection = () => (
 export const AiSection = () => (
   <section className="section" data-testid="ai-section">
     <div className="section-kicker">Tecnologia</div>
-    <h2>IA para dar clareza ao cuidado, <em>sem ocupar o lugar de ninguém.</em></h2>
+    <h2>Automação como possibilidade, <em>sem ocupar o lugar de ninguém.</em></h2>
     <p className="section-intro">
-      O Acolhe Insights já ajuda instituições a ler indicadores operacionais agregados e encontrar
-      próximos passos. Ele não avalia pessoas, não acessa conversas, não conduz atendimento e não substitui profissionais.
+      A versão atual usa regras operacionais e indicadores agregados, sem IA ativa. Recursos de
+      automação e inteligência assistida podem ser avaliados em fases futuras, sem acessar conversas,
+      avaliar pessoas ou substituir profissionais.
     </p>
     <div className="ai-grid">
       {aiUses.map(use => (
@@ -414,11 +415,10 @@ export const AiSection = () => (
     <div className="ai-limit" data-testid="ai-limit">
       <ShieldCheck size={17}/>
       <span>
-        No piloto, o Acolhe Insights usa IA para interpretar indicadores institucionais agregados,
-        com fontes, limitações e fallback quando a amostra é insuficiente. O Radar do profissional
-        organiza prioridades operacionais com base nos dados do painel, sem avaliar pessoas, acessar
-        conversas ou executar ações automaticamente. O cuidado continua sendo responsabilidade de
-        pessoas habilitadas.
+        No piloto, não há IA ativa nem envio de dados a modelos. O Radar do profissional organiza
+        prioridades operacionais com base nos dados do painel, sem avaliar pessoas, acessar conversas
+        ou executar ações automaticamente. O cuidado continua sendo responsabilidade de pessoas
+        habilitadas.
       </span>
     </div>
   </section>

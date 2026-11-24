@@ -23,8 +23,6 @@ export interface Env {
   GMAIL_FROM?: string;
   MONGO_GATEWAY: DurableObjectNamespace;
   ASSETS: Fetcher;
-  /** Cloudflare Workers AI binding. A local mock may implement the same shape. */
-  AI?: { run(model: string, input: unknown): Promise<unknown> };
 }
 
 function allowedOrigin(request: Request, env: Env) {

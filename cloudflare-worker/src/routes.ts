@@ -3,7 +3,6 @@ import { broadcastRealtime, clearCookie, cookie, createNotification, currentUser
 import { resolveEmailDelivery } from "./email-delivery";
 import { ageBandFor, CHILD_AGE_LIMIT, CONSENT_VERSION, PRODUCT_TIME_ZONE } from "./domains/privacy";
 import type { Env } from "./index";
-import { handleInstitutionInsight } from "./ai/assistant";
 
 const roles = ["student", "professional", "institution", "admin"] as const;
 const fetchExternal = (input: string | URL, init: RequestInit = {}) => fetch(input, { ...init, signal: AbortSignal.timeout(8_000) });
@@ -1125,12 +1124,6 @@ async function professionalRoutes(request: Request, env: Env, pathname: string, 
   if (!pathname.startsWith("/api/professionals/")) return undefined;
   const identity = await getProfessional(request, env); if (isResponse(identity)) return identity;
   const { user, professional } = identity, store = db(env);
-  if (pathname === "/api/professionals/me/insights" && request.method === "POST") {
-    const payload = await requestBody(request), dashboardSeed = await store.getProfessionalDashboard(professional.id, professional.institution_id);
-    const metrics = professionalMetrics([...dashboardSeed.requests, ...dashboardSeed.appointmentRequests], dashboardSeed.sessions, dashboardSeed.availability);
-    const result = await handleInstitutionInsight({ env, userId: user.id, institutionId: professional.institution_id, role: user.role, question: payload?.question, context: payload?.context, metrics: { ...metrics, requests_total: dashboardSeed.requests.length + dashboardSeed.appointmentRequests.length, requests_pending: metrics.requests_open, requests_overdue: dashboardSeed.requests.filter(record => requestFlowMeta(record).response_state === "overdue").length, capacity_open_slots: metrics.availability_open, capacity_reserved_slots: metrics.availability_reserved, capacity_total_slots: metrics.availability_published, capacity_utilization_percent: metrics.utilization_percent, period_start: localToday(), period_end: localToday() }, impact: null });
-    return json(result);
-  }
   if (pathname === "/api/professionals/me" && request.method === "GET") return json({ professional: publicProfessionalProfile(professional), name: user.name, institution: publicInstitution(await store.findOne("institutions", { id: professional.institution_id })) });
   if (pathname === "/api/professionals/me/notifications" && request.method === "GET") return json(await listNotificationsPage(env, user.id, { before: new URL(request.url).searchParams.get("before") || undefined, includeUnreadCount: true }));
   if (pathname === "/api/professionals/me/notifications/read" && request.method === "POST") { const payload = await requestBody(request), ids = Array.isArray(payload?.ids) ? payload.ids.filter((value: unknown): value is string => typeof value === "string").slice(0, 100) : []; if (ids.length && await store.updateMany("notifications", { recipient_user_id: user.id, id: { $in: ids } }, { $set: { read: true, read_at: now() } })) await broadcastRealtime(env, { userId: user.id, event: { type: "notifications_changed" } }); return json({ ok: true }); }
@@ -1430,11 +1423,6 @@ async function institutionRoutes(request: Request, env: Env, pathname: string): 
   if (!pathname.startsWith("/api/institutions/")) return undefined;
   const identity = await getInstitution(request, env); if (isResponse(identity)) return identity;
   const { user, institution } = identity, store = db(env);
-  if (pathname === "/api/institutions/me/insights" && request.method === "POST") {
-    const payload = await requestBody(request);
-    const result = await handleInstitutionInsight({ env, userId: user.id, institutionId: institution.id, role: user.role, question: payload?.question, context: payload?.context, metrics: await institutionMetrics(env, institution.id), impact: institution.impact_baseline || null });
-    return json(result);
-  }
   if (pathname === "/api/institutions/me" && request.method === "GET") return json(institution);
   if (pathname === "/api/institutions/me/notifications" && request.method === "GET") {
     // Slot publication is part of the legacy student availability flow and is
