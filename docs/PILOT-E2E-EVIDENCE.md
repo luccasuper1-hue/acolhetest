@@ -2,7 +2,7 @@
 
 ## Estado do release atual — 23/11/2026
 
-- Produção: `81da134a-7837-4431-b131-a5e17e424663`.
+- Produção: `b901b5ec-907c-4e4a-a96a-e5c3bd15df41`.
 - Staging: `5402ef6a-759a-46ca-9b5c-b81a3134db6d`.
 - Ambos respondem health HTTP 200 com banco saudável.
 - O provedor do Acolhe Insights foi atualizado para o modelo Workers AI ativo `@cf/meta/llama-3.1-8b-instruct-fast`; esta publicação também remove a versão duplicada/legada do resultado no painel institucional. Não houve E2E autenticado nesta publicação.
@@ -21,6 +21,7 @@
 - A home foi publicada como landing principal, com CTA de apresentação do piloto e contato no footer; nenhuma validação E2E autenticada foi executada nesta alteração visual.
 - Os links “Falar com a equipe” agora abrem diretamente o e-mail `acolheiluminado@gmail.com`; a alteração foi validada localmente e publicada sem E2E remoto.
 - O CTA final foi simplificado novamente para manter apenas “Começar agora”; o contato continua no footer.
+- O timeout do Workers AI foi ampliado para 12 segundos, sem E2E remoto nesta correção.
 - O release é reproduzível pelo commit `8c0eb65` e pela tag `acolhe-release-2026-11-22`.
 - E2E autenticado e carga não foram executados nesta rodada; qualquer evidência anterior continua histórica e não é promovida automaticamente.
 
