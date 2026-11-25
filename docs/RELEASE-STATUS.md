@@ -2,13 +2,13 @@
 
 ## Referência atual — 23/11/2026
 
-- Commit/tag reproduzível: `5feb756` — remoção da IA ativa e preservação dos fluxos determinísticos.
-- Produção: `e3029b12-0947-4153-9a25-ed3b68971fc6` — `APP_ENV=production`.
+- Commit/tag reproduzível: `4c02cc9` — remoção do Radar profissional e preservação dos fluxos operacionais.
+- Produção: `d75a098a-49e4-4895-a356-a87ee14f612a` — `APP_ENV=production`.
 - Staging: `5402ef6a-759a-46ca-9b5c-b81a3134db6d` — `APP_ENV=staging`.
 - Origens: `https://acolhetest.luccasuper1.workers.dev` e `https://acolhetest-staging.luccasuper1.workers.dev`.
 - Health GET: HTTP 200 e `database: ok` nos dois ambientes.
 - Gates locais: Worker 84/84; frontend 315/315; TypeScript, lint, build e bundle budget aprovados.
-- Smoke pós-publicação: endpoints públicos responderam, mas o verificador parou porque `/api/health` retorna cache curto (`public, max-age=5`) enquanto o script exige `no-store`; divergência de política de cache pendente.
+- Smoke pós-publicação: home HTTP 200; health respondeu HTTP 503 com banco indisponível no momento da verificação. A divergência de cache do healthcheck (`public, max-age=5` versus `no-store` no verificador) permanece pendente.
 - O staging continua na versão anterior; esta correção foi promovida somente para produção, conforme a autorização de publicação.
 - As alterações históricas do antigo Insights conversacional permanecem registradas abaixo apenas para rastreabilidade; não fazem parte do estado atual e não representam recurso disponível.
 - Probes anônimas de `/api/live`, `/api/ready` e `/api/health` agora usam deduplicação no isolate e cache curto no edge; o liveness não consulta o banco.
