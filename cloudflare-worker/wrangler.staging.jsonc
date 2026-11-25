@@ -4,7 +4,8 @@
   "main": "src/index.ts",
   "compatibility_date": "2026-10-29",
   "compatibility_flags": ["nodejs_compat"],
-  "triggers": { "crons": ["*/15 * * * *"] },
+  // Scheduled maintenance is paused in staging to prevent background quota
+  // consumption during development and validation.
   "vars": {
     "FRONTEND_URL": "https://acolhetest-staging.luccasuper1.workers.dev",
     "APP_ENV": "staging"

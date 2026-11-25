@@ -84,7 +84,7 @@ test("local vars template matches the Worker configuration contract", () => {
   assert.match(packager, /\[switch\]\$Force/);
   assert.match(packager, /O pacote já existe/);
   assert.match(template, /Nunca substitua estes valores por credenciais reais/);
-  assert.match(wrangler, /"crons": \["\*\/15 \* \* \* \*"\]/);
+  assert.doesNotMatch(wrangler, /"crons"\s*:/);
   assert.equal(packageJson.scripts.deploy, "npm run check && npm test && npm run build:frontend && wrangler deploy");
   assert.match(deployDoc, /Rollback seguro/);
   assert.match(deployDoc, /docs\/RELEASE-STATUS\.md/);

@@ -901,8 +901,8 @@ test("expired requests refresh every affected panel scope", () => {
   assert.match(block, /refreshPanels\(env, store, institutionId, "admin"\)/);
 });
 
-test("SLA expiration runs on a scheduled worker and is idempotent", () => {
-  assert.ok(workerConfig.includes('"crons": ["*/15 * * * *"]'));
+test("SLA expiration remains implemented but automatic scheduling is paused", () => {
+  assert.doesNotMatch(workerConfig, /"crons"\s*:/);
   assert.match(workerIndex, /async scheduled\(_controller: ScheduledController/);
   assert.match(workerIndex, /getMaintenanceSnapshot/);
   assert.match(workerIndex, /expirePendingRequests\(store, env, undefined, snapshot\)/);

@@ -28,6 +28,8 @@
 - O ícone flutuante com a marca e a estrela amarela permanece apenas como marcador visual de automação futura; ele não abre chat nem executa chamadas.
 - As métricas institucionais e os demais fluxos operacionais permanecem determinísticos.
 - E2E autenticado e carga não foram executados nesta promoção; permanecem validações separadas, não inventadas.
+- O cron automático do Worker está pausado em produção e staging para evitar consumo de Durable Objects sem tráfego de usuários; a rotina permanece disponível para reativação controlada.
+- O workflow de uptime está pausado no agendamento automático e só pode ser executado manualmente enquanto a cota é investigada.
 
 - Última publicação autorizada: ciclo 678 — preenchimento integral do card de pedido em 22/11/2026.
 - Versão do Worker: `57c02561-a44a-487d-9b39-2a6eaf3b42af`.

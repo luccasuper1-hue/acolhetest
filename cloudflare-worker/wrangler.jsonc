@@ -4,9 +4,8 @@
   "main": "src/index.ts",
   "compatibility_date": "2026-10-29",
   "compatibility_flags": ["nodejs_compat"],
-  "triggers": {
-    "crons": ["*/15 * * * *"]
-  },
+  // Scheduled maintenance is paused while the pilot is idle to avoid
+  // consuming Durable Objects quota without user traffic.
   "vars": {
     "FRONTEND_URL": "https://acolhetest.luccasuper1.workers.dev",
     "APP_ENV": "production"
