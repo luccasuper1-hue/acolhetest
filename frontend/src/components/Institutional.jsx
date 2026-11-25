@@ -415,10 +415,9 @@ export const AiSection = () => (
     <div className="ai-limit" data-testid="ai-limit">
       <ShieldCheck size={17}/>
       <span>
-        No piloto, não há IA ativa nem envio de dados a modelos. O Radar do profissional organiza
-        prioridades operacionais com base nos dados do painel, sem avaliar pessoas, acessar conversas
-        ou executar ações automaticamente. O cuidado continua sendo responsabilidade de pessoas
-        habilitadas.
+        No piloto, não há IA ativa nem envio de dados a modelos. Os fluxos operacionais usam os dados
+        do painel sem avaliar pessoas, acessar conversas ou executar ações automaticamente. O cuidado
+        continua sendo responsabilidade de pessoas habilitadas.
       </span>
     </div>
   </section>

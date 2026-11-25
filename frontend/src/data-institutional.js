@@ -173,7 +173,7 @@ export const aiUses = [
   { title: "Automação assistida", text: "Recursos de automação e inteligência assistida podem ser avaliados em fases futuras." },
   { title: "Indicadores determinísticos", text: "A versão atual usa métricas agregadas e regras operacionais, sem IA ativa." },
   { title: "Privacidade por desenho", text: "Os fluxos atuais não enviam conversas, notas ou dados individuais a modelos." },
-  { title: "Radar operacional", text: "Prioridades do painel são calculadas por regras explicáveis e verificáveis." },
+  { title: "Operação verificável", text: "Os fluxos atuais usam métricas agregadas e regras operacionais explicáveis." },
   { title: "Roadmap transparente", text: "Qualquer recurso futuro será validado antes de ser apresentado como disponível." },
   { title: "Responsabilidade humana", text: "Decisões e atendimentos continuam sob responsabilidade de pessoas habilitadas." },
 ];

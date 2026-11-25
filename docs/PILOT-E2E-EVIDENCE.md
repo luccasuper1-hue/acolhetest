@@ -7,7 +7,7 @@
 - Ambos respondem health HTTP 200 com banco saudável.
 - A IA conversacional não está ativa nesta versão: não há binding, rota ou envio de dados a modelo. Não houve E2E remoto nesta alteração.
 - O ícone flutuante do antigo Insights permanece somente como marcador visual de automação futura, sem interação ou chamada de rede.
-- Métricas e prioridades do Radar continuam sendo calculadas determinística e localmente no backend.
+- Métricas e prioridades operacionais continuam sendo calculadas determinística e localmente no backend.
 - Healthchecks anônimos passaram a ser deduplicados e cacheados por poucos segundos; não houve E2E remoto nesta otimização.
 - Refreshes de dashboards acionados por troca de aba agora são limitados a uma janela curta; nenhum E2E remoto foi executado.
 - Leituras auxiliares do painel profissional foram consolidadas no gateway; nenhum E2E remoto foi executado nesta otimização.

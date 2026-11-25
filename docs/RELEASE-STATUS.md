@@ -26,7 +26,7 @@
 - O CTA final voltou a exibir somente “Começar agora”; o contato permanece disponível no footer.
 - A IA conversacional foi removida do produto nesta revisão. Não há binding de IA, rota de Insights, provider, prompt ou envio de dados a modelo.
 - O ícone flutuante com a marca e a estrela amarela permanece apenas como marcador visual de automação futura; ele não abre chat nem executa chamadas.
-- O Radar profissional, as métricas institucionais e os demais fluxos operacionais permanecem determinísticos.
+- As métricas institucionais e os demais fluxos operacionais permanecem determinísticos.
 - E2E autenticado e carga não foram executados nesta promoção; permanecem validações separadas, não inventadas.
 
 - Última publicação autorizada: ciclo 678 — preenchimento integral do card de pedido em 22/11/2026.

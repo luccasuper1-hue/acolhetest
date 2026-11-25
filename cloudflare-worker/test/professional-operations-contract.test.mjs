@@ -4,13 +4,9 @@ import { readFile } from "node:fs/promises";
 
 const routes = await readFile(new URL("../src/routes.ts", import.meta.url), "utf8");
 
-test("professional dashboard returns a deterministic, bounded operational radar", () => {
-  assert.match(routes, /const professionalRadar/);
-  assert.match(routes, /pending_request|today_session|missing_room_link|pending_referral|open_capacity|capacity_conflict/);
-  assert.match(routes, /return items\.slice\(0, 30\)/);
-  assert.match(routes, /professionalRadar\(\{ requests, appointmentRequests, sessions, availability, referrals \}\)/);
-  assert.match(routes, /radar, metrics/);
-  assert.doesNotMatch(routes, /session_messages.*professionalRadar/);
+test("professional dashboard omits the retired radar and keeps metrics", () => {
+  assert.doesNotMatch(routes, /professionalRadar|radar, metrics/);
+  assert.match(routes, /professionalMetrics/);
 });
 
 test("professional metrics suppress small samples and ignore invalid response times", () => {

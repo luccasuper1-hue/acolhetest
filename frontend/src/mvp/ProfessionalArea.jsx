@@ -20,7 +20,6 @@ const parseBrazilianDate = value => {
     ? `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}` : null;
 };
 const sessionStarted = session => scheduledTimeHasStarted(session?.date, session?.time);
-const todayIso = () => new Date().toISOString().slice(0, 10);
 const escapeHtml = value => String(value ?? "").replace(/[&<>\"']/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[character]));
 
 export default function ProfessionalArea() {
@@ -30,7 +29,6 @@ export default function ProfessionalArea() {
   const [notificationUnreadCount, setNotificationUnreadCount] = useState(null);
   const [sessions, setSessions] = useState([]);
   const [availability, setAvailability] = useState([]);
-  const [serverRadar, setServerRadar] = useState([]);
   const [professionalMetrics, setProfessionalMetrics] = useState(null);
   const [certificate, setCertificate] = useState(null);
   const [certificateEligibility, setCertificateEligibility] = useState({ eligible: false, completed_count: 0, required_count: 5 });
@@ -67,7 +65,7 @@ export default function ProfessionalArea() {
       const { data } = await api.get("/professionals/me/dashboard");
       if (requestId !== loadRequestRef.current) return;
       setRequests(data.requests || []); setSessions(data.sessions || []); setAvailability(data.availability || []); setAppointmentRequests(data.appointment_requests || []);
-      setServerRadar(Array.isArray(data.radar) ? data.radar : []); setProfessionalMetrics(data.metrics || null);
+      setProfessionalMetrics(data.metrics || null);
       setNotifications(data.notifications || []);
       setNotificationUnreadCount(typeof data.notification_unread_count === "number" ? data.notification_unread_count : null);
       setLoadError("");
@@ -219,21 +217,6 @@ export default function ProfessionalArea() {
   const scheduled = sessions.filter(s => s.status === "scheduled");
   const completed = sessions.filter(s => s.status === "completed");
   const hasOperation = appointmentRequests.length > 0 || pending.length > 0 || scheduled.length > 0 || completed.length > 0;
-  const overdue = [...pending, ...appointmentRequests].filter(item => item.response_overdue);
-  const dueSoon = [...pending, ...appointmentRequests].filter(item => !item.response_overdue && item.response_state === "due_soon");
-  const todaySessions = scheduled.filter(item => item.date === todayIso());
-  const missingRoom = scheduled.filter(item => item.meeting_mode !== "presencial" && !item.room_link);
-  const pendingReferral = completed.filter(item => !item.referral);
-  const upcomingOpen = availability.filter(item => item.status === "open").slice(0, 3);
-  const computedRadarItems = [
-    ...(overdue.length ? [{ priority: "Alta", tone: "off", description: `${overdue.length} pedido${overdue.length === 1 ? " está" : "s estão"} além de 48 horas.`, reason: "O prazo operacional já foi ultrapassado.", action: "Responder agora", target: "professional-requests" }] : []),
-    ...(dueSoon.length ? [{ priority: "Atenção", tone: "wait", description: `${dueSoon.length} pedido${dueSoon.length === 1 ? " está" : "s estão"} próximo${dueSoon.length === 1 ? "" : "s"} do prazo.`, reason: "Uma resposta antes de 48 horas evita atraso.", action: "Revisar pedidos", target: "professional-requests" }] : []),
-    ...(todaySessions.length ? [{ priority: "Hoje", tone: "ok", description: `${todaySessions.length} conversa${todaySessions.length === 1 ? "" : "s"} agendada${todaySessions.length === 1 ? "" : "s"} para hoje.`, reason: "Prepare a modalidade e a sala antes do horário.", action: "Abrir agenda", target: "professional-sessions-card" }] : []),
-    ...(missingRoom.length ? [{ priority: "Atenção", tone: "wait", description: `${missingRoom.length} conversa${missingRoom.length === 1 ? " está" : "s estão"} sem link de sala.`, reason: "O estudante precisa de uma orientação prática para entrar.", action: "Configurar sala", target: "professional-sessions-card" }] : []),
-    ...(pendingReferral.length ? [{ priority: "Depois da conversa", tone: "wait", description: `${pendingReferral.length} encerramento${pendingReferral.length === 1 ? "" : "s"} ainda não tem encaminhamento operacional.`, reason: "O registro ajuda a manter a continuidade do fluxo.", action: "Revisar histórico", target: "professional-completed-card" }] : []),
-    ...(upcomingOpen.length ? [{ priority: "Capacidade", tone: "ok", description: `${upcomingOpen.length} horário${upcomingOpen.length === 1 ? " livre" : "s livres"} próximo${upcomingOpen.length === 1 ? "" : "s"}.`, reason: "Horários publicados podem receber novas solicitações.", action: "Ver horários", target: "professional-capacity-card" }] : []),
-  ];
-  const radarItems = serverRadar.length ? serverRadar.map(item => ({ priority: item.priority === "high" ? "Alta" : item.priority === "medium" ? "Atenção" : "Depois", tone: item.priority === "high" ? "off" : item.priority === "medium" ? "wait" : "ok", description: item.title, reason: item.reason, action: item.next_step, target: item.type === "pending_request" ? "professional-requests" : item.type === "today_session" || item.type === "missing_room_link" ? "professional-sessions-card" : item.type === "pending_referral" ? "professional-completed-card" : "professional-capacity-card" })) : computedRadarItems;
   const reservedSlots = Number.isFinite(professionalMetrics?.availability_reserved) ? professionalMetrics.availability_reserved : availability.filter(item => item.status === "reserved").length;
   const openSlots = Number.isFinite(professionalMetrics?.availability_open) ? professionalMetrics.availability_open : availability.filter(item => item.status === "open").length;
   const publishedSlots = Number.isFinite(professionalMetrics?.availability_published) ? professionalMetrics.availability_published : availability.length;
@@ -272,10 +255,6 @@ export default function ProfessionalArea() {
       onOpenConversation={openFloatingChat}
       renderConversation={renderFloatingChat}
     >
-      <MvpCard title="Radar de hoje" subtitle="O que merece sua atenção agora, com base apenas no estado operacional da sua agenda." testid="pro-radar-card" className="professional-radar-card">
-        {radarItems.length ? <div className="professional-radar-list">{radarItems.map((item, index) => <div className="professional-radar-item" key={`${item.target}:${index}`}><div className="professional-radar-copy"><span className={`mvp-tag ${item.tone}`}>{item.priority}</span><strong>{item.description}</strong><small>{item.reason}</small><em>Ação sugerida: {item.action}</em></div><a className="button quiet small" href={`#${item.target}`}>Abrir contexto</a></div>)}</div> : <MvpEmpty>Nenhum alerta operacional agora. Quando houver algo a revisar, ele aparecerá aqui.</MvpEmpty>}
-      </MvpCard>
-
       <MvpCard id="professional-capacity-card" title="Minha capacidade" subtitle="Somente os seus horários publicados no piloto; sem ranking entre profissionais." testid="pro-capacity-card" className="professional-capacity-card">
         <div className="mvp-kpis professional-capacity-kpis"><div><strong>{publishedSlots}</strong><span>Horários publicados</span></div><div><strong>{reservedSlots}</strong><span>Reservados</span></div><div><strong>{openSlots}</strong><span>Livres</span></div><div><strong>{utilization == null ? "—" : `${utilization}%`}</strong><span>Utilização</span></div></div>
         <p className="mvp-note">Pedidos recusados especificamente por falta de disponibilidade: não foi possível determinar com os registros atuais. A distribuição semanal detalhada aparecerá quando houver dados suficientes; o painel não expõe comparações individuais.</p>

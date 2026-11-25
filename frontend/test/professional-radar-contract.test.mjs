@@ -2,9 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 const source = await readFile(new URL("../src/mvp/ProfessionalArea.jsx", import.meta.url), "utf8");
-test("professional panel keeps the operational radar and safe manual drafts", () => {
-  assert.match(source, /Radar de hoje/);
-  assert.match(source, /response_overdue|due_soon/);
+test("professional panel keeps operational metrics and safe manual drafts", () => {
+  assert.doesNotMatch(source, /Radar de hoje|serverRadar|computedRadarItems/);
   assert.match(source, /professional-capacity-card/);
   assert.match(source, /availability_id/);
   assert.match(source, /professional-checklist/);

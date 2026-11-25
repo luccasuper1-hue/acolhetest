@@ -22,9 +22,8 @@ test("AI bindings, routes and implementation are absent", () => {
   assert.equal(fs.existsSync(aiDir) ? fs.readdirSync(aiDir).length : 0, 0);
 });
 
-test("deterministic operational metrics and radar remain available", () => {
+test("deterministic operational metrics remain available", () => {
   const routes = read("src/routes.ts");
-  assert.match(routes, /professionalRadar/);
   assert.match(routes, /professionalMetrics/);
   assert.match(routes, /institutionMetrics/);
   assert.match(routes, /\/api\/institutions\/me\/metrics/);
