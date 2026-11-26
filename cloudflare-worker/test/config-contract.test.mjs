@@ -180,7 +180,8 @@ assert.match(privacyDoc, /Evitar frases que indiquem que essas regras ainda est√
   assert.match(routesSource, /per_institution: perInstitution/);
   assert.doesNotMatch(routesSource, /return \{[^}]*per_institution[^}]*user_id/);
   assert.match(routesSource, /attendance_sample_size: closedSessions/);
-  assert.match(routesSource, /professional_id: professional\.id, institution_id: professional\.institution_id, status: "valid"/);
+  assert.match(routesSource, /professional_id: professional\.id, institution_id: professional\.institution_id/);
+  assert.match(routesSource, /status: "valid"/);
   assert.match(routesSource, /institution_id: professional\.institution_id, institution_name/);
   assert.match(routesSource, /findOne\("certificates", \{ code: certificateCode, status: "valid" \}/);
   assert.doesNotMatch(routesSource, /certificate: \{[^}]*password|certificate: \{[^}]*email/);

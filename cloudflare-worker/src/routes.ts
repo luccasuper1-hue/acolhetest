@@ -1118,11 +1118,24 @@ async function professionalRoutes(request: Request, env: Env, pathname: string, 
   if (pathname === "/api/professionals/me/certificate" && request.method === "POST") {
     const completedCount = (await store.findMany("sessions", { professional_id: professional.id, status: "completed" }, { projection: { id: 1 }, limit: 500 })).length;
     if (completedCount < 5) return fail("Complete pelo menos 5 conversas para emitir o certificado.", 409);
-    const existing = (await store.findMany("certificates", { professional_id: professional.id, institution_id: professional.institution_id, status: "valid" }, { sort: { issued_at: -1 }, limit: 1 }))[0] || null;
-    if (existing && existing.institution_id !== professional.institution_id) return fail("O certificado existente precisa ser regularizado antes de uma nova emissão.", 409);
-    if (existing) return json({ certificate: publicCertificate(existing) });
     const institution = await store.findOne("institutions", { id: professional.institution_id, active: true }, { name: 1 });
     if (!professional.institution_id || !institution) return fail("O profissional precisa estar vinculado a uma instituição ativa.", 409);
+    const validCertificates = await store.findMany("certificates", { professional_id: professional.id, status: "valid" }, { sort: { issued_at: -1 }, limit: 20 });
+    const existing = validCertificates.find((candidate) => String(candidate.institution_id || "") === String(professional.institution_id)) || null;
+    if (existing) return json({ certificate: publicCertificate(existing) });
+    // Certificates created before institution scoping may be missing the link.
+    // Repair only that orphaned record for the authenticated professional; a
+    // certificate linked to another institution must never be reassigned here.
+    const orphan = validCertificates.find((candidate) => !candidate.institution_id);
+    if (orphan) {
+      const repaired = await store.update(
+        "certificates",
+        { id: orphan.id, professional_id: professional.id, status: "valid", $or: [{ institution_id: { $exists: false } }, { institution_id: null }, { institution_id: "" }] },
+        { $set: { institution_id: professional.institution_id, institution_name: institution.name, completed_count: completedCount } },
+      );
+      if (repaired === 1) return json({ certificate: publicCertificate({ ...orphan, institution_id: professional.institution_id, institution_name: institution.name, completed_count: completedCount }) });
+    }
+    if (validCertificates.length) return fail("O certificado existente precisa ser regularizado antes de uma nova emissão.", 409);
     const certificate = { id: id(), code: `AC-${localScheduleParts().year}-${crypto.randomUUID().split("-")[0].toUpperCase()}`, title: "Certificado de participação no piloto Acolhe", professional_id: professional.id, institution_id: professional.institution_id, institution_name: institution?.name || "Piloto Acolhe", professional_name: user.name, completed_count: completedCount, issued_at: now(), status: "valid" };
     const issued = await store.issueCertificate(professional.id, certificate);
     await refreshPanels(env, store, professional.institution_id, "institution");
