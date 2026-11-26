@@ -9,6 +9,9 @@ test("professional panel keeps operational metrics and safe manual drafts", () =
   assert.match(source, /professional-checklist/);
   assert.match(source, /Nada é enviado automaticamente/);
   assert.match(source, /professional-message-drafts-card/);
+  assert.match(source, /<details id="professional-capacity-card" className="mvp-card mvp-collapsible-card/);
+  assert.match(source, /<details id="professional-message-drafts-card" className="mvp-card mvp-collapsible-card/);
+  assert.ok(source.indexOf('id="professional-completed-card"') < source.indexOf('id="professional-capacity-card"'));
 });
 
 test("professional suggestions require explicit proposal action", () => {

@@ -255,11 +255,6 @@ export default function ProfessionalArea() {
       onOpenConversation={openFloatingChat}
       renderConversation={renderFloatingChat}
     >
-      <MvpCard id="professional-capacity-card" title="Minha capacidade" subtitle="Somente os seus horários publicados no piloto; sem ranking entre profissionais." testid="pro-capacity-card" className="professional-capacity-card">
-        <div className="mvp-kpis professional-capacity-kpis"><div><strong>{publishedSlots}</strong><span>Horários publicados</span></div><div><strong>{reservedSlots}</strong><span>Reservados</span></div><div><strong>{openSlots}</strong><span>Livres</span></div><div><strong>{utilization == null ? "—" : `${utilization}%`}</strong><span>Utilização</span></div></div>
-        <p className="mvp-note">Pedidos recusados especificamente por falta de disponibilidade: não foi possível determinar com os registros atuais. A distribuição semanal detalhada aparecerá quando houver dados suficientes; o painel não expõe comparações individuais.</p>
-      </MvpCard>
-
       {appointmentRequests.length > 0 && <MvpCard id="professional-requests" title="Pedidos diretos de atendimento" subtitle="Estudantes que escolheram você para propor uma data e horário." testid="pro-appointment-requests-card" className="professional-requests-card">
         {appointmentRequests.map(item => <div className="mvp-row professional-appointment-request" key={item.id} data-testid={`pro-appointment-request-${item.id}`}>
           <div className="mvp-row-main"><strong>{item.student_name}</strong><span>{reasonLabel(item.reason_code)} · {item.meeting_mode === "presencial" ? "Presencial" : "Online"}</span>{item.note && <span>“{item.note}”</span>}{item.status === "proposed" && <span>Proposta enviada: {formatDate(item.date)} · {item.time}</span>}<small className="mvp-next-step">{item.response_overdue ? "Resposta atrasada — priorize este pedido." : item.response_state === "due_soon" ? "Prazo próximo — responda antes de 48h." : `Próximo passo: ${item.next_step}`}</small></div>
@@ -355,10 +350,21 @@ export default function ProfessionalArea() {
         </div>
       </details>}
 
-      <MvpCard title="Rascunhos de mensagens práticas" subtitle="Modelos editáveis para você revisar e enviar manualmente. Nada é enviado automaticamente." testid="pro-message-drafts-card" className="professional-message-drafts-card">
-        <div className="professional-drafts-grid">{Object.entries({ confirmation: "Confirmação de horário", reminder: "Lembrete da conversa", change: "Alteração de horário", room: "Instrução para acessar a sala", linkRequest: "Solicitação de atualização do link" }).map(([key, label]) => <label key={key}>{label}<textarea rows="2" value={drafts[key]} onChange={event => setDrafts(current => ({ ...current, [key]: event.target.value }))} maxLength={500} /></label>)}</div>
-        <p className="mvp-note">Use apenas para organização do encontro. Não inclua diagnósticos, interpretações ou informações clínicas.</p>
-      </MvpCard>
+      <details id="professional-capacity-card" className="mvp-card mvp-collapsible-card professional-capacity-card" data-testid="pro-capacity-card">
+        <summary className="mvp-card-head"><div><h2>Minha capacidade</h2><p>Somente os seus horários publicados no piloto; sem ranking entre profissionais.</p></div></summary>
+        <div className="mvp-collapsible-body">
+          <div className="mvp-kpis professional-capacity-kpis"><div><strong>{publishedSlots}</strong><span>Horários publicados</span></div><div><strong>{reservedSlots}</strong><span>Reservados</span></div><div><strong>{openSlots}</strong><span>Livres</span></div><div><strong>{utilization == null ? "—" : `${utilization}%`}</strong><span>Utilização</span></div></div>
+          <p className="mvp-note">Pedidos recusados especificamente por falta de disponibilidade: não foi possível determinar com os registros atuais. A distribuição semanal detalhada aparecerá quando houver dados suficientes; o painel não expõe comparações individuais.</p>
+        </div>
+      </details>
+
+      <details id="professional-message-drafts-card" className="mvp-card mvp-collapsible-card professional-message-drafts-card" data-testid="pro-message-drafts-card">
+        <summary className="mvp-card-head"><div><h2>Rascunhos de mensagens práticas</h2><p>Modelos editáveis para você revisar e enviar manualmente. Nada é enviado automaticamente.</p></div></summary>
+        <div className="mvp-collapsible-body">
+          <div className="professional-drafts-grid">{Object.entries({ confirmation: "Confirmação de horário", reminder: "Lembrete da conversa", change: "Alteração de horário", room: "Instrução para acessar a sala", linkRequest: "Solicitação de atualização do link" }).map(([key, label]) => <label key={key}>{label}<textarea rows="2" value={drafts[key]} onChange={event => setDrafts(current => ({ ...current, [key]: event.target.value }))} maxLength={500} /></label>)}</div>
+          <p className="mvp-note">Use apenas para organização do encontro. Não inclua diagnósticos, interpretações ou informações clínicas.</p>
+        </div>
+      </details>
     </MvpShell>
   );
 }
