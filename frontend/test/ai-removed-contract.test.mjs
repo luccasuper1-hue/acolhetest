@@ -15,6 +15,8 @@ test("institution panel keeps only the visual future marker", () => {
   assert.doesNotMatch(panel, /\/institutions\/me\/insights|INSIGHT_QUESTIONS|InsightChatResult|Aprofundar/);
   assert.doesNotMatch(css, /institution-insights-popover|institution-insights-chat|insight-result-v2|insight-question-form/);
   assert.match(css, /institution-insights-sparkle/);
+  assert.match(css, /\.institution-insights-launcher\{position:fixed/);
+  assert.match(css, /institution-insights-launcher\{right:12px;bottom:calc\(12px \+ env\(safe-area-inset-bottom\)\)/);
 });
 
 test("public copy marks automation as future-only", () => {
