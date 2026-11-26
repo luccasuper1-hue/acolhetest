@@ -16,7 +16,9 @@ test("institution panel keeps only the visual future marker", () => {
   assert.doesNotMatch(css, /institution-insights-popover|institution-insights-chat|insight-result-v2|insight-question-form/);
   assert.match(css, /institution-insights-sparkle/);
   assert.match(css, /\.institution-insights-launcher\{position:fixed/);
-  assert.match(css, /institution-insights-launcher\{right:12px;bottom:calc\(12px \+ env\(safe-area-inset-bottom\)\)/);
+  assert.match(css, /institution-insights-launcher\{right:12px;bottom:14px;width:42px;height:42px\}/);
+  assert.match(css, /institution-insights-launcher\{right:10px;bottom:12px\}/);
+  assert.match(panel, /createPortal\(marker, document\.body\)/);
 });
 
 test("public copy marks automation as future-only", () => {

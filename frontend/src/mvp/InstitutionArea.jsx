@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { toast } from "sonner";
 import { Copy, ExternalLink, Sparkle, UserPlus } from "lucide-react";
 import BrandMark from "../components/BrandMark";
@@ -6,9 +7,10 @@ import { MvpShell, MvpCard, MvpEmpty, MvpKpi } from "./MvpShell";
 import { api, apiError, formatDate } from "./api";
 
 function FutureInsightsLauncher() {
-  return <div className="institution-insights-launcher" aria-label="Automação futura do Acolhe">
+  const marker = <div className="institution-insights-launcher" aria-label="Automação futura do Acolhe">
     <span className="corner-logo institution-insights-trigger" role="img" aria-label="Recursos de automação futuros"><span className="corner-logo-glow" aria-hidden="true"/><span className="corner-logo-float" aria-hidden="true"><span className="corner-logo-body"><span className="corner-logo-mark"><BrandMark size={30}/></span></span></span><Sparkle className="institution-insights-sparkle" size={16} strokeWidth={2.4} aria-hidden="true"/><span className="corner-logo-tooltip">Recursos de automação em avaliação futura</span></span>
   </div>;
+  return typeof document === "undefined" ? marker : createPortal(marker, document.body);
 }
 
 export default function InstitutionArea() {
