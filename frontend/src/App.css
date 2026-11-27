@@ -2056,3 +2056,37 @@ html[data-theme="dark"] .home-route .footer { background: #17111f; }
   .search-field { min-width: 0; }
   .search-field input { min-width: 0; }
 }
+
+/* Ciclo mobile 17: jornadas e escolhas do estudante sem aperto. */
+@media (max-width: 650px) {
+  /* 1. Opções de humor preservam uma área de toque confortável. */
+  .mood-chip { min-height: 44px; justify-content: center; }
+
+  /* 2. O atalho de urgência mantém texto e seta visíveis em duas linhas. */
+  .urgent-link { min-height: 64px; align-items: flex-start; overflow-wrap: anywhere; }
+
+  /* 3. Assuntos continuam selecionáveis mesmo com títulos longos. */
+  .topic-row { min-width: 0; min-height: 64px; }
+
+  /* 4. O assunto personalizado não cria rolagem horizontal no formulário. */
+  .custom-topic { min-width: 0; overflow-wrap: anywhere; }
+
+  /* 5. O estado vazio da agenda comunica o próximo passo sem colar nas bordas. */
+  .agenda-empty { padding: 30px 20px; min-width: 0; }
+
+  /* 6. A jornada vazia mantém a chamada principal legível no celular. */
+  .journey-empty { padding: 30px 20px; min-width: 0; }
+
+  /* 7. Metadados do documento podem empilhar chave e valor sem corte. */
+  .journey-doc dl div { align-items: flex-start; flex-wrap: wrap; row-gap: 6px; }
+
+  /* 8. Histórico de agenda não esconde a data quando a descrição cresce. */
+  .agenda-past-row { align-items: flex-start; flex-wrap: wrap; }
+
+  /* 9. O topo do onboarding deixa o botão de pular sempre alcançável. */
+  .onboarding-top { min-width: 0; align-items: flex-start; }
+  .onboarding-skip { min-height: 44px; }
+
+  /* 10. Títulos do onboarding quebram naturalmente em aparelhos estreitos. */
+  .onboarding-copy h2 { overflow-wrap: anywhere; }
+}

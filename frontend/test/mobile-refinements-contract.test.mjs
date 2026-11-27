@@ -231,3 +231,17 @@ test("mobile overlays and public tasks keep actions reachable", () => {
   assert.match(cycle, /\.resource-card > button[^}]*overflow-wrap: anywhere/s);
   assert.match(cycle, /\.search-field input[^}]*min-width: 0/s);
 });
+
+test("mobile student journeys keep choices and empty states readable", () => {
+  const cycle = appCss.slice(appCss.lastIndexOf("/* Ciclo mobile 17"));
+  assert.match(cycle, /\.mood-chip[^}]*min-height: 44px/s);
+  assert.match(cycle, /\.urgent-link[^}]*min-height: 64px/s);
+  assert.match(cycle, /\.topic-row[^}]*min-height: 64px/s);
+  assert.match(cycle, /\.custom-topic[^}]*overflow-wrap: anywhere/s);
+  assert.match(cycle, /\.agenda-empty[^}]*padding: 30px 20px/s);
+  assert.match(cycle, /\.journey-empty[^}]*padding: 30px 20px/s);
+  assert.match(cycle, /\.journey-doc dl div[^}]*flex-wrap: wrap/s);
+  assert.match(cycle, /\.agenda-past-row[^}]*flex-wrap: wrap/s);
+  assert.match(cycle, /\.onboarding-top[^}]*min-width: 0/s);
+  assert.match(cycle, /\.onboarding-copy h2[^}]*overflow-wrap: anywhere/s);
+});
