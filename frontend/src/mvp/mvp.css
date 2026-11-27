@@ -3011,3 +3011,36 @@ html[data-theme="dark"] .mvp-shell[data-testid="student-area"] .student-active-a
   /* 10. A configuração de cookies permanece tocável e quebra quando preciso. */
   .mvp-cookie-settings { min-height: 44px; white-space: normal; text-align: left; }
 }
+
+/* Ciclo mobile 20: conversa operacional com composer e feedback confiáveis. */
+@media (max-width: 640px) {
+  /* 1. O cabeçalho da conversa não perde largura para títulos extensos. */
+  .mvp-conversation-window .mvp-chat-head { min-width: 0; }
+
+  /* 2. A lista de mensagens mantém espaço para o último balão e o teclado. */
+  .mvp-conversation-window .mvp-chat-messages { scroll-padding-bottom: 18px; }
+
+  /* 3. Mensagens longas continuam dentro da coluna sem ocupar toda a tela. */
+  .mvp-conversation-window .mvp-chat-message { max-width: 92%; line-height: 1.45; }
+
+  /* 4. O composer acompanha o tamanho do campo e do botão de envio. */
+  .mvp-conversation-window .mvp-chat-compose { min-width: 0; gap: 8px; align-items: flex-end; }
+
+  /* 5. O campo de conversa não fica baixo demais para o polegar. */
+  .mvp-conversation-window .mvp-chat-compose input { min-height: 46px; min-width: 0; }
+
+  /* 6. Enviar e repetir usam o mesmo alvo mínimo de toque. */
+  .mvp-conversation-window .mvp-chat-compose button { min-width: 44px; min-height: 44px; }
+
+  /* 7. Erros de conversa quebram a mensagem antes do botão de recuperação. */
+  .mvp-conversation-window .mvp-chat-error { min-width: 0; overflow-wrap: anywhere; }
+
+  /* 8. Notificações vazias continuam explicativas sem parecerem quebradas. */
+  .mvp-notification-empty { min-width: 0; padding: 14px 4px; line-height: 1.45; overflow-wrap: anywhere; }
+
+  /* 9. Títulos de notificação deixam o indicador de não lida visível. */
+  .mvp-notification-item-title { min-width: 0; align-items: flex-start; overflow-wrap: anywhere; }
+
+  /* 10. Horários de notificação não criam uma linha impossível. */
+  .mvp-notification-item time { min-width: 0; overflow-wrap: anywhere; }
+}

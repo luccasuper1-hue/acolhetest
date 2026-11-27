@@ -273,3 +273,17 @@ test("mobile persistent navigation stays visible and reachable", () => {
   assert.match(cycle, /\.next-session \.text-link[^}]*margin-left: 0/s);
   assert.match(cycle, /\.notif-panel \.notif-clear[^}]*width: 100%/s);
 });
+
+test("mobile conversation feedback and composer stay usable", () => {
+  const cycle = css.slice(css.lastIndexOf("/* Ciclo mobile 20"));
+  assert.match(cycle, /mvp-conversation-window \.mvp-chat-head[^}]*min-width: 0/s);
+  assert.match(cycle, /mvp-chat-messages[^}]*scroll-padding-bottom: 18px/s);
+  assert.match(cycle, /mvp-conversation-window \.mvp-chat-message[^}]*max-width: 92%/s);
+  assert.match(cycle, /mvp-conversation-window \.mvp-chat-compose[^}]*align-items: flex-end/s);
+  assert.match(cycle, /mvp-conversation-window \.mvp-chat-compose input[^}]*min-height: 46px/s);
+  assert.match(cycle, /mvp-conversation-window \.mvp-chat-compose button[^}]*min-height: 44px/s);
+  assert.match(cycle, /mvp-conversation-window \.mvp-chat-error[^}]*overflow-wrap: anywhere/s);
+  assert.match(cycle, /mvp-notification-empty[^}]*overflow-wrap: anywhere/s);
+  assert.match(cycle, /mvp-notification-item-title[^}]*align-items: flex-start/s);
+  assert.match(cycle, /mvp-notification-item time[^}]*overflow-wrap: anywhere/s);
+});
