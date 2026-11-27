@@ -29,7 +29,6 @@ export default function ProfessionalArea() {
   const [notificationUnreadCount, setNotificationUnreadCount] = useState(null);
   const [sessions, setSessions] = useState([]);
   const [availability, setAvailability] = useState([]);
-  const [professionalMetrics, setProfessionalMetrics] = useState(null);
   const [certificate, setCertificate] = useState(null);
   const [certificateEligibility, setCertificateEligibility] = useState({ eligible: false, completed_count: 0, required_count: 5 });
   const [links, setLinks] = useState({});
@@ -50,7 +49,6 @@ export default function ProfessionalArea() {
   const [chatReadAt, setChatReadAt] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
-  const [drafts, setDrafts] = useState({ confirmation: "Olá! Seu horário está confirmado. Até lá, você poderá acompanhar os detalhes da conversa por aqui.", reminder: "Olá! Passando para lembrar nossa conversa agendada. Se precisar, confira o horário e a modalidade no Acolhe.", change: "Olá! Precisamos revisar o horário combinado. Vou propor uma nova opção pelo Acolhe.", room: "Olá! O link da sala está disponível no Acolhe. Se tiver dificuldade para acessar, me avise por aqui.", linkRequest: "Olá! Para facilitar o acesso, poderia atualizar ou confirmar o link da sala da nossa conversa?" });
   const chatMessagesRef = useRef(null);
   const chatSendRef = useRef(null);
   const chatTypingTimerRef = useRef(null);
@@ -65,7 +63,6 @@ export default function ProfessionalArea() {
       const { data } = await api.get("/professionals/me/dashboard");
       if (requestId !== loadRequestRef.current) return;
       setRequests(data.requests || []); setSessions(data.sessions || []); setAvailability(data.availability || []); setAppointmentRequests(data.appointment_requests || []);
-      setProfessionalMetrics(data.metrics || null);
       setNotifications(data.notifications || []);
       setNotificationUnreadCount(typeof data.notification_unread_count === "number" ? data.notification_unread_count : null);
       setLoadError("");
@@ -217,11 +214,6 @@ export default function ProfessionalArea() {
   const scheduled = sessions.filter(s => s.status === "scheduled");
   const completed = sessions.filter(s => s.status === "completed");
   const hasOperation = appointmentRequests.length > 0 || pending.length > 0 || scheduled.length > 0 || completed.length > 0;
-  const reservedSlots = Number.isFinite(professionalMetrics?.availability_reserved) ? professionalMetrics.availability_reserved : availability.filter(item => item.status === "reserved").length;
-  const openSlots = Number.isFinite(professionalMetrics?.availability_open) ? professionalMetrics.availability_open : availability.filter(item => item.status === "open").length;
-  const publishedSlots = Number.isFinite(professionalMetrics?.availability_published) ? professionalMetrics.availability_published : availability.length;
-  const capacityTotal = openSlots + reservedSlots;
-  const utilization = Number.isFinite(professionalMetrics?.utilization_percent) ? professionalMetrics.utilization_percent : capacityTotal ? Math.round((reservedSlots / capacityTotal) * 100) : null;
   const conversations = scheduled.map(session => ({
     id: session.id,
     title: "Conversa agendada",
@@ -350,21 +342,6 @@ export default function ProfessionalArea() {
         </div>
       </details>}
 
-      <details id="professional-capacity-card" className="mvp-card mvp-collapsible-card professional-capacity-card" data-testid="pro-capacity-card">
-        <summary className="mvp-card-head"><div><h2>Minha capacidade</h2><p>Somente os seus horários publicados no piloto; sem ranking entre profissionais.</p></div></summary>
-        <div className="mvp-collapsible-body">
-          <div className="mvp-kpis professional-capacity-kpis"><div><strong>{publishedSlots}</strong><span>Horários publicados</span></div><div><strong>{reservedSlots}</strong><span>Reservados</span></div><div><strong>{openSlots}</strong><span>Livres</span></div><div><strong>{utilization == null ? "—" : `${utilization}%`}</strong><span>Utilização</span></div></div>
-          <p className="mvp-note">Pedidos recusados especificamente por falta de disponibilidade: não foi possível determinar com os registros atuais. A distribuição semanal detalhada aparecerá quando houver dados suficientes; o painel não expõe comparações individuais.</p>
-        </div>
-      </details>
-
-      <details id="professional-message-drafts-card" className="mvp-card mvp-collapsible-card professional-message-drafts-card" data-testid="pro-message-drafts-card">
-        <summary className="mvp-card-head"><div><h2>Rascunhos de mensagens práticas</h2><p>Modelos editáveis para você revisar e enviar manualmente. Nada é enviado automaticamente.</p></div></summary>
-        <div className="mvp-collapsible-body">
-          <div className="professional-drafts-grid">{Object.entries({ confirmation: "Confirmação de horário", reminder: "Lembrete da conversa", change: "Alteração de horário", room: "Instrução para acessar a sala", linkRequest: "Solicitação de atualização do link" }).map(([key, label]) => <label key={key}>{label}<textarea rows="2" value={drafts[key]} onChange={event => setDrafts(current => ({ ...current, [key]: event.target.value }))} maxLength={500} /></label>)}</div>
-          <p className="mvp-note">Use apenas para organização do encontro. Não inclua diagnósticos, interpretações ou informações clínicas.</p>
-        </div>
-      </details>
     </MvpShell>
   );
 }
