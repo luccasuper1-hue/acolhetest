@@ -151,7 +151,8 @@ assert.match(privacyDoc, /Evitar frases que indiquem que essas regras ainda estÃ
   assert.match(uptimeWorkflow, /concurrency:\s+group: acolhe-uptime/);
   assert.doesNotMatch(uptimeWorkflow, /acolhetest\.luccasuper1\.workers\.dev/);
   assert.match(uptimeWorkflow, /curl .*--fail --silent --show-error --location(?: --retry 2 --retry-delay 2)? --max-time 20 "\$base\//);
-  assert.match(uptimeWorkflow, /curl .*--fail --silent --show-error --location(?: --retry 2 --retry-delay 2)? --max-time 20 "\$base\/api\/health"/);
+  assert.match(uptimeWorkflow, /curl .*--fail --silent --show-error --location(?: --retry 2 --retry-delay 2)? --max-time 20 "\$base\/api\/live"/);
+  assert.doesNotMatch(uptimeWorkflow, /\$base\/api\/health/);
   assert.ok(uptimeWorkflow.includes("^https://[^/?#@]+$"));
   assert.match(uptimeWorkflow, /--proto '=https'/);
   assert.doesNotMatch(uptimeWorkflow, /echo "\$ACOLHE_BASE_URL"/);
@@ -461,10 +462,10 @@ test("admin request payloads stay operational and omit private notes", () => {
   assert.doesNotMatch(routesSource, /const adminSafeRequest = [^\n]*note:/);
 });
 
-test("uptime monitoring validates health without dumping response bodies", () => {
-  assert.match(uptimeWorkflow, /health=\"\$\(curl/);
-  assert.match(uptimeWorkflow, /echo \"\$health\" \| grep -q '\"ok\":true'/);
-  assert.match(uptimeWorkflow, /base\/api\/health.*\/dev\/null/);
+test("uptime monitoring validates liveness without touching the database", () => {
+  assert.match(uptimeWorkflow, /live=\"\$\(curl/);
+  assert.match(uptimeWorkflow, /echo \"\$live\" \| grep -q '\"ok\":true'/);
+  assert.match(uptimeWorkflow, /base\/api\/live.*\/dev\/null/);
   assert.match(uptimeWorkflow, /--retry 2 --retry-delay 2/);
   assert.match(uptimeWorkflow, /robots_type=.*content_type/);
   assert.match(uptimeWorkflow, /robots\.txt must be text\/plain/);

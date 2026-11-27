@@ -26,10 +26,10 @@ jobs:
           [[ "$base" =~ ^https://[^/?#@]+$ ]] || { echo "ACOLHE_BASE_URL must be an HTTPS origin without path, query, fragment or credentials" >&2; exit 1; }
           curl --proto '=https' --proto-redir '=https' --fail --silent --show-error --location --retry 2 --retry-delay 2 --max-time 20 "$base/" >/dev/null
           curl --proto '=https' --proto-redir '=https' --fail --silent --show-error --location --retry 2 --retry-delay 2 --max-time 20 "$base/api/live" | grep -q '"ok":true'
-          health="$(curl --proto '=https' --proto-redir '=https' --fail --silent --show-error --location --retry 2 --retry-delay 2 --max-time 20 "$base/api/health")"
-          echo "$health" | grep -q '"ok":true'
-          curl --proto '=https' --proto-redir '=https' --fail --silent --show-error --location --max-time 20 --head "$base/api/health" | grep -i '^cache-control:.*no-store' >/dev/null
-          curl --proto '=https' --proto-redir '=https' --fail --silent --show-error --location --max-time 20 --head "$base/api/health" | grep -i '^x-content-type-options:.*nosniff' >/dev/null
+          live="$(curl --proto '=https' --proto-redir '=https' --fail --silent --show-error --location --retry 2 --retry-delay 2 --max-time 20 "$base/api/live")"
+          echo "$live" | grep -q '"ok":true'
+          curl --proto '=https' --proto-redir '=https' --fail --silent --show-error --location --max-time 20 --head "$base/api/live" | grep -i '^cache-control:.*no-store' >/dev/null
+          curl --proto '=https' --proto-redir '=https' --fail --silent --show-error --location --max-time 20 --head "$base/api/live" | grep -i '^x-content-type-options:.*nosniff' >/dev/null
           curl --proto '=https' --proto-redir '=https' --fail --silent --show-error --location --max-time 20 --head "$base/" | grep -i '^x-content-type-options:.*nosniff' >/dev/null
           robots_type="$(curl --proto '=https' --proto-redir '=https' --fail --silent --show-error --location --max-time 20 -o /dev/null -w '%{content_type}' "$base/robots.txt")"
           test "$robots_type" = "text/plain" || { echo "robots.txt must be text/plain" >&2; exit 1; }
