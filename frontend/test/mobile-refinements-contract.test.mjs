@@ -217,3 +217,17 @@ test("mobile professional agenda keeps actions and availability readable", () =>
   assert.match(cycle, /professional-completed-card \.mvp-row-main strong[\s\S]*overflow-wrap: anywhere/s);
   assert.match(cycle, /professional-area\"] \.professional-operations-grid > div[^}]*min-height: 92px/s);
 });
+
+test("mobile overlays and public tasks keep actions reachable", () => {
+  const cycle = appCss.slice(appCss.lastIndexOf("/* Ciclo mobile 16"));
+  assert.match(cycle, /\.cookie-banner-copy[^}]*overflow-wrap: anywhere/s);
+  assert.match(cycle, /\.cookie-option[^}]*min-height: 58px/s);
+  assert.match(cycle, /\.cookie-dialog-foot[^}]*align-items: flex-start/s);
+  assert.match(cycle, /\.command-input[^}]*min-height: 58px/s);
+  assert.match(cycle, /\.command-list button[^}]*min-height: 46px/s);
+  assert.match(cycle, /\.login-card[^}]*overflow-wrap: anywhere/s);
+  assert.match(cycle, /\.role-switch button[^}]*min-height: 44px/s);
+  assert.match(cycle, /\.notfound-links a[^}]*min-height: 44px/s);
+  assert.match(cycle, /\.resource-card > button[^}]*overflow-wrap: anywhere/s);
+  assert.match(cycle, /\.search-field input[^}]*min-width: 0/s);
+});

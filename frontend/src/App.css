@@ -2020,3 +2020,39 @@ html[data-theme="dark"] .home-route .footer { background: #17111f; }
   .nav-more-button:focus-visible,
   .mobile-menu:focus-visible { outline: 3px solid color-mix(in srgb, var(--brand) 62%, transparent); outline-offset: 2px; }
 }
+
+/* Ciclo mobile 16: overlays, acesso e tarefas públicas sem apertos. */
+@media (max-width: 650px) {
+  /* 1. Avisos de cookies quebram textos longos sem empurrar o botão para fora. */
+  .cookie-banner-copy { min-width: 0; overflow-wrap: anywhere; }
+
+  /* 2. Cada preferência de cookie mantém uma área de toque confortável. */
+  .cookie-option { min-height: 58px; align-items: flex-start; }
+
+  /* 3. O rodapé do diálogo organiza ações e não corta links auxiliares. */
+  .cookie-dialog-foot { align-items: flex-start; row-gap: 12px; }
+  .cookie-dialog-foot > div { min-width: 0; }
+
+  /* 4. A busca de comandos fica fácil de alcançar com o teclado do celular. */
+  .command-input { min-height: 58px; padding-block: 12px; }
+  .command-input input { min-width: 0; }
+
+  /* 5. Atalhos do command center suportam descrições em mais de uma linha. */
+  .command-list button { min-height: 46px; align-items: flex-start; overflow-wrap: anywhere; }
+
+  /* 6. O login aceita e-mails longos sem criar rolagem horizontal. */
+  .login-card { min-width: 0; overflow-wrap: anywhere; }
+
+  /* 7. A alternância de papel continua tocável mesmo com rótulos maiores. */
+  .role-switch button { min-height: 44px; line-height: 1.25; }
+
+  /* 8. Os atalhos da página 404 viram alvos de toque consistentes. */
+  .notfound-links a { min-height: 44px; display: inline-flex; align-items: center; }
+
+  /* 9. Recursos expansíveis preservam o título e a seta na mesma área clicável. */
+  .resource-card > button { min-width: 0; overflow-wrap: anywhere; }
+
+  /* 10. Campos de busca não transbordam quando o viewport fica muito estreito. */
+  .search-field { min-width: 0; }
+  .search-field input { min-width: 0; }
+}
