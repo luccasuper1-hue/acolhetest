@@ -1721,6 +1721,59 @@ html[data-theme="dark"] .home-route .footer { background: #17111f; }
   html[data-theme="dark"] .mobile-menu { background: var(--surface-2); color: var(--deep); }
 }
 
+/* Ciclo mobile 02: páginas públicas, navegação e overlays. */
+@media (max-width: 650px) {
+  /* 1. O conteúdo público nunca amplia o viewport por causa de uma seção. */
+  .site-header,
+  .home-route,
+  .info-page { max-width: 100%; overflow-x: clip; }
+
+  /* 2. O drawer começa abaixo da área segura do aparelho. */
+  .site-header .nav-links { padding-top: calc(22px + env(safe-area-inset-top)); }
+
+  /* 3. O fechar do drawer mantém alvo confortável em telas estreitas. */
+  .nav-drawer-close { width: 44px; height: 44px; min-width: 44px; min-height: 44px; }
+
+  /* 4. O banner de cookies não encosta na barra de gestos. */
+  .cookie-banner { bottom: calc(10px + env(safe-area-inset-bottom)); }
+
+  /* 5. O diálogo de cookies usa a altura dinâmica quando o teclado aparece. */
+  .cookie-overlay { min-height: 100dvh; align-items: start; padding-top: max(20px, env(safe-area-inset-top)); padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
+  .cookie-dialog { max-height: calc(100dvh - 40px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); }
+
+  /* 6. Campos públicos evitam o zoom automático do iOS. */
+  .demo-form input,
+  .login-form input,
+  .custom-topic textarea,
+  .lead-form input,
+  .lead-form textarea,
+  .lead-form select,
+  .search-field input,
+  .command-input input { font-size: 16px; }
+
+  /* 7. O command center cabe entre o topo e o teclado, com rolagem interna. */
+  .command-overlay { min-height: 100dvh; padding-top: max(16px, env(safe-area-inset-top)); padding-bottom: calc(16px + env(safe-area-inset-bottom)); align-items: start; }
+  .command-panel { max-height: calc(100dvh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); overflow-y: auto; }
+
+  /* 8. Gráficos não criam uma segunda rolagem horizontal no card. */
+  .dash-card,
+  .dash-chart,
+  .dash-chart > * { min-width: 0; max-width: 100%; }
+
+  /* 9. Filtros e ações não ficam comprimidos em uma linha ilegível. */
+  .search-row,
+  .filter-row,
+  .lead-foot { min-width: 0; }
+  .search-row .button,
+  .filter-row .button { min-height: 46px; }
+
+  /* 10. Seções públicas ancoradas preservam contexto sob o header sticky. */
+  .section,
+  .info-point,
+  .lead-section,
+  .resources-section { scroll-margin-top: calc(64px + env(safe-area-inset-top) + 14px); }
+}
+
 /* Paleta semântica global — mantém a mesma leitura fora da home. */
 .app-shell,
 .app-mobile-top { background: var(--paper); color: var(--ink); }
