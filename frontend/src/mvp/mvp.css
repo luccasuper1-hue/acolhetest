@@ -2937,3 +2937,43 @@ html[data-theme="dark"] .mvp-shell[data-testid="student-area"] .student-active-a
   /* 10. Cadastro manual não deixa o botão escapar da coluna única. */
   .mvp-shell[data-testid="admin-area"] .admin-manual-institution .mvp-inline-form button { width: 100%; min-height: 46px; justify-content: center; }
 }
+
+/* Ciclo mobile 15: agenda profissional e próximos passos acionáveis. */
+@media (max-width: 640px) {
+  /* 1. Pedidos profissionais deixam a descrição respirar antes das ações. */
+  .mvp-shell[data-testid="professional-area"] .professional-appointment-request .mvp-row-main { min-width: 0; width: 100%; }
+
+  /* 2. A escolha de horário fica confortável e sem zoom automático. */
+  .professional-appointment-request .mvp-row-actions select { min-height: 46px; font-size: 16px; }
+
+  /* 3. O link de sala fechado continua visível como próximo passo. */
+  .professional-sessions-card .professional-room-link summary { min-height: 46px; padding-block: 8px; overflow-wrap: anywhere; }
+
+  /* 4. Certificado pronto não corta título nem código de emissão. */
+  .professional-certificate-ready strong,
+  .professional-certificate-ready span,
+  .professional-certificate-progress strong,
+  .professional-certificate-progress span { overflow-wrap: anywhere; }
+
+  /* 5. Alternância de modalidade mantém alvos de toque equivalentes. */
+  .availability-mode-switch button { min-height: 46px; }
+
+  /* 6. Horários publicados podem ser selecionados sem precisão excessiva. */
+  .availability-times-field .mvp-slot { min-height: 44px; }
+
+  /* 7. Resumo de disponibilidade não espreme data e contagem. */
+  .availability-published-head { min-width: 0; }
+  .availability-published-head strong,
+  .availability-published-head span { overflow-wrap: anywhere; }
+
+  /* 8. Estado vazio da agenda explica o próximo passo com respiro. */
+  .professional-empty-strip { min-width: 0; padding-block: 14px; line-height: 1.5; overflow-wrap: anywhere; }
+
+  /* 9. Histórico concluído continua legível em nomes longos. */
+  .professional-completed-card .mvp-row-main { min-width: 0; }
+  .professional-completed-card .mvp-row-main strong,
+  .professional-completed-card .mvp-row-main span { overflow-wrap: anywhere; }
+
+  /* 10. Resumo operacional próprio mantém cards com altura previsível. */
+  .mvp-shell[data-testid="professional-area"] .professional-operations-grid > div { min-width: 0; min-height: 92px; }
+}

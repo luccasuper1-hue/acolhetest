@@ -203,3 +203,17 @@ test("mobile admin controls remain stacked and reachable", () => {
   assert.match(cycle, /admin-area\"] \.mvp-empty[^}]*line-height: 1\.5/s);
   assert.match(cycle, /admin-manual-institution \.mvp-inline-form button[^}]*min-height: 46px/s);
 });
+
+test("mobile professional agenda keeps actions and availability readable", () => {
+  const cycle = css.slice(css.lastIndexOf("/* Ciclo mobile 15"));
+  assert.match(cycle, /professional-area\"] \.professional-appointment-request \.mvp-row-main[^}]*width: 100%/s);
+  assert.match(cycle, /professional-appointment-request \.mvp-row-actions select[^}]*min-height: 46px/s);
+  assert.match(cycle, /professional-room-link summary[^}]*min-height: 46px/s);
+  assert.match(cycle, /professional-certificate-ready strong[\s\S]*overflow-wrap: anywhere/s);
+  assert.match(cycle, /availability-mode-switch button[^}]*min-height: 46px/s);
+  assert.match(cycle, /availability-times-field \.mvp-slot[^}]*min-height: 44px/s);
+  assert.match(cycle, /availability-published-head strong[\s\S]*overflow-wrap: anywhere/s);
+  assert.match(cycle, /professional-empty-strip[^}]*line-height: 1\.5/s);
+  assert.match(cycle, /professional-completed-card \.mvp-row-main strong[\s\S]*overflow-wrap: anywhere/s);
+  assert.match(cycle, /professional-area\"] \.professional-operations-grid > div[^}]*min-height: 92px/s);
+});
