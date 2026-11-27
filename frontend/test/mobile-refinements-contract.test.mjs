@@ -61,3 +61,17 @@ test("mobile editorial surfaces preserve safe spacing and readable expansion", (
   assert.match(cycle, /cta-inner \.button[^}]*min-height: 48px/s);
   assert.match(cycle, /footer-cookie-settings[^}]*overflow-wrap: anywhere/s);
 });
+
+test("mobile student surfaces avoid overlap with fixed controls", () => {
+  const cycle = appCss.slice(appCss.lastIndexOf("/* Ciclo mobile 05"));
+  assert.match(cycle, /app-mobile-top[^}]*safe-area-inset-top/s);
+  assert.match(cycle, /app-content[^}]*safe-area-inset-bottom/s);
+  assert.match(cycle, /app-main[^}]*padding-inline: 14px/s);
+  assert.match(cycle, /bottom-nav[^}]*max-width: 430px/s);
+  assert.match(cycle, /corner-quick[^}]*safe-area-inset-bottom/s);
+  assert.match(cycle, /corner-logo[^}]*safe-area-inset-bottom/s);
+  assert.match(cycle, /mood-actions[^}]*grid-template-columns: 1fr/s);
+  assert.match(cycle, /search-field input[^}]*font-size: 16px/s);
+  assert.match(cycle, /profile-hero[^}]*flex-wrap: wrap/s);
+  assert.match(cycle, /video-name[^}]*overflow-wrap: anywhere/s);
+});

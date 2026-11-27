@@ -1908,6 +1908,41 @@ html[data-theme="dark"] .home-route .footer { background: #17111f; }
 .cta-band .section-kicker { color: #fff; }
 .home-route .cta-inner .section-kicker { color: #fff; }
 
+/* Ciclo mobile 05: painel estudantil e componentes flutuantes. */
+@media (max-width: 650px) {
+  /* 1. O topo interno respeita o recorte e a barra de status do aparelho. */
+  .app-mobile-top { height: auto; min-height: 64px; padding: calc(8px + env(safe-area-inset-top)) 16px 8px; }
+
+  /* 2. A área principal termina antes da navegação inferior e da barra de gestos. */
+  .app-content { padding-bottom: calc(88px + env(safe-area-inset-bottom)); }
+
+  /* 3. Telas estreitas ganham mais largura útil sem encostar no viewport. */
+  .app-main { padding-inline: 14px; }
+
+  /* 4. A navegação inferior fica centralizada e não ocupa largura excessiva. */
+  .bottom-nav { max-width: 430px; margin-inline: auto; }
+
+  /* 5. O menu de atalhos sobe acima da barra inferior e da área de gestos. */
+  .corner-quick { right: 14px; bottom: calc(76px + env(safe-area-inset-bottom)); }
+
+  /* 6. A marca flutuante do painel mantém a mesma distância segura. */
+  .corner-logo { right: 14px; bottom: calc(86px + env(safe-area-inset-bottom)); }
+
+  /* 7. Ações de humor não ficam comprimidas em telas pequenas. */
+  .mood-actions { display: grid; grid-template-columns: 1fr; width: 100%; }
+  .mood-actions .button { width: 100%; justify-content: center; }
+
+  /* 8. A busca não provoca zoom e oferece alvo de toque completo. */
+  .search-field input { min-height: 46px; font-size: 16px; }
+
+  /* 9. Perfil mantém título e avatar alinhados quando o nome é longo. */
+  .profile-hero { align-items: flex-start; flex-wrap: wrap; }
+  .profile-hero h1 { overflow-wrap: anywhere; }
+
+  /* 10. Identificação da sessão não encobre os controles do vídeo. */
+  .video-name { max-width: calc(100% - 30px); overflow-wrap: anywhere; }
+}
+
 /* Ciclo mobile 04: navegação editorial, onboarding e rodapé. */
 @media (max-width: 650px) {
   /* 1. O drawer termina acima da área de gestos. */
