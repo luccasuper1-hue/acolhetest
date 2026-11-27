@@ -259,3 +259,17 @@ test("mobile availability and recovery controls stay usable", () => {
   assert.match(cycle, /\.mvp-auth-card[^}]*overflow-wrap: anywhere/s);
   assert.match(cycle, /\.mvp-cookie-settings[^}]*min-height: 44px/s);
 });
+
+test("mobile persistent navigation stays visible and reachable", () => {
+  const cycle = mobileCss.slice(mobileCss.lastIndexOf("/* Ciclo mobile 19"));
+  assert.match(cycle, /\.app-content[^}]*overflow-x: hidden/s);
+  assert.match(cycle, /\.app-mobile-top > \*[^}]*min-width: 0/s);
+  assert.match(cycle, /\.app-mobile-top button[\s\S]*min-height: 44px/s);
+  assert.match(cycle, /\.bottom-nav[^}]*safe-area-inset-left/s);
+  assert.match(cycle, /\.bottom-nav a[\s\S]*white-space: normal/s);
+  assert.match(cycle, /\.corner-quick[^}]*z-index: 31/s);
+  assert.match(cycle, /\.corner-logo[^}]*z-index: 31/s);
+  assert.match(cycle, /\.app-section-title[^}]*flex-wrap: wrap/s);
+  assert.match(cycle, /\.next-session \.text-link[^}]*margin-left: 0/s);
+  assert.match(cycle, /\.notif-panel \.notif-clear[^}]*width: 100%/s);
+});

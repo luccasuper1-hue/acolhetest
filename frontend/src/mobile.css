@@ -655,3 +655,38 @@ html[data-theme="dark"] .mvp-notification-item.read { color: #d4ccdf; opacity: .
   .confirmation-main .button,
   .post-main .button { width: 100%; min-height: 46px; justify-content: center; }
 }
+
+/* Ciclo mobile 19: navegação persistente sem cobrir o próximo passo. */
+@media (max-width: 650px) {
+  /* 1. O app não cria uma segunda rolagem horizontal em nenhum painel. */
+  .app-content { min-width: 0; overflow-x: hidden; }
+
+  /* 2. Controles do topo podem encolher sem deslocar a marca. */
+  .app-mobile-top > * { min-width: 0; }
+
+  /* 3. Ações do topo mantêm área de toque confortável no celular. */
+  .app-mobile-top button,
+  .app-mobile-top a { min-width: 44px; min-height: 44px; }
+
+  /* 4. A barra inferior respeita recortes laterais do aparelho. */
+  .bottom-nav { left: max(12px, env(safe-area-inset-left)); right: max(12px, env(safe-area-inset-right)); }
+
+  /* 5. Rótulos da navegação não ficam cortados quando têm duas palavras. */
+  .bottom-nav a,
+  .bottom-nav button { line-height: 1.15; white-space: normal; }
+
+  /* 6. O acesso rápido permanece acima da barra e dos cartões. */
+  .corner-quick { z-index: 31; }
+
+  /* 7. A marca flutuante mantém a mesma camada dos demais atalhos. */
+  .corner-logo { z-index: 31; }
+
+  /* 8. Títulos de seção podem quebrar sem empurrar o contador para fora. */
+  .app-section-title { align-items: flex-start; flex-wrap: wrap; gap: 10px; }
+
+  /* 9. O link da próxima sessão acompanha o texto em vez de criar recuo fixo. */
+  .next-session .text-link { margin-left: 0; }
+
+  /* 10. A limpeza de notificações usa a largura disponível para evitar erro. */
+  .notif-panel .notif-clear { width: 100%; justify-content: center; }
+}
