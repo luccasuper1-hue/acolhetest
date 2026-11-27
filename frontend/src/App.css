@@ -1907,3 +1907,40 @@ html[data-theme="dark"] .home-route .footer { background: #17111f; }
    também no tema claro. */
 .cta-band .section-kicker { color: #fff; }
 .home-route .cta-inner .section-kicker { color: #fff; }
+
+/* Ciclo mobile 04: navegação editorial, onboarding e rodapé. */
+@media (max-width: 650px) {
+  /* 1. O drawer termina acima da área de gestos. */
+  .site-header .nav-links { padding-bottom: calc(26px + env(safe-area-inset-bottom)); }
+
+  /* 2. O link de acessibilidade não fica escondido pela barra do navegador. */
+  .skip-link { top: calc(10px + env(safe-area-inset-top)); }
+
+  /* 3. O rodapé mantém respiro antes da barra inferior do sistema. */
+  .footer { padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
+
+  /* 4. Recursos expansíveis têm uma linha de título tocável e estável. */
+  .resource-card > button { min-height: 60px; align-items: flex-start; }
+
+  /* 5. Perguntas frequentes preservam foco visível mesmo com texto em duas linhas. */
+  .faq-item button { min-height: 54px; align-items: flex-start; }
+
+  /* 6. O onboarding respeita o viewport dinâmico e continua rolável. */
+  .onboarding-card { max-height: calc(100dvh - 28px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); }
+
+  /* 7. Jornadas largas podem ser lidas sem comprimir cada etapa. */
+  .journey-timeline { min-width: 0; overflow-x: auto; overscroll-behavior-x: contain; }
+
+  /* 8. A página 404 usa a altura real disponível quando há barras móveis. */
+  .notfound-inner { min-height: calc(100dvh - 110px); }
+
+  /* 9. A chamada final fica fácil de alcançar em telas estreitas. */
+  .cta-inner .button { min-height: 48px; width: min(100%, 360px); justify-content: center; }
+
+  /* 10. Colunas do rodapé podem encolher sem cortar links longos. */
+  .footer-main,
+  .footer-links,
+  .footer-group { min-width: 0; }
+  .footer-group a,
+  .footer-cookie-settings { overflow-wrap: anywhere; }
+}

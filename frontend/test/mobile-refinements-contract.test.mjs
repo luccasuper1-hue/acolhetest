@@ -47,3 +47,17 @@ test("mobile booking and session flows keep controls reachable", () => {
   assert.match(cycle, /\.login-page[^}]*100dvh/s);
   assert.match(cycle, /\.summary-box dd[^}]*overflow-wrap: anywhere/s);
 });
+
+test("mobile editorial surfaces preserve safe spacing and readable expansion", () => {
+  const cycle = appCss.slice(appCss.lastIndexOf("/* Ciclo mobile 04"));
+  assert.match(cycle, /nav-links[^}]*safe-area-inset-bottom/s);
+  assert.match(cycle, /skip-link[^}]*safe-area-inset-top/s);
+  assert.match(cycle, /\.footer[^}]*safe-area-inset-bottom/s);
+  assert.match(cycle, /resource-card > button[^}]*min-height: 60px/s);
+  assert.match(cycle, /faq-item button[^}]*min-height: 54px/s);
+  assert.match(cycle, /onboarding-card[^}]*100dvh/s);
+  assert.match(cycle, /journey-timeline[^}]*overflow-x: auto/s);
+  assert.match(cycle, /notfound-inner[^}]*100dvh/s);
+  assert.match(cycle, /cta-inner \.button[^}]*min-height: 48px/s);
+  assert.match(cycle, /footer-cookie-settings[^}]*overflow-wrap: anywhere/s);
+});
