@@ -2862,3 +2862,42 @@ html[data-theme="dark"] .mvp-shell[data-testid="student-area"] .student-active-a
   /* 10. Sugestões de agenda permanecem confortáveis no toque. */
   .professional-slot-suggestions button { min-height: 44px; padding-block: 9px; }
 }
+
+/* Ciclo mobile 10: ritmo visual e prevenção de toques acidentais. */
+@media (max-width: 640px) {
+  /* 1. Cabeçalhos de cartão respiram melhor quando quebram em duas linhas. */
+  .mvp-card-head { gap: 10px; }
+
+  /* 2. Linhas operacionais mantêm título e ação alinhados pelo topo. */
+  .mvp-row { align-items: flex-start; gap: 12px; }
+
+  /* 3. Ações agrupadas não ficam coladas em telas estreitas. */
+  .mvp-row-actions { gap: 8px; }
+
+  /* 4. Formulários ganham ritmo vertical consistente para o polegar. */
+  .mvp-form,
+  .mvp-inline-form { row-gap: 14px; }
+
+  /* 5. Campos nativos atingem uma altura confortável sem zoom no iOS. */
+  .mvp-form input,
+  .mvp-form select,
+  .mvp-inline-form input,
+  .mvp-inline-form select { min-height: 46px; font-size: 16px; }
+
+  /* 6. Textareas preservam linhas fáceis de ler durante a edição. */
+  .mvp-form textarea,
+  .mvp-inline-form textarea { min-height: 112px; line-height: 1.45; font-size: 16px; }
+
+  /* 7. Cabeçalho da conversa fica separado do conteúdo rolável. */
+  .mvp-conversation-panel-head { padding-block: 10px; border-bottom: 1px solid var(--line); }
+
+  /* 8. Notificações não transferem o gesto vertical para a página atrás. */
+  .mvp-notification-panel { overscroll-behavior: contain; }
+
+  /* 9. A marca continua visível mesmo quando a barra de ações está cheia. */
+  .mvp-brand { flex: 1 1 auto; min-width: 0; }
+
+  /* 10. Voltar e fechar a conversa mantêm alvos de toque consistentes. */
+  .mvp-conversation-panel-head .mvp-conversation-back,
+  .mvp-conversation-panel-head .mvp-conversation-close { min-width: 44px; min-height: 44px; }
+}

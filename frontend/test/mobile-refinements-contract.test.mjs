@@ -132,3 +132,17 @@ test("mobile controls preserve focus, recovery and touch comfort", () => {
   assert.match(cycle, /\.professional-checklist label[\s\S]*min-height: 40px/s);
   assert.match(cycle, /\.professional-slot-suggestions button[^}]*min-height: 44px/s);
 });
+
+test("mobile forms and conversation headers keep a stable rhythm", () => {
+  const cycle = css.slice(css.lastIndexOf("/* Ciclo mobile 10"));
+  assert.match(cycle, /\.mvp-card-head[^}]*gap: 10px/s);
+  assert.match(cycle, /\.mvp-row[^}]*align-items: flex-start/s);
+  assert.match(cycle, /\.mvp-row-actions[^}]*gap: 8px/s);
+  assert.match(cycle, /\.mvp-form[\s\S]*\.mvp-inline-form[^}]*row-gap: 14px/s);
+  assert.match(cycle, /\.mvp-form input[\s\S]*min-height: 46px/s);
+  assert.match(cycle, /\.mvp-form textarea[\s\S]*min-height: 112px/s);
+  assert.match(cycle, /\.mvp-conversation-panel-head[^}]*border-bottom: 1px solid var\(--line\)/s);
+  assert.match(cycle, /\.mvp-notification-panel[^}]*overscroll-behavior: contain/s);
+  assert.match(cycle, /\.mvp-brand[^}]*flex: 1 1 auto/s);
+  assert.match(cycle, /\.mvp-conversation-panel-head \.mvp-conversation-back[\s\S]*min-width: 44px/s);
+});
