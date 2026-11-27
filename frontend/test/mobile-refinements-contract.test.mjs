@@ -5,6 +5,7 @@ import fs from "node:fs";
 const css = fs.readFileSync(new URL("../src/mvp/mvp.css", import.meta.url), "utf8");
 const appCss = fs.readFileSync(new URL("../src/App.css", import.meta.url), "utf8");
 const institutionalCss = fs.readFileSync(new URL("../src/institutional.css", import.meta.url), "utf8");
+const mobileCss = fs.readFileSync(new URL("../src/mobile.css", import.meta.url), "utf8");
 
 test("mobile refinements keep the panel readable and usable", () => {
   const cycle = css.slice(css.lastIndexOf("/* Ciclo mobile 01"));
@@ -159,4 +160,18 @@ test("mobile public navigation and footer avoid clipping", () => {
   assert.match(cycle, /\.lead-foot[^}]*display: grid/s);
   assert.match(cycle, /\.cookie-dialog-head[^}]*align-items: flex-start/s);
   assert.match(cycle, /\.nav-links a:focus-visible[\s\S]*outline: 3px/s);
+});
+
+test("mobile student scheduling and bottom navigation stay usable", () => {
+  const cycle = mobileCss.slice(mobileCss.lastIndexOf("/* Ciclo mobile 12"));
+  assert.match(cycle, /\.bottom-nav[^}]*padding-bottom: env\(safe-area-inset-bottom/s);
+  assert.match(cycle, /\.bottom-nav a[\s\S]*min-width: 44px/s);
+  assert.match(cycle, /\.app-mobile-top[^}]*overflow: hidden/s);
+  assert.match(cycle, /\.mood-band[^}]*overflow-wrap: anywhere/s);
+  assert.match(cycle, /\.next-session[^}]*min-width: 0/s);
+  assert.match(cycle, /\.calendar-panel[^}]*overflow-x: auto/s);
+  assert.match(cycle, /\.payment-tabs[^}]*overflow-x: auto/s);
+  assert.match(cycle, /\.booking-box input[\s\S]*font-size: 16px/s);
+  assert.match(cycle, /\.summary-box[\s\S]*overflow-wrap: anywhere/s);
+  assert.match(cycle, /\.confirmation-main \.button[\s\S]*min-height: 46px/s);
 });

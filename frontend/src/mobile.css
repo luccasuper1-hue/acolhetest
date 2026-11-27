@@ -611,3 +611,47 @@ html[data-theme="dark"] .mvp-notification-item.read { color: #d4ccdf; opacity: .
     grid-column: 1 / -1;
   }
 }
+
+/* Ciclo mobile 12: estudante, agenda e navegação inferior. */
+@media (max-width: 650px) {
+  /* 1. A barra inferior respeita o recorte e mantém seus itens distribuídos. */
+  .bottom-nav { padding-bottom: env(safe-area-inset-bottom); gap: 4px; }
+
+  /* 2. Cada destino da navegação inferior recebe alvo mínimo de toque. */
+  .bottom-nav a,
+  .bottom-nav button { min-width: 44px; min-height: 44px; justify-content: center; }
+
+  /* 3. O topo do app não deixa controles escaparem em nomes longos. */
+  .app-mobile-top { min-width: 0; overflow: hidden; }
+
+  /* 4. A faixa de humor permite que opções cresçam sem cortar rótulos. */
+  .mood-band { min-width: 0; overflow-wrap: anywhere; }
+  .mood-band h2,
+  .mood-band p { max-width: 100%; overflow-wrap: anywhere; }
+
+  /* 5. A próxima sessão mantém data e orientação em blocos legíveis. */
+  .next-session { min-width: 0; }
+  .next-session strong,
+  .next-session p { overflow-wrap: anywhere; }
+
+  /* 6. O calendário pode deslizar sem esmagar os horários. */
+  .calendar-panel { min-width: 0; overflow-x: auto; overscroll-behavior-x: contain; }
+
+  /* 7. As formas de pagamento preservam tabs inteiras no toque. */
+  .payment-tabs { min-width: 0; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; }
+  .payment-tabs::-webkit-scrollbar { display: none; }
+  .payment-tabs button { flex: 0 0 auto; min-height: 44px; }
+
+  /* 8. A caixa de agendamento não comprime seus campos lado a lado. */
+  .booking-box { min-width: 0; }
+  .booking-box input,
+  .booking-box select { min-width: 0; max-width: 100%; font-size: 16px; }
+
+  /* 9. Resumos de confirmação evitam linhas impossíveis de quebrar. */
+  .summary-box,
+  .confirmed-card { min-width: 0; overflow-wrap: anywhere; }
+
+  /* 10. Ações finais ocupam largura útil e ficam fáceis de confirmar. */
+  .confirmation-main .button,
+  .post-main .button { width: 100%; min-height: 46px; justify-content: center; }
+}
