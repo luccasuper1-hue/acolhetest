@@ -118,3 +118,17 @@ test("mobile conversation and list controls stay usable on narrow screens", () =
   assert.match(cycle, /\.mvp-card-head > \.button[^}]*min-height: 42px/s);
   assert.match(cycle, /\.mvp-kpis[^}]*gap: 10px/s);
 });
+
+test("mobile controls preserve focus, recovery and touch comfort", () => {
+  const cycle = css.slice(css.lastIndexOf("/* Ciclo mobile 09"));
+  assert.match(cycle, /\.mvp-shell :is\(a, button, input, select, textarea\):focus-visible[^}]*outline: 3px/s);
+  assert.match(cycle, /\.mvp-inline-form label[\s\S]*overflow-wrap: anywhere/s);
+  assert.match(cycle, /\.mvp-chat-error \.button[^}]*min-height: 44px/s);
+  assert.match(cycle, /\.mvp-notification-item[^}]*padding-block: 11px/s);
+  assert.match(cycle, /\.mvp-conversation-window[^}]*max-height: calc\(100dvh/s);
+  assert.match(cycle, /\.mvp-topbar-inner[^}]*min-width: 0/s);
+  assert.match(cycle, /\.mvp-card p[\s\S]*overflow-wrap: anywhere/s);
+  assert.match(cycle, /\.mvp-table-scroll[^}]*padding-bottom: 6px/s);
+  assert.match(cycle, /\.professional-checklist label[\s\S]*min-height: 40px/s);
+  assert.match(cycle, /\.professional-slot-suggestions button[^}]*min-height: 44px/s);
+});

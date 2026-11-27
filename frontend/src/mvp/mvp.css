@@ -2825,3 +2825,40 @@ html[data-theme="dark"] .mvp-shell[data-testid="student-area"] .student-active-a
   /* 10. Grades de indicadores usam respiro consistente em telas estreitas. */
   .mvp-kpis { gap: 10px; }
 }
+
+/* Ciclo mobile 09: acessibilidade de foco e densidade segura dos controles. */
+@media (max-width: 640px) {
+  /* 1. O foco permanece visível ao navegar por teclado ou leitor assistivo. */
+  .mvp-shell :is(a, button, input, select, textarea):focus-visible { outline: 3px solid color-mix(in srgb, var(--brand) 62%, transparent); outline-offset: 2px; }
+
+  /* 2. Rótulos de formulário continuam legíveis sem colar no campo. */
+  .mvp-inline-form label,
+  .mvp-form label { line-height: 1.35; overflow-wrap: anywhere; }
+
+  /* 3. Erros de conversa mantêm a tentativa de recuperação alcançável. */
+  .mvp-chat-error .button { min-height: 44px; width: 100%; justify-content: center; }
+
+  /* 4. Itens de notificação ganham área de toque sem aumentar a largura. */
+  .mvp-notification-item { min-width: 0; padding-block: 11px; }
+
+  /* 5. A janela de conversa não fica presa atrás da barra do navegador. */
+  .mvp-conversation-window { max-height: calc(100dvh - 76px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); }
+
+  /* 6. O cabeçalho do painel alinha marca e ações em larguras intermediárias. */
+  .mvp-topbar-inner { min-width: 0; gap: 8px; }
+  .mvp-topbar-inner > * { min-width: 0; }
+
+  /* 7. Textos auxiliares dos cartões não criam uma linha impossível. */
+  .mvp-card p,
+  .mvp-card small { max-width: 100%; overflow-wrap: anywhere; }
+
+  /* 8. O scroll horizontal de tabelas não encosta no conteúdo seguinte. */
+  .mvp-table-scroll { padding-bottom: 6px; }
+
+  /* 9. Checklist operacional mantém cada estado fácil de selecionar. */
+  .professional-checklist label,
+  .professional-checklist button { min-height: 40px; align-items: center; }
+
+  /* 10. Sugestões de agenda permanecem confortáveis no toque. */
+  .professional-slot-suggestions button { min-height: 44px; padding-block: 9px; }
+}
