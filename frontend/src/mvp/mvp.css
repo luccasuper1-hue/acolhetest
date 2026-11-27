@@ -1658,6 +1658,62 @@ html[data-theme="dark"] .mvp-shell[data-testid="admin-area"] .mvp-empty { backgr
   .mvp-notification-panel .mvp-notification-item { animation: none; }
 }
 
+/* Ciclo mobile 01: refinamentos de leitura, toque e estabilidade. */
+@media (max-width: 640px) {
+  /* 1. Impede que textos longos criem rolagem horizontal na página inteira. */
+  .mvp-shell { overflow-x: clip; }
+
+  /* 2. Permite que cada coluna encolha antes de empurrar o viewport. */
+  .mvp-card,
+  .mvp-card > *,
+  .mvp-row-main,
+  .mvp-card-head > div { min-width: 0; }
+
+  /* 3. IDs, códigos e títulos extensos continuam legíveis sem quebrar o layout. */
+  .mvp-card h1,
+  .mvp-card h2,
+  .mvp-card h3,
+  .mvp-card p,
+  .mvp-row-main span,
+  .mvp-row-main strong { overflow-wrap: anywhere; }
+
+  /* 4. Evita zoom automático do iOS ao editar campos. */
+  .mvp-form input,
+  .mvp-form select,
+  .mvp-form textarea,
+  .mvp-inline-form input,
+  .mvp-inline-form select,
+  .mvp-inline-form textarea,
+  .mvp-chat-compose input { font-size: 16px; }
+
+  /* 5. Cabeçalhos de card ficam empilhados quando a ação não cabe ao lado. */
+  .mvp-card-head { align-items: stretch; }
+  .mvp-card-head > .button,
+  .mvp-card-head > a.button { align-self: flex-start; }
+
+  /* 6. Ações de listas ocupam a largura disponível e ficam fáceis de tocar. */
+  .mvp-row-actions { width: 100%; justify-content: flex-start; }
+  .mvp-row-actions .button,
+  .mvp-row-actions a.button { min-height: 44px; }
+
+  /* 7. Etapas longas podem ser exploradas horizontalmente sem cortar conteúdo. */
+  .mvp-flow { flex-wrap: nowrap; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; padding-bottom: 3px; }
+  .mvp-flow::-webkit-scrollbar { display: none; }
+  .mvp-flow li { flex: 0 0 auto; }
+
+  /* 8. O compositor respeita a área segura e não fica escondido pelo teclado. */
+  .mvp-chat-compose { padding-bottom: max(2px, env(safe-area-inset-bottom)); }
+  .mvp-chat-compose button { min-width: 44px; min-height: 44px; }
+
+  /* 9. Tabelas e listas largas têm rolagem própria, sem deslocar o painel. */
+  .mvp-table-scroll { max-width: 100%; overscroll-behavior-x: contain; scrollbar-width: thin; }
+
+  /* 10. Âncoras e detalhes não ficam escondidos sob o cabeçalho fixo. */
+  .mvp-card,
+  .mvp-card[id],
+  .mvp-security-details { scroll-margin-top: calc(var(--mvp-topbar-height, 60px) + 16px); }
+}
+
 /* Janela expandida: proporção próxima ao chat do Instagram e sem competir com
    a pilula de mensagens, que desaparece enquanto uma conversa está aberta. */
 .mvp-conversation-window {
