@@ -1714,6 +1714,52 @@ html[data-theme="dark"] .mvp-shell[data-testid="admin-area"] .mvp-empty { backgr
   .mvp-security-details { scroll-margin-top: calc(var(--mvp-topbar-height, 60px) + 16px); }
 }
 
+/* Ciclo mobile 07: estados e controles dos painéis autenticados. */
+@media (max-width: 640px) {
+  /* 1. Números e unidades de KPI não escapam do cartão. */
+  .mvp-kpi strong,
+  .mvp-kpi-label,
+  .mvp-kpi-note { min-width: 0; overflow-wrap: anywhere; }
+
+  /* 2. Estados vazios preservam altura e leitura sem parecerem quebrados. */
+  .mvp-empty { min-height: 52px; display: grid; align-content: center; overflow-wrap: anywhere; }
+
+  /* 3. Falhas de carregamento mantêm mensagem e retry em uma coluna clara. */
+  .mvp-load-error { width: 100%; box-sizing: border-box; padding: 20px 16px; }
+  .mvp-load-error span { overflow-wrap: anywhere; }
+
+  /* 4. Resumos de segurança não comprimem o indicador de abertura. */
+  .mvp-security-details summary { min-height: 62px; gap: 12px; }
+  .mvp-security-details summary span { min-width: 0; overflow-wrap: anywhere; }
+
+  /* 5. O resumo de privacidade fica legível mesmo com rótulos extensos. */
+  .mvp-account-privacy-card > summary { min-height: 62px; padding-inline: 16px; }
+  .mvp-account-privacy-card > summary > span { min-width: 0; overflow-wrap: anywhere; }
+
+  /* 6. Cabeçalho de disponibilidade não espreme a informação de período. */
+  .availability-published-head { align-items: flex-start; flex-direction: column; gap: 5px; }
+
+  /* 7. Ações de proposta passam a ocupar toda a largura útil. */
+  .professional-appointment-actions { width: 100%; box-sizing: border-box; }
+  .professional-appointment-actions .button { min-height: 46px; width: 100%; justify-content: center; }
+
+  /* 8. Cabeçalho de notificações suporta títulos maiores sem corte. */
+  .mvp-notification-panel-head { align-items: flex-start; }
+  .mvp-notification-panel-head strong { min-width: 0; overflow-wrap: anywhere; }
+
+  /* 9. Cabeçalho de conversa mantém título, subtítulo e fechar acessíveis. */
+  .mvp-conversation-panel-head { min-width: 0; }
+  .mvp-conversation-panel-head div { min-width: 0; }
+  .mvp-conversation-panel-head strong,
+  .mvp-conversation-panel-head small { overflow-wrap: anywhere; }
+
+  /* 10. Tags e estados de linha não criam uma segunda rolagem horizontal. */
+  .mvp-row,
+  .mvp-row-actions,
+  .mvp-tag { min-width: 0; max-width: 100%; }
+  .mvp-tag { white-space: normal; text-align: center; }
+}
+
 /* Janela expandida: proporção próxima ao chat do Instagram e sem competir com
    a pilula de mensagens, que desaparece enquanto uma conversa está aberta. */
 .mvp-conversation-window {

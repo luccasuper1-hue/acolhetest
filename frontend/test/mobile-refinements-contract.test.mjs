@@ -90,3 +90,17 @@ test("mobile institutional surfaces keep cards and forms readable", () => {
   assert.match(cycle, /\.lead-form input[\s\S]*font-size: 16px/s);
   assert.match(cycle, /\.lead-success[\s\S]*\.lead-error[^}]*overflow-wrap: anywhere/s);
 });
+
+test("mobile authenticated panels keep states and actions readable", () => {
+  const cycle = css.slice(css.lastIndexOf("/* Ciclo mobile 07"));
+  assert.match(cycle, /\.mvp-kpi strong[\s\S]*overflow-wrap: anywhere/s);
+  assert.match(cycle, /\.mvp-empty[^}]*min-height: 52px/s);
+  assert.match(cycle, /\.mvp-load-error[^}]*box-sizing: border-box/s);
+  assert.match(cycle, /\.mvp-security-details summary[^}]*min-height: 62px/s);
+  assert.match(cycle, /\.mvp-account-privacy-card > summary[^}]*min-height: 62px/s);
+  assert.match(cycle, /\.availability-published-head[^}]*flex-direction: column/s);
+  assert.match(cycle, /\.professional-appointment-actions[^}]*width: 100%/s);
+  assert.match(cycle, /\.mvp-notification-panel-head strong[^}]*overflow-wrap: anywhere/s);
+  assert.match(cycle, /\.mvp-conversation-panel-head strong[\s\S]*overflow-wrap: anywhere/s);
+  assert.match(cycle, /\.mvp-tag[^}]*white-space: normal/s);
+});
