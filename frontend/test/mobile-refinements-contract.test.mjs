@@ -146,3 +146,17 @@ test("mobile forms and conversation headers keep a stable rhythm", () => {
   assert.match(cycle, /\.mvp-brand[^}]*flex: 1 1 auto/s);
   assert.match(cycle, /\.mvp-conversation-panel-head \.mvp-conversation-back[\s\S]*min-width: 44px/s);
 });
+
+test("mobile public navigation and footer avoid clipping", () => {
+  const cycle = appCss.slice(appCss.lastIndexOf("/* Ciclo mobile 11"));
+  assert.match(cycle, /\.nav-wrap[^}]*min-width: 0/s);
+  assert.match(cycle, /\.mobile-menu[^}]*min-width: 44px/s);
+  assert.match(cycle, /\.nav-more-button[^}]*min-height: 44px/s);
+  assert.match(cycle, /\.nav-drawer-foot[^}]*gap: 12px/s);
+  assert.match(cycle, /\.section h1[\s\S]*overflow-wrap: anywhere/s);
+  assert.match(cycle, /\.footer-bottom[^}]*align-items: flex-start/s);
+  assert.match(cycle, /\.footer-main[^}]*min-width: 0/s);
+  assert.match(cycle, /\.lead-foot[^}]*display: grid/s);
+  assert.match(cycle, /\.cookie-dialog-head[^}]*align-items: flex-start/s);
+  assert.match(cycle, /\.nav-links a:focus-visible[\s\S]*outline: 3px/s);
+});

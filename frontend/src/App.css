@@ -1979,3 +1979,44 @@ html[data-theme="dark"] .home-route .footer { background: #17111f; }
   .footer-group a,
   .footer-cookie-settings { overflow-wrap: anywhere; }
 }
+
+/* Ciclo mobile 11: entrada pública e navegação sem cortes. */
+@media (max-width: 650px) {
+  /* 1. O invólucro do cabeçalho pode encolher sem empurrar ações para fora. */
+  .nav-wrap { min-width: 0; gap: 8px; }
+
+  /* 2. O menu móvel mantém alvo de toque confortável e previsível. */
+  .mobile-menu { min-width: 44px; min-height: 44px; }
+
+  /* 3. O botão de mais ocupa uma linha clara no drawer. */
+  .nav-more-button { min-height: 44px; justify-content: space-between; }
+
+  /* 4. A ação principal do drawer não fica colada aos links. */
+  .nav-drawer-foot { gap: 12px; }
+  .nav-drawer-foot .button { min-height: 48px; justify-content: center; }
+
+  /* 5. Títulos de seção quebram antes de criar overflow horizontal. */
+  .section h1,
+  .section h2,
+  .info-page h1,
+  .info-page h2 { max-width: 100%; overflow-wrap: anywhere; }
+
+  /* 6. Rodapé empilha metadados sem comprimir o texto legal. */
+  .footer-bottom { align-items: flex-start; gap: 8px; line-height: 1.4; }
+
+  /* 7. Grupos do rodapé usam a largura real disponível. */
+  .footer-main { min-width: 0; gap: 24px; }
+  .footer-links { min-width: 0; }
+
+  /* 8. Ações e observações de formulário não ficam na mesma linha. */
+  .lead-foot { display: grid; gap: 10px; align-items: start; }
+
+  /* 9. Preferências de cookies seguem acessíveis no diálogo compacto. */
+  .cookie-dialog-head { gap: 12px; align-items: flex-start; }
+  .cookie-dialog-head .icon-button { min-width: 44px; min-height: 44px; }
+
+  /* 10. Links de navegação recebem foco visual consistente no toque. */
+  .nav-links a:focus-visible,
+  .nav-more-button:focus-visible,
+  .mobile-menu:focus-visible { outline: 3px solid color-mix(in srgb, var(--brand) 62%, transparent); outline-offset: 2px; }
+}
