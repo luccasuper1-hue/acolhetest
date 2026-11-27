@@ -245,3 +245,17 @@ test("mobile student journeys keep choices and empty states readable", () => {
   assert.match(cycle, /\.onboarding-top[^}]*min-width: 0/s);
   assert.match(cycle, /\.onboarding-copy h2[^}]*overflow-wrap: anywhere/s);
 });
+
+test("mobile availability and recovery controls stay usable", () => {
+  const cycle = css.slice(css.lastIndexOf("/* Ciclo mobile 18"));
+  assert.match(cycle, /\.availability-builder[^}]*grid-template-columns: 1fr/s);
+  assert.match(cycle, /\.recurring-fields[^}]*grid-template-columns: repeat\(2/s);
+  assert.match(cycle, /\.recurring-weekdays-head[^}]*flex-wrap: wrap/s);
+  assert.match(cycle, /\.recurring-weekdays button[^}]*min-height: 44px/s);
+  assert.match(cycle, /\.student-availability-interest[^}]*flex-direction: column/s);
+  assert.match(cycle, /\.availability-times-head[^}]*flex-wrap: wrap/s);
+  assert.match(cycle, /\.mvp-slots[^}]*grid-template-columns: 1fr/s);
+  assert.match(cycle, /\.mvp-load-error[^}]*overflow-wrap: anywhere/s);
+  assert.match(cycle, /\.mvp-auth-card[^}]*overflow-wrap: anywhere/s);
+  assert.match(cycle, /\.mvp-cookie-settings[^}]*min-height: 44px/s);
+});
