@@ -33,3 +33,17 @@ test("public mobile surfaces respect safe areas and dynamic viewport", () => {
   assert.match(cycle, /dash-chart/);
   assert.match(cycle, /scroll-margin-top/);
 });
+
+test("mobile booking and session flows keep controls reachable", () => {
+  const cycle = appCss.slice(appCss.lastIndexOf("/* Ciclo mobile 03"));
+  assert.match(cycle, /\.days-row[^}]*overflow-x: auto/s);
+  assert.match(cycle, /\.day[^}]*min-height: 68px/s);
+  assert.match(cycle, /\.time[^}]*min-height: 46px/s);
+  assert.match(cycle, /\.payment-tabs[^}]*overflow-x: auto/s);
+  assert.match(cycle, /\.session-main[^}]*100dvh/s);
+  assert.match(cycle, /\.session-controls[^}]*grid-template-columns/s);
+  assert.match(cycle, /\.notif-panel[^}]*position: fixed/s);
+  assert.match(cycle, /\.notif-row[^}]*min-height: 58px/s);
+  assert.match(cycle, /\.login-page[^}]*100dvh/s);
+  assert.match(cycle, /\.summary-box dd[^}]*overflow-wrap: anywhere/s);
+});

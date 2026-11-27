@@ -1638,6 +1638,44 @@ html.intro-on .hero h1 em { display: inline-block; animation: emIn 900ms var(--e
   .resource-card > p { padding: 0 20px 22px; }
 }
 
+/* Ciclo mobile 03: agenda, sessão, autenticação e notificações. */
+@media (max-width: 650px) {
+  /* 1. A faixa de dias pode ser explorada sem espremer datas curtas. */
+  .days-row { overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; padding-bottom: 3px; }
+  .days-row::-webkit-scrollbar { display: none; }
+
+  /* 2. Cada dia mantém uma área visual e de toque consistente. */
+  .day { flex: 0 0 56px; min-height: 68px; }
+
+  /* 3. Horários têm alvo mínimo mesmo quando a grade fica estreita. */
+  .time { min-height: 46px; padding-inline: 8px; }
+
+  /* 4. Abas de pagamento não quebram a largura do checkout. */
+  .payment-tabs { max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+  .payment-tabs::-webkit-scrollbar { display: none; }
+  .payment-tabs button { min-height: 44px; flex: 0 0 auto; }
+
+  /* 5. A sala usa a altura dinâmica e respeita as áreas seguras do aparelho. */
+  .session-main { min-height: 100dvh; padding: calc(14px + env(safe-area-inset-top)) 15px calc(22px + env(safe-area-inset-bottom)); }
+
+  /* 6. Controles de sessão ficam grandes e previsíveis sob o vídeo. */
+  .session-controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: min(100%, 360px); margin-inline: auto; }
+  .session-control { min-height: 50px; justify-content: center; }
+
+  /* 7. Notificações ocupam o viewport disponível, sem ficar fora da tela. */
+  .notif-panel { position: fixed; top: calc(64px + env(safe-area-inset-top)); left: 12px; right: 12px; width: auto; max-height: min(70dvh, 520px); overflow-y: auto; overscroll-behavior: contain; }
+
+  /* 8. Cada notificação tem leitura e toque confortáveis. */
+  .notif-row { min-height: 58px; align-items: flex-start; }
+
+  /* 9. Login continua centrado quando o teclado reduz o viewport. */
+  .login-page { min-height: 100dvh; place-items: start center; padding: calc(28px + env(safe-area-inset-top)) 14px calc(28px + env(safe-area-inset-bottom)); }
+
+  /* 10. Resumos de agendamento não cortam nomes ou modalidades compridas. */
+  .summary-box dl div { align-items: flex-start; }
+  .summary-box dd { overflow-wrap: anywhere; }
+}
+
 /* Ajustes de acabamento — alinhamento e densidade do header */
 .resources-section { max-width: 1184px; }
 .resource-grid { max-width: 900px; }
