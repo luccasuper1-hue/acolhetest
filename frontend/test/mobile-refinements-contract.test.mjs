@@ -4,6 +4,7 @@ import fs from "node:fs";
 
 const css = fs.readFileSync(new URL("../src/mvp/mvp.css", import.meta.url), "utf8");
 const appCss = fs.readFileSync(new URL("../src/App.css", import.meta.url), "utf8");
+const institutionalCss = fs.readFileSync(new URL("../src/institutional.css", import.meta.url), "utf8");
 
 test("mobile refinements keep the panel readable and usable", () => {
   const cycle = css.slice(css.lastIndexOf("/* Ciclo mobile 01"));
@@ -74,4 +75,18 @@ test("mobile student surfaces avoid overlap with fixed controls", () => {
   assert.match(cycle, /search-field input[^}]*font-size: 16px/s);
   assert.match(cycle, /profile-hero[^}]*flex-wrap: wrap/s);
   assert.match(cycle, /video-name[^}]*overflow-wrap: anywhere/s);
+});
+
+test("mobile institutional surfaces keep cards and forms readable", () => {
+  const cycle = institutionalCss.slice(institutionalCss.lastIndexOf("/* Ciclo mobile 06"));
+  assert.match(cycle, /\.inst-card[^}]*overflow-wrap: anywhere/s);
+  assert.match(cycle, /\.inst-note[^}]*overflow-wrap: anywhere/s);
+  assert.match(cycle, /\.b2b2c-node[^}]*overflow-wrap: anywhere/s);
+  assert.match(cycle, /\.inst-strip-actions[^}]*grid-template-columns: 1fr/s);
+  assert.match(cycle, /\.capability-card[\s\S]*\.plan-card[^}]*min-width: 0/s);
+  assert.match(cycle, /\.market-chip[^}]*white-space: normal/s);
+  assert.match(cycle, /\.validation-step[^}]*overflow-wrap: anywhere/s);
+  assert.match(cycle, /\.how-steps li[^}]*overflow-wrap: anywhere/s);
+  assert.match(cycle, /\.lead-form input[\s\S]*font-size: 16px/s);
+  assert.match(cycle, /\.lead-success[\s\S]*\.lead-error[^}]*overflow-wrap: anywhere/s);
 });

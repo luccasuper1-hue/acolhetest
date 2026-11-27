@@ -514,3 +514,44 @@ main.info-page:has([data-testid="professional-form-cta"]) [data-testid="partners
 main.info-page:has([data-testid="professional-form-cta"]) [data-testid="pro-panel-preview"] {
   display: none;
 }
+
+/* Ciclo mobile 06: páginas institucionais e formulários de interesse. */
+@media (max-width: 650px) {
+  /* 1. Cards institucionais encolhem antes de ampliar o viewport. */
+  .inst-card { min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
+
+  /* 2. Notas com links e termos longos continuam legíveis. */
+  .inst-note { min-width: 0; overflow-wrap: anywhere; }
+
+  /* 3. Cada nó do fluxo mantém uma coluna confortável no telefone. */
+  .b2b2c-flow { min-width: 0; }
+  .b2b2c-node { min-width: 0; overflow-wrap: anywhere; }
+
+  /* 4. A faixa institucional usa ações de largura total e sem apertos. */
+  .inst-strip-actions { display: grid; grid-template-columns: 1fr; width: 100%; }
+  .inst-strip-actions .button { width: 100%; justify-content: center; }
+
+  /* 5. Blocos de capacidade mantêm respiro proporcional ao texto. */
+  .capability-card,
+  .access-card,
+  .plan-card { padding: 22px 20px; min-width: 0; }
+
+  /* 6. Chips de mercado não causam rolagem lateral acidental. */
+  .market-grid { min-width: 0; overflow-wrap: anywhere; }
+  .market-chip { max-width: 100%; white-space: normal; }
+
+  /* 7. Etapas de validação quebram textos sem deslocar o ícone. */
+  .validation-step { min-width: 0; overflow-wrap: anywhere; }
+
+  /* 8. Listas de como funciona preservam o número e o texto em telas estreitas. */
+  .how-steps li { min-width: 0; overflow-wrap: anywhere; }
+
+  /* 9. Formulários de interesse evitam zoom automático e têm alvo confortável. */
+  .lead-form input,
+  .lead-form textarea,
+  .lead-form select { min-height: 46px; font-size: 16px; }
+
+  /* 10. Estados de sucesso e erro nunca cortam a orientação ao usuário. */
+  .lead-success,
+  .lead-error { min-width: 0; overflow-wrap: anywhere; }
+}
