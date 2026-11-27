@@ -8,7 +8,8 @@
   // consumption during development and validation.
   "vars": {
     "FRONTEND_URL": "https://acolhetest-staging.luccasuper1.workers.dev",
-    "APP_ENV": "staging"
+    "APP_ENV": "staging",
+    "SCHEDULED_MAINTENANCE_ENABLED": "false"
   },
   "assets": {
     "directory": "../frontend/build",

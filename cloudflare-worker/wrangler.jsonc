@@ -8,7 +8,8 @@
   // consuming Durable Objects quota without user traffic.
   "vars": {
     "FRONTEND_URL": "https://acolhetest.luccasuper1.workers.dev",
-    "APP_ENV": "production"
+    "APP_ENV": "production",
+    "SCHEDULED_MAINTENANCE_ENABLED": "false"
   },
   "assets": {
     "directory": "../frontend/build",

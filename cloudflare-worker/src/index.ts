@@ -11,6 +11,8 @@ export interface Env {
   FRONTEND_URL: string;
   PILOT_RETURN_RESET_TOKEN?: string;
   APP_ENV?: string;
+  /** Background maintenance is opt-in to prevent idle Durable Object usage. */
+  SCHEDULED_MAINTENANCE_ENABLED?: string;
   /** HTTPS endpoint of the chosen transactional-email adapter. */
   RESET_EMAIL_WEBHOOK_URL?: string;
   RESET_EMAIL_WEBHOOK_TOKEN?: string;
@@ -229,6 +231,9 @@ export default {
     }
   },
   async scheduled(_controller: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
+    // Keep quota safe even if an old Cloudflare Cron Trigger remains
+    // registered outside the checked-in Wrangler configuration.
+    if (env.SCHEDULED_MAINTENANCE_ENABLED !== "true") return;
     // Keep the 48-hour SLA clock independent from dashboard visits. The
     // request-triggered sweep remains as a fast consistency fallback.
     const store = db(env);

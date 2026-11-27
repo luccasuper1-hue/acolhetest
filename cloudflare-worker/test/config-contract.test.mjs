@@ -13,6 +13,7 @@ const migrationsReadme = await readFile(new URL("../../ops/migrations/README.md"
 const packager = await readFile(new URL("../../ops/package-release.ps1", import.meta.url), "utf8");
 const releaseVerifier = await readFile(new URL("../../ops/verify-release.ps1", import.meta.url), "utf8");
 const wrangler = await readFile(new URL("../wrangler.jsonc", import.meta.url), "utf8");
+const stagingWrangler = await readFile(new URL("../wrangler.staging.jsonc", import.meta.url), "utf8");
 const deployDoc = await readFile(new URL("../../DEPLOY.md", import.meta.url), "utf8");
 const operationsDoc = await readFile(new URL("../../docs/OPERATIONS.md", import.meta.url), "utf8");
 const onboardingDoc = await readFile(new URL("../../docs/ONBOARDING-INSTITUTION.md", import.meta.url), "utf8");
@@ -85,6 +86,8 @@ test("local vars template matches the Worker configuration contract", () => {
   assert.match(packager, /O pacote já existe/);
   assert.match(template, /Nunca substitua estes valores por credenciais reais/);
   assert.doesNotMatch(wrangler, /"crons"\s*:/);
+  assert.match(wrangler, /"SCHEDULED_MAINTENANCE_ENABLED"\s*:\s*"false"/);
+  assert.match(stagingWrangler, /"SCHEDULED_MAINTENANCE_ENABLED"\s*:\s*"false"/);
   assert.equal(packageJson.scripts.deploy, "npm run check && npm test && npm run build:frontend && wrangler deploy");
   assert.match(deployDoc, /Rollback seguro/);
   assert.match(deployDoc, /docs\/RELEASE-STATUS\.md/);
