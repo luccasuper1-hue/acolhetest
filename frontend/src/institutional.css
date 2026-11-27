@@ -555,3 +555,51 @@ main.info-page:has([data-testid="professional-form-cta"]) [data-testid="pro-pane
   .lead-success,
   .lead-error { min-width: 0; overflow-wrap: anywhere; }
 }
+
+/* Ciclo mobile 13: painel institucional com métricas e ações legíveis. */
+@media (max-width: 650px) {
+  /* 1. O cabeçalho de métricas começa pelo título e não pela ação lateral. */
+  .dash-head { align-items: flex-start; }
+
+  /* 2. Escopos de período permanecem tocáveis quando quebram linha. */
+  .dash-scope span { min-height: 40px; display: inline-flex; align-items: center; }
+
+  /* 3. Cabeçalhos de KPI acomodam ícone e contexto sem colisão. */
+  .dash-kpi-top { min-width: 0; align-items: flex-start; }
+  .dash-kpi-top span { overflow-wrap: anywhere; }
+
+  /* 4. Valores agregados longos não escapam do cartão. */
+  .dash-kpi strong,
+  .dash-kpi-label,
+  .dash-kpi-trend { min-width: 0; overflow-wrap: anywhere; }
+
+  /* 5. Cabeçalhos de gráficos preservam título e filtro em duas linhas. */
+  .dash-card-head { align-items: flex-start; }
+  .dash-card-head h3,
+  .dash-card-head p { min-width: 0; overflow-wrap: anywhere; }
+
+  /* 6. Rótulos de demanda não ficam comprimidos ao lado do percentual. */
+  .demand-row-top { align-items: flex-start; flex-wrap: wrap; }
+  .demand-row-top span { min-width: 0; overflow-wrap: anywhere; }
+
+  /* 7. Operações institucionais mantêm status separado da descrição. */
+  .dash-op-row { align-items: flex-start; }
+  .dash-op-row strong,
+  .dash-op-row span { min-width: 0; overflow-wrap: anywhere; }
+  .dash-op-status { flex: 0 0 auto; }
+
+  /* 8. A prévia profissional respeita títulos extensos no telefone. */
+  .pro-preview-top { align-items: flex-start; }
+  .pro-preview-top h3,
+  .pro-preview-top p { min-width: 0; overflow-wrap: anywhere; }
+
+  /* 9. Tiles conceituais mantêm respiro mesmo com conteúdo desigual. */
+  .pro-preview-tile { min-width: 0; padding: 18px; }
+  .pro-preview-tile strong,
+  .pro-preview-tile span { overflow-wrap: anywhere; }
+
+  /* 10. Faixas institucionais não criam uma segunda rolagem horizontal. */
+  .inst-strip { min-width: 0; overflow: hidden; }
+  .inst-strip h2,
+  .inst-strip p { overflow-wrap: anywhere; }
+}

@@ -175,3 +175,17 @@ test("mobile student scheduling and bottom navigation stay usable", () => {
   assert.match(cycle, /\.summary-box[\s\S]*overflow-wrap: anywhere/s);
   assert.match(cycle, /\.confirmation-main \.button[\s\S]*min-height: 46px/s);
 });
+
+test("mobile institutional metrics and operations stay readable", () => {
+  const cycle = institutionalCss.slice(institutionalCss.lastIndexOf("/* Ciclo mobile 13"));
+  assert.match(cycle, /\.dash-head[^}]*align-items: flex-start/s);
+  assert.match(cycle, /\.dash-scope span[^}]*min-height: 40px/s);
+  assert.match(cycle, /\.dash-kpi-top[^}]*align-items: flex-start/s);
+  assert.match(cycle, /\.dash-kpi strong[\s\S]*overflow-wrap: anywhere/s);
+  assert.match(cycle, /\.dash-card-head[^}]*align-items: flex-start/s);
+  assert.match(cycle, /\.demand-row-top[^}]*flex-wrap: wrap/s);
+  assert.match(cycle, /\.dash-op-row[^}]*align-items: flex-start/s);
+  assert.match(cycle, /\.pro-preview-top[^}]*align-items: flex-start/s);
+  assert.match(cycle, /\.pro-preview-tile[^}]*min-width: 0/s);
+  assert.match(cycle, /\.inst-strip[^}]*overflow: hidden/s);
+});
