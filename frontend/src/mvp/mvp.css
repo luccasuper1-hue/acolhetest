@@ -2789,3 +2789,39 @@ html[data-theme="dark"] .mvp-shell[data-testid="student-area"] .student-active-a
 @media(max-width:390px){.institution-insights-launcher{right:10px;bottom:12px}}
 .professional-slot-suggestions{display:grid;gap:.4rem;margin-top:.65rem}.professional-slot-suggestions button{width:max-content}.professional-slot-suggestions .is-selected{background:#7d4dcc;color:#fff}.professional-checklist{display:flex;flex-wrap:wrap;gap:.45rem;margin-top:.85rem;padding:.7rem;border-top:1px solid var(--border,#d8c8ed);font-size:.82rem}.professional-checklist strong{width:100%}.professional-checklist .is-done{color:#27866f}.professional-checklist .is-pending{color:#a76525}
 @media (max-width:640px){.professional-slot-suggestions button{width:100%;white-space:normal;text-align:left}}
+
+/* Ciclo mobile 08: conversa, navegação e listas com toque confortável. */
+@media (max-width: 640px) {
+  /* 1. Mensagens longas ocupam o espaço útil sem criar overflow lateral. */
+  .mvp-conversation-window .mvp-chat-message { max-width: 100%; overflow-wrap: anywhere; }
+
+  /* 2. O campo de chat pode encolher antes do botão de envio. */
+  .mvp-conversation-window .mvp-chat-compose input { min-width: 0; flex: 1 1 auto; }
+
+  /* 3. O painel de notificações respeita margens em telas muito estreitas. */
+  .mvp-notification-panel,
+  .mvp-notification-panel.is-expanded { width: calc(100vw - 24px); max-width: calc(100vw - 24px); right: -6px; }
+
+  /* 4. Ações do topo não empurram a marca para fora da viewport. */
+  .mvp-topbar-right { min-width: 0; max-width: 54vw; overflow: hidden; }
+  .mvp-topbar-right > .button { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+
+  /* 5. Etapas horizontais seguem fáceis de tocar ao deslizar. */
+  .mvp-flow li { min-height: 36px; }
+
+  /* 6. Tabelas mantêm colunas legíveis dentro do scroll dedicado. */
+  .mvp-table-scroll table { min-width: 560px; }
+
+  /* 7. Detalhes de sessão não comprimem a informação principal. */
+  .professional-sessions-card .professional-session-row .mvp-row-main { min-width: 0; width: 100%; }
+
+  /* 8. Pedidos do estudante oferecem área de texto confortável. */
+  .student-direct-request-card textarea { min-height: 112px; resize: vertical; }
+
+  /* 9. Ações do cabeçalho permanecem alcançáveis sem estourar o card. */
+  .mvp-card-head > .button,
+  .mvp-card-head > a.button { max-width: 100%; min-height: 42px; white-space: normal; }
+
+  /* 10. Grades de indicadores usam respiro consistente em telas estreitas. */
+  .mvp-kpis { gap: 10px; }
+}

@@ -104,3 +104,17 @@ test("mobile authenticated panels keep states and actions readable", () => {
   assert.match(cycle, /\.mvp-conversation-panel-head strong[\s\S]*overflow-wrap: anywhere/s);
   assert.match(cycle, /\.mvp-tag[^}]*white-space: normal/s);
 });
+
+test("mobile conversation and list controls stay usable on narrow screens", () => {
+  const cycle = css.slice(css.lastIndexOf("/* Ciclo mobile 08"));
+  assert.match(cycle, /\.mvp-conversation-window \.mvp-chat-message[^}]*max-width: 100%/s);
+  assert.match(cycle, /\.mvp-conversation-window \.mvp-chat-compose input[^}]*min-width: 0/s);
+  assert.match(cycle, /\.mvp-notification-panel[^}]*width: calc\(100vw - 24px\)/s);
+  assert.match(cycle, /\.mvp-topbar-right[^}]*max-width: 54vw/s);
+  assert.match(cycle, /\.mvp-flow li[^}]*min-height: 36px/s);
+  assert.match(cycle, /\.mvp-table-scroll table[^}]*min-width: 560px/s);
+  assert.match(cycle, /\.professional-sessions-card \.professional-session-row \.mvp-row-main[^}]*width: 100%/s);
+  assert.match(cycle, /\.student-direct-request-card textarea[^}]*min-height: 112px/s);
+  assert.match(cycle, /\.mvp-card-head > \.button[^}]*min-height: 42px/s);
+  assert.match(cycle, /\.mvp-kpis[^}]*gap: 10px/s);
+});
