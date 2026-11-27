@@ -2901,3 +2901,39 @@ html[data-theme="dark"] .mvp-shell[data-testid="student-area"] .student-active-a
   .mvp-conversation-panel-head .mvp-conversation-back,
   .mvp-conversation-panel-head .mvp-conversation-close { min-width: 44px; min-height: 44px; }
 }
+
+/* Ciclo mobile 14: painel administrativo com ações claras e sem aperto. */
+@media (max-width: 640px) {
+  /* 1. Cabeçalhos administrativos quebram com espaçamento previsível. */
+  .mvp-shell[data-testid="admin-area"] .mvp-card-head { gap: 10px; align-items: flex-start; }
+
+  /* 2. Filtros administrativos viram uma coluna fácil de percorrer. */
+  .mvp-shell[data-testid="admin-area"] .admin-filter-bar { display: grid; gap: 8px; }
+
+  /* 3. Campos de usuários ocupam a largura real do cartão. */
+  .mvp-shell[data-testid="admin-area"] .admin-user-filters { min-width: 0; width: 100%; gap: 10px; }
+  .mvp-shell[data-testid="admin-area"] .admin-user-filters label { min-width: 0; }
+
+  /* 4. Indicadores operacionais não comprimem seus rótulos. */
+  .mvp-shell[data-testid="admin-area"] .admin-operations-grid > div { min-width: 0; overflow-wrap: anywhere; }
+
+  /* 5. Ações de usuário ficam empilhadas e sem toque acidental. */
+  .mvp-shell[data-testid="admin-area"] .mvp-row-actions .button { width: 100%; min-height: 44px; justify-content: center; }
+
+  /* 6. Certificados mantêm título e código dentro do cartão. */
+  .mvp-shell[data-testid="admin-area"] .admin-certificates-card strong,
+  .mvp-shell[data-testid="admin-area"] .admin-certificates-card span { overflow-wrap: anywhere; }
+
+  /* 7. Filtros de interesse deixam o botão de ação abaixo do campo. */
+  .mvp-shell[data-testid="admin-area"] .admin-leads-card .admin-filter-bar input,
+  .mvp-shell[data-testid="admin-area"] .admin-leads-card .admin-filter-bar select { min-width: 0; max-width: 100%; }
+
+  /* 8. Detalhes arquivados usam resumo com área de toque adequada. */
+  .mvp-shell[data-testid="admin-area"] .admin-archived-details > summary { min-height: 52px; align-items: center; }
+
+  /* 9. Estados vazios de listas não ficam visualmente colados ao cabeçalho. */
+  .mvp-shell[data-testid="admin-area"] .mvp-empty { margin-top: 4px; line-height: 1.5; }
+
+  /* 10. Cadastro manual não deixa o botão escapar da coluna única. */
+  .mvp-shell[data-testid="admin-area"] .admin-manual-institution .mvp-inline-form button { width: 100%; min-height: 46px; justify-content: center; }
+}

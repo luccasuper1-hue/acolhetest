@@ -189,3 +189,17 @@ test("mobile institutional metrics and operations stay readable", () => {
   assert.match(cycle, /\.pro-preview-tile[^}]*min-width: 0/s);
   assert.match(cycle, /\.inst-strip[^}]*overflow: hidden/s);
 });
+
+test("mobile admin controls remain stacked and reachable", () => {
+  const cycle = css.slice(css.lastIndexOf("/* Ciclo mobile 14"));
+  assert.match(cycle, /admin-area\"] \.mvp-card-head[^}]*align-items: flex-start/s);
+  assert.match(cycle, /admin-area\"] \.admin-filter-bar[^}]*display: grid/s);
+  assert.match(cycle, /admin-area\"] \.admin-user-filters[^}]*width: 100%/s);
+  assert.match(cycle, /admin-area\"] \.admin-operations-grid > div[^}]*min-width: 0/s);
+  assert.match(cycle, /admin-area\"] \.mvp-row-actions \.button[^}]*min-height: 44px/s);
+  assert.match(cycle, /admin-certificates-card strong[\s\S]*overflow-wrap: anywhere/s);
+  assert.match(cycle, /admin-leads-card \.admin-filter-bar input[\s\S]*max-width: 100%/s);
+  assert.match(cycle, /admin-archived-details > summary[^}]*min-height: 52px/s);
+  assert.match(cycle, /admin-area\"] \.mvp-empty[^}]*line-height: 1\.5/s);
+  assert.match(cycle, /admin-manual-institution \.mvp-inline-form button[^}]*min-height: 46px/s);
+});
